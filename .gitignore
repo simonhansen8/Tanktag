@@ -1,0 +1,15 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Eksporterede modeller og testfiler
+*.struxml
+*.str
+out/
+tmp/
+
+# Node (hvis der senere kommer et build-trin)
+node_modules/
