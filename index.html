@@ -131,6 +131,7 @@ fieldset.sub:disabled { opacity: 0.5; }
 .d-ld.lc-S { --lc: var(--c-sec); }
 .d-ld.lc-W { --lc: var(--c-brace); }
 .d-ld.lc-P, .d-ld.lc-T { --lc: var(--primer); }
+.d-ld .plate { stroke: var(--lc); fill-opacity: 0.85; }
 .d-ld .lbg { fill: var(--sheet); fill-opacity: 0.9; stroke: var(--lc); stroke-width: 1; }
 .d-ld text { stroke: none; fill: var(--ink); font-family: var(--f-data); }
 .group h2 { color: var(--ink); }
@@ -4470,7 +4471,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       return { m: m, d: mid[0] * f[0] + mid[1] * f[1] + mid[2] * f[2] };
     }).sort(function (a, b) { return a.d - b.d; });
     var lc = formTab !== 'brace' ? activeCase() : null;
-    if (lc) out.push(loadPanels3D(g, lc, P, f, cz));
     items.forEach(function (it) {
       var m = it.m;
       out.push(lineEl(GROUP_CLASS[m.group], P(m.start), P(m.end), ' stroke-width="' + GROUP_WIDTH[m.group] + '" stroke-linecap="round"'));
@@ -4493,28 +4493,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
 
   // ---------- laster i 3D ----------
-  // lastfordelingsfladerne farvet efter værdien, bagerst først
-  function loadPanels3D(g, lc, P, f, cz) {
-    if (!lc.values || !g.covers.length || !lc.values.some(function (v) { return Math.abs(v) > 1e-12; })) return '';
-    var vmax = 0;
-    lc.values.forEach(function (v) { vmax = Math.max(vmax, Math.abs(v)); });
-    var items = g.covers.map(function (cv, i) {
-      var c = [0, 0, 0];
-      cv.points.forEach(function (q) { c[0] += q[0]; c[1] += q[1]; c[2] += q[2]; });
-      var n = cv.points.length;
-      return { cv: cv, i: i, d: (c[0] / n) * f[0] + (c[1] / n) * f[1] + (c[2] / n - cz) * f[2] };
-    }).sort(function (a, b) { return a.d - b.d; });
-    var out = ['<g class="d-loadpanel3">'];
-    items.forEach(function (it) {
-      var v = lc.values[it.i];
-      if (Math.abs(v) < 1e-12) return;
-      var pts = it.cv.points.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' ');
-      out.push('<polygon points="' + pts + '" style="fill: ' + loadFill(v, vmax) + '"><title>' + esc(it.cv.name) + ': ' + nf(v, 3) + ' kN/m²</title></polygon>');
-    });
-    out.push('</g>');
-    return out.join('');
-  }
-  // pile for lasterne: længden følger værdien (relativt til tilfældets største), farven lasttypen
+  // laster i 3D: fladelaster som små flader, øvrige laster som pile; størrelsen følger værdien, farven lasttypen
   function loadArrows3D(g, lc, P, f, cz, k, zLow) {
     var R = g.info.R, Lmax = 0.2 * R, out = [], labels = [];
     var grp = TR.caseGroup(lc.key);
@@ -4543,15 +4522,23 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       if (Ld.kind === 'surface') { surf.push(Ld); vmax = Math.max(vmax, Ld.val); }
     });
     if (surf.length && vmax > 0) {
-      var arr = surf.map(function (Ld, i) {
-        var pp = Ld.panel, d = Ld.dir, frac = Math.max(0.12, Ld.val / vmax), L = Lmax * frac, c = pp.centroid;
-        var inward = dot3(d, pp.normal) < 0;    // trykker på fladen: spidsen på fladen, ellers halen på fladen
-        var tail = inward ? [c[0] - d[0] * L, c[1] - d[1] * L, c[2] - d[2] * L] : c.slice();
-        var tip = inward ? c.slice() : [c[0] + d[0] * L, c[1] + d[1] * L, c[2] + d[2] * L];
-        return { Ld: Ld, i: i, tail: tail, tip: tip, d: depth(c) };
+      // fladelaster som små flader: en formindsket kopi af lastfladen, løftet væk fra taget i lastens retning
+      // (på den side lasten kommer fra, når den trykker på fladen). Afstanden følger værdien, farven fortegnet.
+      var svmax = 0;
+      (lc.values || []).forEach(function (v) { svmax = Math.max(svmax, Math.abs(v)); });
+      var arr = surf.map(function (Ld) {
+        var pp = Ld.panel, d = Ld.dir, frac = Math.max(0.12, Ld.val / vmax), L = Lmax * 0.6 * frac, c = pp.centroid;
+        var sgn = dot3(d, pp.normal) < 0 ? -1 : 1, off = [d[0] * L * sgn, d[1] * L * sgn, d[2] * L * sgn];
+        var ci = g.covers.indexOf(pp.cover), v = lc.values && ci >= 0 ? lc.values[ci] : Ld.val;
+        var pts = pp.cover.points.map(function (q) {
+          return [c[0] + (q[0] - c[0]) * 0.7 + off[0], c[1] + (q[1] - c[1]) * 0.7 + off[1], c[2] + (q[2] - c[2]) * 0.7 + off[2]];
+        });
+        return { Ld: Ld, v: v, pts: pts, at: vadd3(c, off), c: c, d: depth(vadd3(c, off)) };
       }).sort(function (a, b) { return a.d - b.d; });
       arr.forEach(function (a) {
-        out.push(arrow(a.tail, a.tip, 1.3, a.Ld.panel.cover.name + ': ' + nf(a.Ld.val, 3) + ' kN/m²' + (a.Ld.comment ? ' (' + a.Ld.comment.replace('cpe', 'c_pe') + ')' : '')));
+        var title = a.Ld.panel.cover.name + ': ' + nf(a.Ld.val, 3) + ' kN/m²' + (a.Ld.comment ? ' (' + a.Ld.comment.replace('cpe', 'c_pe') + ')' : '');
+        out.push('<polygon class="plate" points="' + a.pts.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' ') +
+          '" style="fill: ' + loadFill(a.v, svmax || vmax) + '" stroke-width="' + (0.8 * k).toFixed(2) + '"><title>' + esc(title) + '</title></polygon>');
       });
       // værdier: én etiket pr. forskellig værdi (den forreste), eller kun største og mindste ved mange forskellige
       var groups = {}, keys = [];
@@ -4566,7 +4553,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         arr.forEach(function (a) { if (a.Ld.val > hi.Ld.val) hi = a; if (a.Ld.val < lo.Ld.val) lo = a; });
         pick = hi === lo ? [hi] : [hi, lo];
       }
-      pick.forEach(function (a) { label(a.tail, a.tip, nf(a.Ld.val, 2) + ' kN/m²'); });
+      pick.forEach(function (a) { label(a.at, a.c, nf(a.Ld.val, 2) + ' kN/m²'); });
     }
     lc.loads.forEach(function (Ld) {
       if (Ld.kind === 'point') {
@@ -4624,6 +4611,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     return dirSvg + '<g class="d-ld' + (grp ? ' lc-' + grp : '') + '" stroke-linecap="round">' + out.join('') + labels.join('') + '</g>';
   }
   function dot3(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function vadd3(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
   function vsub3(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
   function norm3(a) { return Math.sqrt(dot3(a, a)); }
 
@@ -5090,10 +5078,11 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
             : (lcv.signed ? ' (blå er sug, rød er tryk).' : '.')) + ' Hold musen over en flade for værdien.')
         : 'Set oppefra. Radialbjælkerne er nummereret mod uret fra RB.1; trekanterne er understøtningerne ved svøbet.')
       : (view === 'section' ? 'Snit gennem centrum i samme målestok lodret og vandret. Koter i m; målekæden viser afstande fra centrum.'
-        : (lcv ? 'Pilene viser ' + lcv.name.toLowerCase() + ' i lastens retning' +
-          (lcv.temp ? (lcv.temp.motions ? ' (svøbets flytning af understøtningerne).' : '; temperaturen ligger på bjælkerne og har ingen pile.')
-            : lcv.line || lcv.point ? '.' : ', med længden relativt til tilfældets største værdi. Hold musen over en pil for værdien.') +
-          ' Vælg Ingen under Vis last for at skjule dem. Træk i tegningen for at dreje den.'
+        : (lcv ? (lcv.temp ? (lcv.temp.motions ? 'Pilene viser svøbets flytning af understøtningerne ved temperatur.' : 'Temperaturen ligger på bjælkerne og vises ikke i 3D.')
+            : lcv.line ? 'Pilene viser gangbroens linjelast på RB.' + lcv.line.rb + '.'
+            : lcv.point ? 'Pilen viser punktlasten midt på RB.1.'
+            : 'Fladelasten vises som små flader over lastfladerne: afstanden til taget følger værdien, og farven viser tryk (rød) og sug (blå). Hold musen over en flade for værdien.') +
+          ' Vælg Ingen under Vis last for at skjule lasterne. Træk i tegningen for at dreje den.'
           : 'Træk i tegningen for at dreje den. Vælg et lasttilfælde under Vis last for at se lasterne.'));
     $('caption').textContent += zoomHint();
     drawing.setAttribute('aria-label', view === 'plan' ? 'Plan af taget' : (view === 'section' ? 'Snit gennem tagets centrum' : '3D-visning af taget'));
