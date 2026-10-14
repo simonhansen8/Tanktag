@@ -1,0 +1,1625 @@
+{
+  "version": "1.16",
+  "geometry": {
+    "info": {
+      "R": 17.07,
+      "rc": 1,
+      "radii": [
+        5,
+        8,
+        11,
+        14
+      ],
+      "customRadii": true,
+      "nodesR": [
+        1,
+        5,
+        8,
+        11,
+        14,
+        17.07
+      ],
+      "z": [
+        2.9208,
+        2.685748,
+        2.301459,
+        1.734491,
+        0.978534,
+        0
+      ],
+      "zSupport": 0,
+      "rise": 2.9208,
+      "slopeDeg": null,
+      "tanA": 0,
+      "domeCenterZ": -48.24943,
+      "apexZ": 2.93057,
+      "spacingShell": 4.456164,
+      "spacingShellSec": 2.232863,
+      "spacingRing": 0.261052,
+      "thetas": [
+        -0.1309,
+        0.1309,
+        0.392699,
+        0.654498,
+        0.916298,
+        1.178097,
+        1.439897,
+        1.701696,
+        1.963495,
+        2.225295,
+        2.487094,
+        2.748894,
+        3.010693,
+        3.272492,
+        3.534292,
+        3.796091,
+        4.057891,
+        4.31969,
+        4.581489,
+        4.843289,
+        5.105088,
+        5.366887,
+        5.628687,
+        5.890486
+      ],
+      "segmented": true,
+      "secRadius": 11,
+      "hold": [],
+      "brace": {
+        "lines": 6,
+        "valid": 6,
+        "members": 18,
+        "repeat": 3
+      }
+    },
+    "warnings": [
+      "Vindgitter: 6 stænger går hen over en bjælke uden fælles knude, fx VG.1."
+    ],
+    "braceErrors": [],
+    "members": {
+      "radial": {
+        "count": 120,
+        "length": 393.611413
+      },
+      "ring": {
+        "count": 24,
+        "length": 6.265257
+      },
+      "udv": {
+        "count": 96,
+        "length": 238.079775
+      },
+      "edge": {
+        "count": 48,
+        "length": 107.177416
+      },
+      "sec": {
+        "count": 48,
+        "length": 153.729352
+      },
+      "brace": {
+        "count": 18,
+        "length": 87.6942
+      }
+    },
+    "supports": 48,
+    "covers": 217
+  },
+  "quantities": {
+    "radial": {
+      "count": 120,
+      "length": 393.611413,
+      "profile": "IPE|330",
+      "mass": 19344.395806,
+      "kgpm": 49.145922,
+      "parts": [
+        {
+          "profile": "IPE|330",
+          "count": 120,
+          "length": 393.611413,
+          "mass": 19344.395806,
+          "kgpm": 49.145922
+        }
+      ]
+    },
+    "ring": {
+      "count": 24,
+      "length": 6.265257,
+      "profile": "HE-B|200",
+      "mass": 384.021404,
+      "kgpm": 61.293797,
+      "parts": [
+        {
+          "profile": "HE-B|200",
+          "count": 24,
+          "length": 6.265257,
+          "mass": 384.021404,
+          "kgpm": 61.293797
+        }
+      ]
+    },
+    "udv": {
+      "count": 96,
+      "length": 238.079775,
+      "profile": "LE|80*6",
+      "mass": 2754.208798,
+      "kgpm": 11.568428,
+      "parts": [
+        {
+          "profile": "LE|80*6",
+          "count": 72,
+          "length": 169.161945,
+          "mass": 1241.247848,
+          "kgpm": 7.337631
+        },
+        {
+          "profile": "U|180",
+          "count": 24,
+          "length": 68.917829,
+          "mass": 1512.96095,
+          "kgpm": 21.953114
+        }
+      ]
+    },
+    "edge": {
+      "count": 48,
+      "length": 107.177416,
+      "profile": "T|120",
+      "mass": 2490.720228,
+      "kgpm": 23.239226,
+      "parts": [
+        {
+          "profile": "T|120",
+          "count": 48,
+          "length": 107.177416,
+          "mass": 2490.720228,
+          "kgpm": 23.239226
+        }
+      ]
+    },
+    "sec": {
+      "count": 48,
+      "length": 153.729352,
+      "profile": "IPE|180",
+      "mass": 2889.903706,
+      "kgpm": 18.798646,
+      "parts": [
+        {
+          "profile": "IPE|180",
+          "count": 48,
+          "length": 153.729352,
+          "mass": 2889.903706,
+          "kgpm": 18.798646
+        }
+      ]
+    },
+    "brace": {
+      "count": 18,
+      "length": 87.6942,
+      "profile": "LE|70*7",
+      "mass": 646.882785,
+      "kgpm": 7.376574,
+      "parts": [
+        {
+          "profile": "LE|70*7",
+          "count": 18,
+          "length": 87.6942,
+          "mass": 646.882785,
+          "kgpm": 7.376574
+        }
+      ]
+    }
+  },
+  "loads": {
+    "warnings": [],
+    "panels": 217,
+    "totalPanelArea": 939.138065,
+    "cases": [
+      {
+        "key": "dead",
+        "name": "Egenlast",
+        "type": "dead_load",
+        "duration": "permanent",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          0,
+          0,
+          -368.611691
+        ]
+      },
+      {
+        "key": "livePoint",
+        "name": "Nyttelast, punkt",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "point": 1
+        },
+        "F": [
+          0,
+          0,
+          -1.5
+        ]
+      },
+      {
+        "key": "walkDead",
+        "name": "Gangbro, egenlast",
+        "type": "static",
+        "duration": "permanent",
+        "loads": {
+          "line": 5
+        },
+        "F": [
+          0,
+          0,
+          -16.400476
+        ]
+      },
+      {
+        "key": "walkLive",
+        "name": "Gangbro, nyttelast",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "line": 5
+        },
+        "F": [
+          0,
+          0,
+          -25.712
+        ]
+      },
+      {
+        "key": "snowUniform",
+        "name": "Sne, jævn",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          0,
+          0,
+          -584.192432
+        ]
+      },
+      {
+        "key": "snowAsym",
+        "name": "Sne, ensidig",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          0,
+          0,
+          -443.610582
+        ]
+      },
+      {
+        "key": "wind0",
+        "name": "Vind 0°",
+        "type": "static",
+        "duration": "instantaneous",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          -46.421537,
+          0,
+          854.909074
+        ]
+      },
+      {
+        "key": "pressOver",
+        "name": "Overtryk",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          0,
+          0,
+          136.920101
+        ]
+      },
+      {
+        "key": "pressVac",
+        "name": "Undertryk",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 217
+        },
+        "F": [
+          0,
+          0,
+          -228.200169
+        ]
+      },
+      {
+        "key": "temp",
+        "name": "Temperatur",
+        "type": "static",
+        "duration": "long-term",
+        "loads": {
+          "temp": 354,
+          "motion": 48
+        },
+        "F": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "dead": {
+      "g": 0.3925,
+      "plate": 0.3925
+    },
+    "snow": {
+      "s0": 0.8,
+      "asymMu": null
+    },
+    "wind": {
+      "qp": 1.084738,
+      "peak": {
+        "qp": 1.084738,
+        "kr": 0.169756,
+        "cr": 1.240566,
+        "vb": 24,
+        "vm": 29.773583,
+        "Iv": 0.136838,
+        "z": 14.9208,
+        "z0": 0.01,
+        "zmin": 1
+      },
+      "ze": 14.9208,
+      "f": 2.9208,
+      "fd": 0.085554,
+      "hd": 0.351494,
+      "e": 24
+    },
+    "press": {
+      "over": 0.15,
+      "vac": 0.25
+    },
+    "temp": {
+      "dRoof": 40,
+      "dShell": 50,
+      "u": 0.010242,
+      "uRoof": 0.008194,
+      "motions": 48,
+      "radialFree": false,
+      "determinate": false
+    },
+    "walk": {
+      "rb": 1,
+      "rIn": 1,
+      "rOut": 17.07,
+      "length": 16.400476,
+      "plan": 16.07,
+      "g": 1,
+      "q": 1.6,
+      "segs": [
+        {
+          "member": {
+            "group": "radial",
+            "name": "RB1.1",
+            "start": [
+              0.991445,
+              -0.130526,
+              2.9208
+            ],
+            "end": [
+              4.957224,
+              -0.652631,
+              2.685748
+            ],
+            "localY": [
+              0.130526,
+              0.991445,
+              0
+            ],
+            "connStart": "rigid",
+            "connEnd": "rigid",
+            "index": 0,
+            "seg": 0,
+            "partGuid": "00000000-0000-4000-8000-000000000003"
+          },
+          "a": [
+            0.991445,
+            -0.130526,
+            2.9208
+          ],
+          "b": [
+            4.957224,
+            -0.652631,
+            2.685748
+          ]
+        },
+        {
+          "member": {
+            "group": "radial",
+            "name": "RB1.2",
+            "start": [
+              4.957224,
+              -0.652631,
+              2.685748
+            ],
+            "end": [
+              7.931559,
+              -1.04421,
+              2.301459
+            ],
+            "localY": [
+              0.130526,
+              0.991445,
+              0
+            ],
+            "connStart": "rigid",
+            "connEnd": "rigid",
+            "index": 0,
+            "seg": 1,
+            "partGuid": "00000000-0000-4000-8000-000000000006"
+          },
+          "a": [
+            4.957224,
+            -0.652631,
+            2.685748
+          ],
+          "b": [
+            7.931559,
+            -1.04421,
+            2.301459
+          ]
+        },
+        {
+          "member": {
+            "group": "radial",
+            "name": "RB1.3",
+            "start": [
+              7.931559,
+              -1.04421,
+              2.301459
+            ],
+            "end": [
+              10.905893,
+              -1.435788,
+              1.734491
+            ],
+            "localY": [
+              0.130526,
+              0.991445,
+              0
+            ],
+            "connStart": "rigid",
+            "connEnd": "rigid",
+            "index": 0,
+            "seg": 2,
+            "partGuid": "00000000-0000-4000-8000-000000000009"
+          },
+          "a": [
+            7.931559,
+            -1.04421,
+            2.301459
+          ],
+          "b": [
+            10.905893,
+            -1.435788,
+            1.734491
+          ]
+        },
+        {
+          "member": {
+            "group": "radial",
+            "name": "RB1.4",
+            "start": [
+              10.905893,
+              -1.435788,
+              1.734491
+            ],
+            "end": [
+              13.880228,
+              -1.827367,
+              0.978534
+            ],
+            "localY": [
+              0.130526,
+              0.991445,
+              0
+            ],
+            "connStart": "rigid",
+            "connEnd": "rigid",
+            "index": 0,
+            "seg": 3,
+            "partGuid": "00000000-0000-4000-8000-000000000012"
+          },
+          "a": [
+            10.905893,
+            -1.435788,
+            1.734491
+          ],
+          "b": [
+            13.880228,
+            -1.827367,
+            0.978534
+          ]
+        },
+        {
+          "member": {
+            "group": "radial",
+            "name": "RB1.5",
+            "start": [
+              13.880228,
+              -1.827367,
+              0.978534
+            ],
+            "end": [
+              16.923964,
+              -2.228082,
+              0
+            ],
+            "localY": [
+              0.130526,
+              0.991445,
+              0
+            ],
+            "connStart": "rigid",
+            "connEnd": "hinged",
+            "index": 0,
+            "seg": 4,
+            "partGuid": "00000000-0000-4000-8000-000000000015"
+          },
+          "a": [
+            13.880228,
+            -1.827367,
+            0.978534
+          ],
+          "b": [
+            16.923964,
+            -2.228082,
+            0
+          ]
+        }
+      ]
+    },
+    "combos": [
+      {
+        "name": "STR 6.10a",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1.2,
+          "walkDead": 1.2
+        },
+        "F": [
+          0,
+          0,
+          -462.0146
+        ]
+      },
+      {
+        "name": "STR Nyttelast, punkt",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "livePoint": 1.5,
+          "walkDead": 1,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -729.562419
+        ]
+      },
+      {
+        "name": "STR Nyttelast, punkt + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "livePoint": 1.5,
+          "walkDead": 1,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -729.562419
+        ]
+      },
+      {
+        "name": "STR Gangbro, nyttelast",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "walkLive": 1.5,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -765.880419
+        ]
+      },
+      {
+        "name": "STR Gangbro, nyttelast + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "walkLive": 1.5,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -765.880419
+        ]
+      },
+      {
+        "name": "STR Sne, jævn",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 1.5,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -1603.601068
+        ]
+      },
+      {
+        "name": "STR Sne, jævn + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 1.5,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -1603.601068
+        ]
+      },
+      {
+        "name": "STR Sne, ensidig",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowAsym": 1.5,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -1392.728293
+        ]
+      },
+      {
+        "name": "STR Sne, ensidig + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowAsym": 1.5,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -1392.728293
+        ]
+      },
+      {
+        "name": "STR Vind 0°",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 0.9,
+          "walkDead": 0.9,
+          "wind0": 1.5,
+          "pressOver": 1.5
+        },
+        "F": [
+          -69.632306,
+          0,
+          1141.232814
+        ]
+      },
+      {
+        "name": "STR Vind 0° + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 0.9,
+          "walkDead": 0.9,
+          "wind0": 1.5,
+          "pressOver": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          -69.632306,
+          0,
+          1141.232814
+        ]
+      },
+      {
+        "name": "STR Overtryk",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 0.9,
+          "walkDead": 0.9,
+          "wind0": 0.45,
+          "pressOver": 1.5
+        },
+        "F": [
+          -20.889692,
+          0,
+          243.578286
+        ]
+      },
+      {
+        "name": "STR Overtryk + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 0.9,
+          "walkDead": 0.9,
+          "wind0": 0.45,
+          "pressOver": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          -20.889692,
+          0,
+          243.578286
+        ]
+      },
+      {
+        "name": "STR Undertryk",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.45,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -990.199014
+        ]
+      },
+      {
+        "name": "STR Undertryk + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.45,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -990.199014
+        ]
+      },
+      {
+        "name": "STR Temperatur, nedadrettet",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.9,
+          "pressVac": 1.5,
+          "temp": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -1253.085608
+        ]
+      },
+      {
+        "name": "STR Temperatur, opadrettet",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 0.9,
+          "walkDead": 0.9,
+          "wind0": 0.45,
+          "pressOver": 1.5,
+          "temp": 1.5
+        },
+        "F": [
+          -20.889692,
+          0,
+          243.578286
+        ]
+      },
+      {
+        "name": "SLS kar. Nyttelast, punkt",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "livePoint": 1,
+          "walkDead": 1,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -614.712335
+        ]
+      },
+      {
+        "name": "SLS kar. Nyttelast, punkt + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "livePoint": 1,
+          "walkDead": 1,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -614.712335
+        ]
+      },
+      {
+        "name": "SLS kar. Gangbro, nyttelast",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "walkLive": 1,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -638.924335
+        ]
+      },
+      {
+        "name": "SLS kar. Gangbro, nyttelast + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "walkLive": 1,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -638.924335
+        ]
+      },
+      {
+        "name": "SLS kar. Sne, jævn",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 1,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -1197.404767
+        ]
+      },
+      {
+        "name": "SLS kar. Sne, jævn + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 1,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -1197.404767
+        ]
+      },
+      {
+        "name": "SLS kar. Sne, ensidig",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowAsym": 1,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -1056.822917
+        ]
+      },
+      {
+        "name": "SLS kar. Sne, ensidig + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowAsym": 1,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -1056.822917
+        ]
+      },
+      {
+        "name": "SLS kar. Vind 0°",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "wind0": 1,
+          "pressOver": 1
+        },
+        "F": [
+          -46.421537,
+          0,
+          606.817009
+        ]
+      },
+      {
+        "name": "SLS kar. Vind 0° + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "wind0": 1,
+          "pressOver": 1,
+          "temp": 0.6
+        },
+        "F": [
+          -46.421537,
+          0,
+          606.817009
+        ]
+      },
+      {
+        "name": "SLS kar. Overtryk",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "wind0": 0.3,
+          "pressOver": 1
+        },
+        "F": [
+          -13.926461,
+          0,
+          8.380657
+        ]
+      },
+      {
+        "name": "SLS kar. Overtryk + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "wind0": 0.3,
+          "pressOver": 1,
+          "temp": 0.6
+        },
+        "F": [
+          -13.926461,
+          0,
+          8.380657
+        ]
+      },
+      {
+        "name": "SLS kar. Undertryk",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.3,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -788.470065
+        ]
+      },
+      {
+        "name": "SLS kar. Undertryk + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.3,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -788.470065
+        ]
+      },
+      {
+        "name": "SLS kar. Temperatur, nedadrettet",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowUniform": 0.6,
+          "pressVac": 1,
+          "temp": 1
+        },
+        "F": [
+          0,
+          0,
+          -963.727794
+        ]
+      },
+      {
+        "name": "SLS kar. Temperatur, opadrettet",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "wind0": 0.3,
+          "pressOver": 1,
+          "temp": 1
+        },
+        "F": [
+          -13.926461,
+          0,
+          8.380657
+        ]
+      }
+    ]
+  },
+  "proposedCombos": [
+    {
+      "name": "STR 6.10a",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1,2",
+        "walkDead": "1,2"
+      }
+    },
+    {
+      "name": "STR Nyttelast, punkt",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "livePoint": "1,5",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Nyttelast, punkt + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "livePoint": "1,5",
+        "pressVac": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Gangbro, nyttelast",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "walkLive": "1,5",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Gangbro, nyttelast + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "walkLive": "1,5",
+        "pressVac": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Sne, jævn",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowUniform": "1,5",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Sne, jævn + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowUniform": "1,5",
+        "pressVac": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Sne, ensidig",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowAsym": "1,5",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Sne, ensidig + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowAsym": "1,5",
+        "pressVac": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Vind 0°",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "0,9",
+        "walkDead": "0,9",
+        "wind0": "1,5",
+        "pressOver": "1,5"
+      }
+    },
+    {
+      "name": "STR Vind 0° + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "0,9",
+        "walkDead": "0,9",
+        "wind0": "1,5",
+        "pressOver": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Overtryk",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "0,9",
+        "walkDead": "0,9",
+        "pressOver": "1,5",
+        "wind0": "0,45"
+      }
+    },
+    {
+      "name": "STR Overtryk + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "0,9",
+        "walkDead": "0,9",
+        "pressOver": "1,5",
+        "wind0": "0,45",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Undertryk",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressVac": "1,5",
+        "snowUniform": "0,45"
+      }
+    },
+    {
+      "name": "STR Undertryk + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressVac": "1,5",
+        "snowUniform": "0,45",
+        "temp": "0,9"
+      }
+    },
+    {
+      "name": "STR Temperatur, nedadrettet",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "temp": "1,5",
+        "snowUniform": "0,9",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Temperatur, opadrettet",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "0,9",
+        "walkDead": "0,9",
+        "temp": "1,5",
+        "wind0": "0,45",
+        "pressOver": "1,5"
+      }
+    },
+    {
+      "name": "SLS kar. Nyttelast, punkt",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "livePoint": "1",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Nyttelast, punkt + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "livePoint": "1",
+        "pressVac": "1",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Gangbro, nyttelast",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "walkLive": "1",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Gangbro, nyttelast + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "walkLive": "1",
+        "pressVac": "1",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Sne, jævn",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowUniform": "1",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Sne, jævn + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowUniform": "1",
+        "pressVac": "1",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Sne, ensidig",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowAsym": "1",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Sne, ensidig + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowAsym": "1",
+        "pressVac": "1",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Vind 0°",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "wind0": "1",
+        "pressOver": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Vind 0° + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "wind0": "1",
+        "pressOver": "1",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Overtryk",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressOver": "1",
+        "wind0": "0,3"
+      }
+    },
+    {
+      "name": "SLS kar. Overtryk + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressOver": "1",
+        "wind0": "0,3",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Undertryk",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressVac": "1",
+        "snowUniform": "0,3"
+      }
+    },
+    {
+      "name": "SLS kar. Undertryk + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "pressVac": "1",
+        "snowUniform": "0,3",
+        "temp": "0,6"
+      }
+    },
+    {
+      "name": "SLS kar. Temperatur, nedadrettet",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "temp": "1",
+        "snowUniform": "0,6",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Temperatur, opadrettet",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "temp": "1",
+        "wind0": "0,3",
+        "pressOver": "1"
+      }
+    }
+  ],
+  "windDoc": {
+    "model": "dome",
+    "qp": 1.084738,
+    "e": 24,
+    "c": 11.07,
+    "cpi": 0,
+    "cpeA": -1.5,
+    "cpeB": -0.8,
+    "cpeC": -0.4,
+    "cpeConst": -0.6,
+    "nPanels": 217,
+    "ApTotal": 912.800675,
+    "zones": [
+      {
+        "key": "AB",
+        "label": "Luvside A–B (s ≤ R)",
+        "cpe0": -1.5,
+        "cpe1": -0.8,
+        "w0": -1.627107,
+        "w1": -0.86779
+      },
+      {
+        "key": "BC",
+        "label": "Læside B–C (s &gt; R)",
+        "cpe0": -0.8,
+        "cpe1": -0.4,
+        "w0": -0.86779,
+        "w1": -0.433895
+      }
+    ],
+    "dirs": [
+      {
+        "deg": 0,
+        "name": "Vind 0°",
+        "panels": 217,
+        "F": [
+          -46.421537,
+          0,
+          854.909074
+        ],
+        "caseF": [
+          -46.421537,
+          0,
+          854.909074
+        ]
+      }
+    ]
+  },
+  "struxml": {
+    "sha256": "da1826ef9a8fc848db3c6b16a2ce0012899eaf362b1c5a517991bd960f497cc0",
+    "lines": 29648,
+    "elements": {
+      "analytical": 672,
+      "bar": 354,
+      "bar_part": 354,
+      "complex_section": 336,
+      "compression": 18,
+      "connectivity": 672,
+      "contour": 1526,
+      "cover": 217,
+      "curve": 354,
+      "database": 1,
+      "direction": 1715,
+      "displacement": 48,
+      "ecc": 672,
+      "eccentricity": 354,
+      "edge": 6000,
+      "elastic": 36,
+      "end": 1388,
+      "entities": 1,
+      "group": 48,
+      "line_load": 10,
+      "line_temperature_variation_load": 354,
+      "load": 1323,
+      "load_case": 158,
+      "load_combination": 33,
+      "loads": 1,
+      "local_x": 48,
+      "local_y": 48,
+      "material": 1,
+      "materials": 1,
+      "motions": 48,
+      "normal": 6364,
+      "physical": 708,
+      "point": 12680,
+      "point_load": 1,
+      "point_support": 48,
+      "point_support_motion_load": 48,
+      "position": 48,
+      "ref": 360,
+      "region": 1526,
+      "region_group": 7,
+      "rigidity": 48,
+      "rotations": 48,
+      "section": 679,
+      "sections": 1,
+      "steel": 1,
+      "supporting_structures": 217,
+      "supports": 1,
+      "surface_load": 1302,
+      "temperature": 708,
+      "tension": 18,
+      "truss_behaviour": 18,
+      "x_axis": 28
+    }
+  }
+}

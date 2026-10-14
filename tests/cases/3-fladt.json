@@ -1,0 +1,13 @@
+{
+  "description": "Lille fladt tag, D = 12 m, 12 radialbjælker uden kantring og sektionsspær, lodrette understøtninger, vindzoner F–I for fladt tag, ingen overtryk og ingen temperatur.",
+  "params": {
+    "tankDiameter": 12, "numRadial": 12, "ringDiameter": 1, "numUdv": 1, "udvRadii": "",
+    "roofType": "flat", "edgeRing": false, "secOn": false, "secAxes": false, "udvPerRing": false,
+    "profRadial": "HE-A|160", "profRing": "HE-A|140", "profUdv": "U|120", "material": "S 235",
+    "support": "vertical", "covers": "radial",
+    "bracing": "", "bracingRepeat": 1,
+    "deadSelf": false, "plateT": 6, "deadExtra": 0.3,
+    "snowAsym": false, "windModel": "flat", "windTerrain": "III", "windH": 8,
+    "pressOver": 0, "tempOn": false, "walkOn": false
+  }
+}

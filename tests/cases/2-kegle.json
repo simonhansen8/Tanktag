@@ -1,0 +1,22 @@
+{
+  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter og egne kombinationer.",
+  "params": {
+    "tankDiameter": 20, "numRadial": 16, "ringDiameter": 1.5, "numUdv": 2, "udvRadii": "",
+    "roofType": "cone", "slopeMode": "ratio", "slopeValue": 5, "rotationDeg": 10,
+    "splitRadial": true, "secOn": false, "udvPerRing": false, "udvOrientation": "vertical",
+    "connRadialRing": "hinged", "connUdv": "rigid", "support": "radialSpring", "radialSpring": 25000,
+    "covers": "all", "coverCenter": false,
+    "bracing": "1:S-2:2; 2:S-1:2", "bracingRepeat": 4, "braceTensionOnly": true,
+    "liveQ": 1.0, "liveHalf": true, "livePointQ": 0,
+    "snowSk": 1.0, "snowCe": 0.8, "snowAsymMu": "0,3", "asymDir": 45,
+    "windQpMode": "direct", "windQp": 0.75, "windModel": "const", "windCpe": -0.6, "windCpi": 0.2, "windDirs": "0; 45",
+    "pressOver": 0, "pressVac": 5,
+    "tempRoof": 30, "tempShell": 40,
+    "walkRB": 3, "walkRin": "2", "walkRout": "9", "walkG": 0.8, "walkQ": 3, "walkB": 1,
+    "combos": [
+      { "name": "BRUD 1", "type": "ultimate_ordinary", "f": { "dead": "1,0", "snowUniform": "1,5", "walkLive": "0,45" } },
+      { "name": "BRUD 2", "type": "ultimate_ordinary", "f": { "dead": "0,9", "wind0": "1,5", "pressVac": "1,5" } },
+      { "name": "ANV 1", "type": "serviceability_characteristic", "f": { "dead": "1", "snowAsym": "1" } }
+    ]
+  }
+}

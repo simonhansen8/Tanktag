@@ -1,0 +1,362 @@
+{
+  "version": "1.16",
+  "geometry": {
+    "info": {
+      "R": 6,
+      "rc": 0.5,
+      "radii": [
+        3.25
+      ],
+      "customRadii": false,
+      "nodesR": [
+        0.5,
+        3.25,
+        6
+      ],
+      "z": [
+        0,
+        0,
+        0
+      ],
+      "zSupport": 0,
+      "rise": 0,
+      "slopeDeg": 0,
+      "tanA": 0,
+      "domeCenterZ": null,
+      "apexZ": 0,
+      "spacingShell": 3.105829,
+      "spacingShellSec": null,
+      "spacingRing": 0.258819,
+      "thetas": [
+        0,
+        0.523599,
+        1.047198,
+        1.570796,
+        2.094395,
+        2.617994,
+        3.141593,
+        3.665191,
+        4.18879,
+        4.712389,
+        5.235988,
+        5.759587
+      ],
+      "segmented": false,
+      "secRadius": null,
+      "hold": [
+        {
+          "name": "S.1",
+          "dir": "X",
+          "lock": false,
+          "pos": [
+            6,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "S.4",
+          "dir": "Y",
+          "lock": false,
+          "pos": [
+            0,
+            6,
+            0
+          ]
+        },
+        {
+          "name": "S.7",
+          "dir": "Y",
+          "lock": true,
+          "pos": [
+            -6,
+            0,
+            0
+          ]
+        }
+      ],
+      "brace": {
+        "lines": 0,
+        "valid": 0,
+        "members": 0,
+        "repeat": 1
+      }
+    },
+    "warnings": [],
+    "braceErrors": [],
+    "members": {
+      "radial": {
+        "count": 12,
+        "length": 66
+      },
+      "ring": {
+        "count": 12,
+        "length": 3.105829
+      },
+      "udv": {
+        "count": 12,
+        "length": 20.187886
+      }
+    },
+    "supports": 12,
+    "covers": 25
+  },
+  "quantities": {
+    "radial": {
+      "count": 12,
+      "length": 66,
+      "profile": "HE-A|160",
+      "mass": 2008.747788,
+      "kgpm": 30.435573,
+      "parts": [
+        {
+          "profile": "HE-A|160",
+          "count": 12,
+          "length": 66,
+          "mass": 2008.747788,
+          "kgpm": 30.435573
+        }
+      ]
+    },
+    "ring": {
+      "count": 12,
+      "length": 3.105829,
+      "profile": "HE-A|140",
+      "mass": 76.594869,
+      "kgpm": 24.661654,
+      "parts": [
+        {
+          "profile": "HE-A|140",
+          "count": 12,
+          "length": 3.105829,
+          "mass": 76.594869,
+          "kgpm": 24.661654
+        }
+      ]
+    },
+    "udv": {
+      "count": 12,
+      "length": 20.187886,
+      "profile": "U|120",
+      "mass": 269.203217,
+      "kgpm": 13.334889,
+      "parts": [
+        {
+          "profile": "U|120",
+          "count": 12,
+          "length": 20.187886,
+          "mass": 269.203217,
+          "kgpm": 13.334889
+        }
+      ]
+    }
+  },
+  "loads": {
+    "warnings": [],
+    "panels": 25,
+    "totalPanelArea": 108,
+    "cases": [
+      {
+        "key": "dead",
+        "name": "Egenlast",
+        "type": "static",
+        "duration": "permanent",
+        "loads": {
+          "surface": 25
+        },
+        "F": [
+          0,
+          0,
+          -83.268
+        ]
+      },
+      {
+        "key": "livePoint",
+        "name": "Nyttelast, punkt",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "point": 1
+        },
+        "F": [
+          0,
+          0,
+          -1.5
+        ]
+      },
+      {
+        "key": "snowUniform",
+        "name": "Sne, jævn",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 25
+        },
+        "F": [
+          0,
+          0,
+          -69.12
+        ]
+      },
+      {
+        "key": "wind0",
+        "name": "Vind 0°",
+        "type": "static",
+        "duration": "instantaneous",
+        "loads": {
+          "surface": 25
+        },
+        "F": [
+          0,
+          0,
+          36.49942
+        ]
+      },
+      {
+        "key": "pressVac",
+        "name": "Undertryk",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 25
+        },
+        "F": [
+          0,
+          0,
+          -27
+        ]
+      }
+    ],
+    "dead": {
+      "g": 0.771,
+      "plate": 0.471
+    },
+    "snow": {
+      "s0": 0.8,
+      "asymMu": null
+    },
+    "wind": {
+      "qp": 0.563915,
+      "peak": {
+        "qp": 0.563915,
+        "kr": 0.215389,
+        "cr": 0.707212,
+        "vb": 24,
+        "vm": 16.973098,
+        "Iv": 0.304561,
+        "z": 8,
+        "z0": 0.3,
+        "zmin": 5
+      },
+      "ze": 8,
+      "f": 0,
+      "fd": 0,
+      "hd": 0.666667,
+      "e": 12
+    },
+    "press": {
+      "over": 0,
+      "vac": 0.25
+    },
+    "temp": null,
+    "walk": null,
+    "combos": []
+  },
+  "proposedCombos": null,
+  "windDoc": {
+    "model": "flat",
+    "qp": 0.563915,
+    "e": 12,
+    "c": 3,
+    "cpi": 0,
+    "cpeA": -1.5,
+    "cpeB": -0.8,
+    "cpeC": -0.4,
+    "cpeConst": -0.6,
+    "nPanels": 25,
+    "ApTotal": 108,
+    "zones": [
+      {
+        "key": "F",
+        "label": "F"
+      },
+      {
+        "key": "G",
+        "label": "G"
+      },
+      {
+        "key": "H",
+        "label": "H"
+      },
+      {
+        "key": "I",
+        "label": "I"
+      }
+    ],
+    "dirs": [
+      {
+        "deg": 0,
+        "name": "Vind 0°",
+        "panels": 25,
+        "F": [
+          0,
+          0,
+          36.49942
+        ],
+        "caseF": [
+          0,
+          0,
+          36.49942
+        ]
+      }
+    ]
+  },
+  "struxml": {
+    "sha256": "fd151c60473f11308dba13ad42f6df7a40fdc9f4a99de370f140b14debf9e5a6",
+    "lines": 2591,
+    "elements": {
+      "analytical": 72,
+      "bar": 36,
+      "bar_part": 36,
+      "complex_section": 36,
+      "connectivity": 72,
+      "contour": 128,
+      "cover": 25,
+      "curve": 36,
+      "database": 1,
+      "direction": 101,
+      "ecc": 72,
+      "eccentricity": 36,
+      "edge": 584,
+      "end": 148,
+      "entities": 1,
+      "group": 12,
+      "load": 101,
+      "load_case": 5,
+      "loads": 1,
+      "local_x": 12,
+      "local_y": 12,
+      "material": 1,
+      "materials": 1,
+      "motions": 12,
+      "normal": 584,
+      "physical": 72,
+      "point": 1228,
+      "point_load": 1,
+      "point_support": 12,
+      "position": 12,
+      "ref": 60,
+      "region": 128,
+      "region_group": 3,
+      "rigidity": 12,
+      "rotations": 12,
+      "section": 75,
+      "sections": 1,
+      "steel": 1,
+      "supporting_structures": 25,
+      "supports": 1,
+      "surface_load": 100,
+      "x_axis": 12
+    }
+  }
+}

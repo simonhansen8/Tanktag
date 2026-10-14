@@ -1,0 +1,179 @@
+Dokumentationen gælder de aktuelle parametre og svarer til lasttilfældene Vind θ° i StruXML-filen. Taget er delt i lastfordelingsflader (CO.i). Hver flade får én jævnt fordelt vindlast, som FEM-Design fordeler til bjælkerne langs fladens kanter.
+
+1. Grundlag
+===========
+Norm:	DS/EN 1991-1-4 med dansk nationalt anneks (DK NA 2024)
+Tank:	D = 20,000 m, svøbets top h = 12,000 m over terræn
+Tag:	Konisk, hældning 11,31°, rejsning f = 1,850 m til ringbjælken
+Formfaktorer:	Konstant c_pe på hele taget (angivet)
+Indvendig formfaktor:	c_pi = 0,2
+Vindretninger:	θ = 0° og 45°, målt fra X-aksen mod uret. Vinden blæser i retningen θ.
+Lastfordelingsflader:	48 stk., 304,42 m² i vandret projektion. Centerpladen inden for ringbjælken er ikke med
+
+2. Peakhastighedstryk q_p
+=========================
+q_p = 0,750 kN/m² er angivet direkte. Tagets referencehøjde er z_e = h + f (tagets top) = 13,850 m.
+
+3. Formfaktorer
+===============
+Samme formfaktor på hele taget: c_pe = −0,6, så w = q_p(c_pe − c_pi) = 0,750 · (−0,6 − 0,2) = −0,600 kN/m².
+
+4. Sådan bliver lasten lagt på modellen
+=======================================
+- Hver lastfordelingsflade får fladelasten |w| vinkelret på fladen. Positiv w er tryk mod tagfladen (nedad), negativ w er sug væk fra fladen (opad).
+- Alle flader får samme værdi.
+- Lasttilfældet hedder Vind θ°, er en almindelig (statisk) last og har varighedsklassen øjeblikkelig. Lastkombinationer laves under fanen Kombinationer eller i FEM-Design.
+- Arealer og kræfter står pr. vindretning herunder.
+
+5. Lasten pr. vindretning
+=========================
+
+5.1 Vind 0°
+-----------
+[Figur: se Hent som HTML]
+
+Del af taget	c_pe	w, kN/m²	Flader	Areal i modellen, m²	Areal efter zonerne, m²	ΣF lodret i modellen, kN	ΣF lodret efter zonerne, kN
+Hele taget	−0,6	−0,600	48	304,42	304,42	−182,7	−182,7
+I alt			48	304,42	304,42	−182,7	−182,7
+
+ΣF lodret er positiv nedad. I modellen er ΣF lodret = −182,7 kN og ΣF vandret = 0,0 kN.
+
+Beregning pr. flade, Vind 0°
+----------------------------
+Alle flader har c_pe = −0,6, så w = 0,750 · (−0,6 − 0,2) = −0,600 kN/m².
+
+Eksempel 1: CO.34
+-----------------
+Flade:	CO.34
+Tyngdepunkt i planen:	x = −0,056 m, y = −2,586 m
+Formfaktor:	c_pe = −0,6 (angivet)
+Vindlast:	w = q_p · (c_pe − c_pi) = 0,750 · (−0,600 − 0,2) = −0,600 kN/m² (sug)
+I FEM-Design:	Fladelast på CO.34 med 0,600 kN/m² vinkelret på fladen, rettet væk fra den (opad). Lasten har kommentaren cpe=-0,600.
+Kraft på fladen:	w · A = −0,600 · 2,760 m² = −1,66 kN
+
+Hele taget: 48 flader
+Flade	x, m	y, m	c_pe	w, kN/m²	A, m²	w · A, kN
+CO.24	−8,386	0,183	−0,6	−0,600	10,186	−6,11
+CO.27	−7,817	−3,040	−0,6	−0,600	10,186	−6,11
+CO.21	−7,677	3,378	−0,6	−0,600	10,186	−6,11
+CO.30	−6,059	−5,800	−0,6	−0,600	10,186	−6,11
+CO.18	−5,800	6,059	−0,6	−0,600	10,186	−6,11
+CO.23	−5,415	0,118	−0,6	−0,600	6,473	−3,88
+CO.26	−5,048	−1,963	−0,6	−0,600	6,473	−3,88
+CO.20	−4,958	2,181	−0,6	−0,600	6,473	−3,88
+CO.29	−3,913	−3,745	−0,6	−0,600	6,473	−3,88
+CO.17	−3,745	3,913	−0,6	−0,600	6,473	−3,88
+CO.33	−3,378	−7,677	−0,6	−0,600	10,186	−6,11
+CO.15	−3,040	7,817	−0,6	−0,600	10,186	−6,11
+CO.22	−2,586	0,056	−0,6	−0,600	2,760	−1,66
+CO.25	−2,411	−0,938	−0,6	−0,600	2,760	−1,66
+CO.19	−2,368	1,042	−0,6	−0,600	2,760	−1,66
+CO.32	−2,181	−4,958	−0,6	−0,600	6,473	−3,88
+CO.14	−1,963	5,048	−0,6	−0,600	6,473	−3,88
+CO.28	−1,869	−1,789	−0,6	−0,600	2,760	−1,66
+CO.16	−1,789	1,869	−0,6	−0,600	2,760	−1,66
+CO.31	−1,042	−2,368	−0,6	−0,600	2,760	−1,66
+CO.13	−0,938	2,411	−0,6	−0,600	2,760	−1,66
+CO.36	−0,183	−8,386	−0,6	−0,600	10,186	−6,11
+CO.35	−0,118	−5,415	−0,6	−0,600	6,473	−3,88
+CO.34	−0,056	−2,586	−0,6	−0,600	2,760	−1,66
+CO.10	0,056	2,586	−0,6	−0,600	2,760	−1,66
+CO.11	0,118	5,415	−0,6	−0,600	6,473	−3,88
+CO.12	0,183	8,386	−0,6	−0,600	10,186	−6,11
+CO.37	0,938	−2,411	−0,6	−0,600	2,760	−1,66
+CO.7	1,042	2,368	−0,6	−0,600	2,760	−1,66
+CO.40	1,789	−1,869	−0,6	−0,600	2,760	−1,66
+CO.4	1,869	1,789	−0,6	−0,600	2,760	−1,66
+CO.38	1,963	−5,048	−0,6	−0,600	6,473	−3,88
+CO.8	2,181	4,958	−0,6	−0,600	6,473	−3,88
+CO.43	2,368	−1,042	−0,6	−0,600	2,760	−1,66
+CO.1	2,411	0,938	−0,6	−0,600	2,760	−1,66
+CO.46	2,586	−0,056	−0,6	−0,600	2,760	−1,66
+CO.39	3,040	−7,817	−0,6	−0,600	10,186	−6,11
+CO.9	3,378	7,677	−0,6	−0,600	10,186	−6,11
+CO.41	3,745	−3,913	−0,6	−0,600	6,473	−3,88
+CO.5	3,913	3,745	−0,6	−0,600	6,473	−3,88
+CO.44	4,958	−2,181	−0,6	−0,600	6,473	−3,88
+CO.2	5,048	1,963	−0,6	−0,600	6,473	−3,88
+CO.47	5,415	−0,118	−0,6	−0,600	6,473	−3,88
+CO.42	5,800	−6,059	−0,6	−0,600	10,186	−6,11
+CO.6	6,059	5,800	−0,6	−0,600	10,186	−6,11
+CO.45	7,677	−3,378	−0,6	−0,600	10,186	−6,11
+CO.3	7,817	3,040	−0,6	−0,600	10,186	−6,11
+CO.48	8,386	−0,183	−0,6	−0,600	10,186	−6,11
+I alt					310,690	−186,41
+
+5.2 Vind 45°
+------------
+[Figur: se Hent som HTML]
+
+Del af taget	c_pe	w, kN/m²	Flader	Areal i modellen, m²	Areal efter zonerne, m²	ΣF lodret i modellen, kN	ΣF lodret efter zonerne, kN
+Hele taget	−0,6	−0,600	48	304,42	304,42	−182,7	−182,7
+I alt			48	304,42	304,42	−182,7	−182,7
+
+ΣF lodret er positiv nedad. I modellen er ΣF lodret = −182,7 kN og ΣF vandret = 0,0 kN.
+
+Beregning pr. flade, Vind 45°
+-----------------------------
+Alle flader har c_pe = −0,6, så w = 0,750 · (−0,6 − 0,2) = −0,600 kN/m².
+
+Eksempel 1: CO.40
+-----------------
+Flade:	CO.40
+Tyngdepunkt i planen:	x = 1,789 m, y = −1,869 m
+Formfaktor:	c_pe = −0,6 (angivet)
+Vindlast:	w = q_p · (c_pe − c_pi) = 0,750 · (−0,600 − 0,2) = −0,600 kN/m² (sug)
+I FEM-Design:	Fladelast på CO.40 med 0,600 kN/m² vinkelret på fladen, rettet væk fra den (opad). Lasten har kommentaren cpe=-0,600.
+Kraft på fladen:	w · A = −0,600 · 2,760 m² = −1,66 kN
+
+Hele taget: 48 flader
+Flade	x, m	y, m	c_pe	w, kN/m²	A, m²	w · A, kN
+CO.30	−6,059	−5,800	−0,6	−0,600	10,186	−6,11
+CO.33	−3,378	−7,677	−0,6	−0,600	10,186	−6,11
+CO.27	−7,817	−3,040	−0,6	−0,600	10,186	−6,11
+CO.36	−0,183	−8,386	−0,6	−0,600	10,186	−6,11
+CO.24	−8,386	0,183	−0,6	−0,600	10,186	−6,11
+CO.29	−3,913	−3,745	−0,6	−0,600	6,473	−3,88
+CO.32	−2,181	−4,958	−0,6	−0,600	6,473	−3,88
+CO.26	−5,048	−1,963	−0,6	−0,600	6,473	−3,88
+CO.35	−0,118	−5,415	−0,6	−0,600	6,473	−3,88
+CO.23	−5,415	0,118	−0,6	−0,600	6,473	−3,88
+CO.39	3,040	−7,817	−0,6	−0,600	10,186	−6,11
+CO.21	−7,677	3,378	−0,6	−0,600	10,186	−6,11
+CO.28	−1,869	−1,789	−0,6	−0,600	2,760	−1,66
+CO.31	−1,042	−2,368	−0,6	−0,600	2,760	−1,66
+CO.25	−2,411	−0,938	−0,6	−0,600	2,760	−1,66
+CO.38	1,963	−5,048	−0,6	−0,600	6,473	−3,88
+CO.20	−4,958	2,181	−0,6	−0,600	6,473	−3,88
+CO.34	−0,056	−2,586	−0,6	−0,600	2,760	−1,66
+CO.22	−2,586	0,056	−0,6	−0,600	2,760	−1,66
+CO.37	0,938	−2,411	−0,6	−0,600	2,760	−1,66
+CO.19	−2,368	1,042	−0,6	−0,600	2,760	−1,66
+CO.42	5,800	−6,059	−0,6	−0,600	10,186	−6,11
+CO.41	3,745	−3,913	−0,6	−0,600	6,473	−3,88
+CO.40	1,789	−1,869	−0,6	−0,600	2,760	−1,66
+CO.16	−1,789	1,869	−0,6	−0,600	2,760	−1,66
+CO.17	−3,745	3,913	−0,6	−0,600	6,473	−3,88
+CO.18	−5,800	6,059	−0,6	−0,600	10,186	−6,11
+CO.43	2,368	−1,042	−0,6	−0,600	2,760	−1,66
+CO.13	−0,938	2,411	−0,6	−0,600	2,760	−1,66
+CO.46	2,586	−0,056	−0,6	−0,600	2,760	−1,66
+CO.10	0,056	2,586	−0,6	−0,600	2,760	−1,66
+CO.44	4,958	−2,181	−0,6	−0,600	6,473	−3,88
+CO.14	−1,963	5,048	−0,6	−0,600	6,473	−3,88
+CO.1	2,411	0,938	−0,6	−0,600	2,760	−1,66
+CO.7	1,042	2,368	−0,6	−0,600	2,760	−1,66
+CO.4	1,869	1,789	−0,6	−0,600	2,760	−1,66
+CO.45	7,677	−3,378	−0,6	−0,600	10,186	−6,11
+CO.15	−3,040	7,817	−0,6	−0,600	10,186	−6,11
+CO.47	5,415	−0,118	−0,6	−0,600	6,473	−3,88
+CO.11	0,118	5,415	−0,6	−0,600	6,473	−3,88
+CO.2	5,048	1,963	−0,6	−0,600	6,473	−3,88
+CO.8	2,181	4,958	−0,6	−0,600	6,473	−3,88
+CO.5	3,913	3,745	−0,6	−0,600	6,473	−3,88
+CO.48	8,386	−0,183	−0,6	−0,600	10,186	−6,11
+CO.12	0,183	8,386	−0,6	−0,600	10,186	−6,11
+CO.3	7,817	3,040	−0,6	−0,600	10,186	−6,11
+CO.9	3,378	7,677	−0,6	−0,600	10,186	−6,11
+CO.6	6,059	5,800	−0,6	−0,600	10,186	−6,11
+I alt					310,690	−186,41

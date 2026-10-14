@@ -1,0 +1,5 @@
+{
+  "description": "Standardtaget, som siden åbner med: kuppeltag D = 34,14 m, 24 radialbjælker, sektionsspær, vindgitter, alle laster og de foreslåede lastkombinationer efter DS/EN 1990 DK NA.",
+  "params": {},
+  "proposeCombos": { "kfi": 1, "str": true, "sk": true, "sf": false, "sq": false, "tempMode": "both", "psiP": [1, 1, 0] }
+}
