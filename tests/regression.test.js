@@ -178,3 +178,24 @@ for (const file of caseFiles) {
     assert.deepStrictEqual(gotXml, expXml, 'StruXML-oversigten afviger fra facit');
   });
 }
+
+// liggende fladstål skrives som stående med stangen drejet 90°: samme stang i rummet,
+// men med den stærke akse om lokal y, så FEM-Designs ståldimensionering kan regne den
+test('liggende fladstål eksporteres som stående tværsnit med drejet lokal y', () => {
+  const params = Object.assign({}, TR.DEFAULTS, { profEdge: 'FL|200*25', profBrace: 'FL|100*10' });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  assert.ok(!/name="Fladstål, liggende/.test(xml), 'Liggende fladstål må ikke stå i filen');
+  assert.match(xml, /name="Fladstål, stående, 200x25"/);
+  assert.match(xml, /name="Fladstål, stående, 100x10"/);
+  g.members.filter((m) => m.group === 'edge').forEach((m) => {
+    const bar = new RegExp('<bar name="' + m.name.replace(/\./g, '\\.') + '"[\\s\\S]*?<local-y x="([^"]+)" y="([^"]+)" z="([^"]+)"').exec(xml);
+    assert.ok(bar, 'Fandt ikke ' + m.name);
+    const ly = bar.slice(1).map(Number);
+    const x = [0, 1, 2].map((i) => m.end[i] - m.start[i]);
+    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    assert.ok(Math.abs(dot(ly, m.localY)) < 1e-9, 'Lokal y skal stå vinkelret på modellens lokale y');
+    assert.ok(Math.abs(dot(ly, x)) < 1e-6, 'Lokal y skal stå vinkelret på stangen');
+  });
+});
