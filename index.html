@@ -535,7 +535,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             </div>
           </div>
           <p class="calc" id="secCalc"></p>
-          <p class="hint">Et sektionsspær midt i hvert fag fra svøbet ind til den valgte udvekslingsring. Det er understøttet på svøbet midt i faget og hviler på udvekslingerne, og lastfordelingsfladerne deles, så det bærer sin del af lasten. I det yderste felt deles fladerne i trekanter, så de er plane, og en kantring deles ved sektionsspærene. Med »Sektionsspær på 0° og 90°« ligger SEK1 i vinklen under Tagform (0° er X-aksen), og når antallet af radialbjælker er deleligt med 4, ligger der også et ved 90°.</p>
+          <p class="hint">Et sektionsspær midt i hvert fag fra svøbet ind til den valgte udvekslingsring. Det er understøttet på svøbet midt i faget og hviler på den inderste udveksling. Udvekslingsringene, det går igennem, deles ved sektionsspæret og forbindes til det som valgt under Forbindelser og understøtning. Lastfordelingsfladerne deles, så sektionsspæret bærer sin del af lasten. I det yderste felt deles fladerne i trekanter, så de er plane, og en kantring deles ved sektionsspærene. Med »Sektionsspær på 0° og 90°« ligger SEK1 i vinklen under Tagform (0° er X-aksen), og når antallet af radialbjælker er deleligt med 4, ligger der også et ved 90°.</p>
         </fieldset>
       </section>
 
@@ -674,6 +674,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <label><input type="radio" name="connUdv" value="rigid" data-key="connUdv"><span>Stiv</span></label>
             <label><input type="radio" name="connUdv" value="hinged" data-key="connUdv"><span>Charnier</span></label>
           </div>
+        </div>
+        <div class="field" id="udvSecConnField">
+          <span class="lbl">Udvekslinger mod sektionsspær</span>
+          <div class="seg" role="radiogroup" aria-label="Udvekslinger mod sektionsspær">
+            <label><input type="radio" name="connUdvSec" value="rigid" data-key="connUdvSec"><span>Stiv</span></label>
+            <label><input type="radio" name="connUdvSec" value="hinged" data-key="connUdvSec"><span>Charnier</span></label>
+          </div>
+          <p class="hint">Udvekslingsringe, som sektionsspærene går igennem, deles midt i faget ved sektionsspæret. Sektionsspæret er gennemgående, og udvekslingerne forbindes til det med denne forbindelse.</p>
         </div>
         <div class="field">
           <span class="lbl">Understøtning ved svøbet</span>
@@ -1176,7 +1184,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <ul>
         <li><code>RB.1</code>–<code>RB.n</code> radialbjælker, nummereret mod uret set oppefra; delte bjælker hedder <code>RB1.1</code>, <code>RB1.2</code> …</li>
         <li><code>RING.i</code> ringbjælke mellem RB.i og RB.i+1</li>
-        <li><code>UDVk.i</code> udveksling i ring k (indefra) mellem RB.i og RB.i+1</li>
+        <li><code>UDVk.i</code> udveksling i ring k (indefra) mellem RB.i og RB.i+1; i ringe, som sektionsspærene går igennem, er udvekslingen delt ved sektionsspæret i <code>UDVk.(2i−1)</code> fra RB.i og <code>UDVk.2i</code> til RB.i+1</li>
         <li><code>SEKi.j</code> sektionsspær i fag i (stykke j indefra), <code>SS.i</code> deres understøtninger</li>
         <li><code>KANT.i</code> kantring (<code>KANTi.1</code> og <code>KANTi.2</code> med sektionsspær), <code>VG.i</code> vindgitter (gitterstænger), <code>S.i</code> understøtninger, <code>CO.i</code> lastfordelingsflader</li>
         <li>Lasttilfælde: <code>Egenlast</code>, <code>Nyttelast</code>, <code>Nyttelast, halv</code>, <code>Nyttelast, punkt</code>, <code>Gangbro, egenlast</code>, <code>Gangbro, nyttelast</code>, <code>Sne, jævn</code>, <code>Sne, ensidig</code>, <code>Vind θ°</code>, <code>Overtryk</code>, <code>Undertryk</code> og <code>Temperatur</code></li>
@@ -1185,7 +1193,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     <div class="note">
       <h3>Sådan er modellen bygget</h3>
       <p>Systemlinjerne er profilernes tyngdepunktsakser, og den fysiske 3D-visning i FEM-Design viser også profilerne med tyngdepunktet på systemlinjen. Origo ligger i tankens centrum med Z opad. Bjælkernes krop står lodret (lokal y vandret), og udvekslingerne kan i stedet stilles vinkelret på tagfladen og drejes om stangaksen i kvarte omgange.</p>
-      <p>Udvekslingernes ender ligger på radialbjælkerne, og FEM-Design forbinder dem automatisk. Charnier frigiver bøjning om begge akser; vridning og flytninger overføres. Vindgitteret er gitterstænger med kun normalkraft.</p>
+      <p>Udvekslingernes ender ligger på radialbjælkerne, og FEM-Design forbinder dem automatisk. Hvor et sektionsspær går igennem en udvekslingsring, er udvekslingen delt, så begge halvdele ender på det gennemgående sektionsspær. Charnier frigiver bøjning om begge akser; vridning og flytninger overføres. Vindgitteret er gitterstænger med kun normalkraft.</p>
       <p>Med understøtningen Kun lodret holdes taget vandret af præcis tre fastholdelser: X ved 0°, Y ved 90° og Y ved 180°, så det hverken kan forskydes eller dreje om den lodrette akse. Det er statisk bestemt, så temperatur og svøbets udvidelse ikke giver tvang – til gengæld skal taget selv føre de vandrette laster hen til de tre punkter.</p>
     </div>
     <div class="note">
@@ -1243,6 +1251,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     connRadialRing: 'rigid',   // 'rigid' | 'hinged' – radialbjælke mod ringbjælke
     connRadialShell: 'hinged', // 'rigid' | 'hinged' – radialbjælke mod kantring (kun med kantring)
     connUdv: 'hinged',         // 'rigid' | 'hinged' – udvekslingernes ender
+    connUdvSec: 'hinged',      // 'rigid' | 'hinged' – udvekslinger mod sektionsspær, der krydser ringen (ringen deles der)
     support: 'pinned',         // 'pinned' | 'radialFree' | 'radialSpring' | 'vertical' (kun lodret + X ved 0°, Y ved 90° og 180°)
     radialSpring: 50000,       // kN/m – radial fjeder ved 'radialSpring'
     covers: 'radial',          // 'none' | 'radial' | 'all'  (lastfordelingsflader)
@@ -1673,10 +1682,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var a3 = P(rc, i3), b3 = P(rc, i3 + 1);
       ringM.push(addMember('ring', 'RING.' + (i3 + 1), a3, b3, localYFor(vsub(b3, a3)), 'rigid', 'rigid', { index: i3 }));
     }
-    // udvekslinger
+    // udvekslinger: udvM[k][i] = [korde], eller i en ring, som sektionsspærene krydser, [RB.i → sektionsspær,
+    // sektionsspær → RB.i+1]. Ringene udenfor sektionsspærenes inderste ring deles midt på korden, hvor sektionsspæret
+    // går igennem, og forbindes til det med connUdvSec; sektionsspæret er gennemgående.
+    var jSec = p.secOn ? radii.length + 1 - p.secRing : -1;
     var udvM = [];
     for (var k3 = 0; k3 < radii.length; k3++) {
       udvM.push([]);
+      var splitK = p.secOn && k3 + 1 > jSec;
       for (var i4 = 0; i4 < n; i4++) {
         var a4 = P(radii[k3], i4), b4 = P(radii[k3], i4 + 1);
         var x4 = vsub(b4, a4), ly4, rot4 = udvRotationOf(p, k3 + 1);
@@ -1689,8 +1702,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var cs4 = ROT_CS[rot4], z4 = cross(unit(x4), ly4);
           ly4 = vadd(vscale(ly4, cs4[0]), vscale(z4, cs4[1]));
         }
-        udvM[k3].push(addMember('udv', 'UDV' + (k3 + 1) + '.' + (i4 + 1), a4, b4, ly4, p.connUdv, p.connUdv,
-          { index: i4, ringNo: k3 + 1, prof: udvProfileOf(p, k3 + 1), rot: rot4 }));
+        var ex4 = { index: i4, ringNo: k3 + 1, prof: udvProfileOf(p, k3 + 1), rot: rot4 };
+        if (splitK) {
+          // begge halvdele har korden som stangakse, så lokal y er den samme som for den udelte korde.
+          // De nummereres fortløbende mod uret: UDVk.(2i−1) fra RB.i og UDVk.2i til RB.i+1
+          var c4 = vscale(vadd(a4, b4), 0.5), nm4 = 'UDV' + (k3 + 1) + '.';
+          udvM[k3].push([
+            addMember('udv', nm4 + (2 * i4 + 1), a4, c4, ly4, p.connUdv, p.connUdvSec, Object.assign({ half: 0 }, ex4)),
+            addMember('udv', nm4 + (2 * i4 + 2), c4, b4, ly4, p.connUdvSec, p.connUdv, Object.assign({ half: 1 }, ex4))
+          ]);
+        } else udvM[k3].push([addMember('udv', 'UDV' + (k3 + 1) + '.' + (i4 + 1), a4, b4, ly4, p.connUdv, p.connUdv, ex4)]);
       }
     }
     // sektionsspærets ende på svøbet: midt i faget på cirklen med radius R
@@ -1715,7 +1736,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // og den yderste ende ligger på svøbet (cirklen), ikke på korden mellem radialbjælkerne.
     function Q(r, i) { return vscale(vadd(P(r, i), P(r, i + 1)), 0.5); }
     function SQ(j, i) { return j === nodesR.length - 1 ? Cpt(i) : Q(nodesR[j], i); }
-    var jSec = p.secOn ? radii.length + 1 - p.secRing : -1, secM = [];
+    var secM = [];
     if (p.secOn) {
       for (var i9 = 0; i9 < n; i9++) {
         secM.push([]);
@@ -1898,28 +1919,33 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         for (var j7 = 0; j7 < nodesR.length - 1; j7++) {
           var r0 = nodesR[j7], r1 = nodesR[j7 + 1];
           var pts = [P(r0, i7), P(r1, i7), P(r1, i7 + 1), P(r0, i7 + 1)];
-          var sup = [radialIdx[i7][j7], radialIdx[(i7 + 1) % n][j7]], ext = [];
-          if (p.covers === 'all') {
-            ext.push(j7 === 0 ? ringM[i7] : udvM[j7 - 1][i7]);
-            if (j7 < radii.length) ext.push(udvM[j7][i7]);
-            else if (edgeM.length) ext.push(edgeM[i7][0]);
-          }
+          var sup = [radialIdx[i7][j7], radialIdx[(i7 + 1) % n][j7]];
+          // udvekslingen i ring k langs fag i7: hele korden, eller kun halvdelen h ved en delt udveksling
+          var udvAt = function (k, h) { var u = udvM[k][i7]; return h === undefined || u.length === 1 ? u : [u[h]]; };
+          // bjælkerne langs fladens inder- og yderkant ved fladestørrelse "alle"
+          var extFor = function (h) {
+            if (p.covers !== 'all') return [];
+            var e = j7 === 0 ? [ringM[i7]] : udvAt(j7 - 1, h);
+            if (j7 < radii.length) e = e.concat(udvAt(j7, h));
+            else if (edgeM.length) e.push(edgeM[i7][0]);
+            return e;
+          };
           var outer = j7 === nodesR.length - 2;
           if (p.secOn && j7 >= jSec && outer) {
             // yderste felt: sektionsspæret ender på svøbet, så halvfelterne ikke er plane. Hvert halvfelt deles i to
             // trekanter, og hver trekant bæres af de bjælker, der ligger langs dens kanter.
-            var b0 = Q(r0, i7), cS = Cpt(i7), all = p.covers === 'all', udvIn = udvM[j7 - 1][i7];
+            var b0 = Q(r0, i7), cS = Cpt(i7), all = p.covers === 'all';
             var e0 = all && edgeM.length ? [edgeM[i7][0]] : [], e1 = all && edgeM.length ? [edgeM[i7][1]] : [];
             covers.push({ points: [pts[0], pts[1], cS], supports: [sup[0]].concat(e0), bay: i7, interval: j7, half: 0, part: 0 });
-            covers.push({ points: [pts[0], cS, b0], supports: [secM[i7][j7]].concat(all ? [udvIn] : []), bay: i7, interval: j7, half: 0, part: 1 });
-            covers.push({ points: [b0, cS, pts[3]], supports: [secM[i7][j7]].concat(all ? [udvIn] : []), bay: i7, interval: j7, half: 1, part: 0 });
+            covers.push({ points: [pts[0], cS, b0], supports: [secM[i7][j7]].concat(all ? udvAt(j7 - 1, 0) : []), bay: i7, interval: j7, half: 0, part: 1 });
+            covers.push({ points: [b0, cS, pts[3]], supports: [secM[i7][j7]].concat(all ? udvAt(j7 - 1, 1) : []), bay: i7, interval: j7, half: 1, part: 0 });
             covers.push({ points: [cS, pts[2], pts[3]], supports: [sup[1]].concat(e1), bay: i7, interval: j7, half: 1, part: 1 });
           } else if (p.secOn && j7 >= jSec) {
             // fladen deles ved sektionsspæret, så det bærer sin del af lasten
             var m0 = Q(r0, i7), m1 = Q(r1, i7);
-            covers.push({ points: [pts[0], pts[1], m1, m0], supports: [sup[0], secM[i7][j7]].concat(ext), bay: i7, interval: j7, half: 0 });
-            covers.push({ points: [m0, m1, pts[2], pts[3]], supports: [secM[i7][j7], sup[1]].concat(ext), bay: i7, interval: j7, half: 1 });
-          } else covers.push({ points: pts, supports: sup.concat(ext), bay: i7, interval: j7 });
+            covers.push({ points: [pts[0], pts[1], m1, m0], supports: [sup[0], secM[i7][j7]].concat(extFor(0)), bay: i7, interval: j7, half: 0 });
+            covers.push({ points: [m0, m1, pts[2], pts[3]], supports: [secM[i7][j7], sup[1]].concat(extFor(1)), bay: i7, interval: j7, half: 1 });
+          } else covers.push({ points: pts, supports: sup.concat(extFor()), bay: i7, interval: j7 });
         }
       }
     }
@@ -4353,6 +4379,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('domeFields').hidden = p.roofType !== 'dome';
     $('edgeProfField').hidden = !p.edgeRing;
     $('shellConnField').hidden = !p.edgeRing;
+    $('udvSecConnField').hidden = !(p.secOn && p.secRing >= 2);
     $('secFields').disabled = !p.secOn;
     $('rotLabel').textContent = p.secOn && p.secAxes ? 'Vinkel for SEK1' : 'Vinkel for RB.1';
     $('springField').hidden = p.support !== 'radialSpring';
