@@ -1190,7 +1190,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     </div>
     <div class="note">
       <h3>Når filen er åbnet</h3>
-      <p>Lasttilfældene ligger klar: fladelaster på fladerne, gangbroen som linjelaster på sin radialbjælke, temperatur på bjælkerne og svøbets udvidelse som flytning af understøtningerne, og lastkombinationerne fra fanen Kombinationer følger med. Lav de øvrige kombinationer i FEM-Design, og tjek materialets partialkoefficienter, knækningslængder og forbindelser. Profiler og S 235–S 460 er kopier af FEM-Designs eget bibliotek; fladstål findes ikke dér og lægges ind som rektangulære brugertværsnit, som FEM-Design selv beregner tværsnitsværdier for. Parametrene står som kommentar øverst i filen, så den kan indlæses her igen med Indlæs fil.</p>
+      <p>Lasttilfældene ligger klar: fladelaster på fladerne, gangbroen som linjelaster på sin radialbjælke, temperatur på bjælkerne og svøbets udvidelse som flytning af understøtningerne, og lastkombinationerne fra fanen Kombinationer følger med. Lav de øvrige kombinationer i FEM-Design, og tjek materialets partialkoefficienter, knækningslængder og forbindelser. Profiler og S 235–S 460 er kopier af FEM-Designs eget bibliotek; fladstål findes ikke dér og lægges ind som rektangulære brugertværsnit, som FEM-Design selv beregner tværsnitsværdier for. Liggende fladstål skrives som stående tværsnit med stangen drejet 90° om sin akse, så FEM-Designs ståldimensionering kan regne det; derfor bytter My' og Mz' plads for de stænger i FEM-Designs resultater. Parametrene står som kommentar øverst i filen, så den kan indlæses her igen med Indlæs fil.</p>
     </div>
   </section>
 </div>
@@ -2577,14 +2577,22 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var usedSections = {}, sectionOrder = [], secByKey = {};
     profKeys.forEach(function (key) {
       if (secByKey[key]) return;
-      var s = findSection(lib, key);
+      // liggende fladstål (FL) skrives som stående (FLS) og stangen drejes 90° om sin akse: samme stang i rummet,
+      // men med den stærke akse om lokal y. FEM-Designs ståldimensionering regner ikke et rektangel med stærk akse om z.
+      var fl = profileParts(key), turned = !!fl && fl.family === 'FL';
+      var s = findSection(lib, turned ? 'FLS|' + fl.size : key);
       if (!s) throw new Error('Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
       var sg = attr(s.xml, 'guid');
       if (!usedSections[sg]) { usedSections[sg] = s; sectionOrder.push(sg); }
       s.guid = sg;
       s.made = madeFromFdMat(attr(s.xml, 'fd-mat'));
-      secByKey[key] = s;
+      secByKey[key] = turned ? Object.assign({}, s, { turned: true }) : s;
     });
+    // lokal y i filen: for liggende fladstål drejet 90° mod lokal z (y peger, hvor z pegede før)
+    function exportLocalY(m, s) {
+      if (!s.turned) return m.localY;
+      return cross(unit(vsub(m.end, m.start)), m.localY);
+    }
 
     var L = [];
     var I1 = '\t', I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t', I6 = '\t\t\t\t\t\t';
@@ -2611,7 +2619,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I5 + pt('point', m.start));
         L.push(I5 + pt('point', m.end));
         L.push(I4 + '</curve>');
-        L.push(I4 + pt('local-y', m.localY));
+        L.push(I4 + pt('local-y', exportLocalY(m, s)));
         L.push(I4 + '<end/>');
         L.push(I3 + '</bar_part>');
         L.push(I3 + '<truss_behaviour>');
@@ -2642,7 +2650,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I5 + pt('point', m.start));
       L.push(I5 + pt('point', m.end));
       L.push(I4 + '</curve>');
-      L.push(I4 + pt('local-y', m.localY));
+      L.push(I4 + pt('local-y', exportLocalY(m, s)));
       L.push(I4 + connXml(m.connStart));
       L.push(I4 + connXml(m.connEnd));
       // den fysiske model (3D-visningen) placeres med tyngdepunktet på systemlinjen, ligesom den analytiske
