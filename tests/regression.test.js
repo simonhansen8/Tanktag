@@ -199,3 +199,37 @@ test('liggende fladstål eksporteres som stående tværsnit med drejet lokal y',
     assert.ok(Math.abs(dot(ly, x)) < 1e-6, 'Lokal y skal stå vinkelret på stangen');
   });
 });
+
+// udvekslingsringe, som sektionsspærene går igennem, deles ved sektionsspæret; halvdelene har charnier mod det
+// gennemgående sektionsspær og samme lokale y som den udelte korde. Den inderste ring, hvor sektionsspærene ender, er udelt.
+test('udvekslinger deles ved sektionsspærene med charnier', () => {
+  const params = Object.assign({}, TR.DEFAULTS, { secRing: 3, covers: 'all' });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  assert.deepEqual(g.errors, []);
+  const n = params.numRadial, udv = (k) => g.members.filter((m) => m.group === 'udv' && m.ringNo === k);
+  assert.equal(udv(1).length, n, 'Ring 1 ligger inden for sektionsspærene og deles ikke');
+  assert.equal(udv(2).length, n, 'Ring 2 er sektionsspærenes inderste ring og deles ikke');
+  [3, 4].forEach((k) => {
+    const ms = udv(k);
+    assert.equal(ms.length, 2 * n, 'Ring ' + k + ' deles ved sektionsspærene');
+    ms.forEach((m) => {
+      const atSec = m.half === 0 ? m.end : m.start;
+      const sec = g.members.filter((s) => s.group === 'sec' && Math.hypot(...[0, 1, 2].map((i) => s.end[i] - atSec[i])) < 1e-9);
+      assert.equal(sec.length, 1, m.name + ' skal ende, hvor et sektionsspær går igennem');
+      assert.equal(m.half === 0 ? m.connEnd : m.connStart, 'hinged', m.name + ' skal have charnier mod sektionsspæret');
+      assert.equal(m.half === 0 ? m.connStart : m.connEnd, params.connUdv);
+    });
+  });
+  g.members.filter((s) => s.group === 'sec').forEach((s) => {
+    if (s.seg > 0) assert.equal(s.connStart, 'rigid', 'Sektionsspæret er gennemgående');
+  });
+  // fladerne i et sektionsspærfelt bæres kun af den halve udveksling langs deres kant
+  g.covers.filter((c) => c.half !== undefined).forEach((c) => {
+    c.supports.filter((m) => m.group === 'udv' && m.half !== undefined).forEach((m) => assert.equal(m.half, c.half, c.name));
+  });
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  const bar = /<bar name="UDV3\.1"[\s\S]*?<\/bar>/.exec(xml)[0];
+  const conn = bar.match(/<connectivity [^>]*>/g);
+  assert.equal(conn[1], '<connectivity m_x="true" m_y="true" m_z="true" r_x="true" r_y="false" r_z="false"/>');
+});
