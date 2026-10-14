@@ -123,6 +123,16 @@ fieldset.sub:disabled { opacity: 0.5; }
 .d-holdlbl { stroke: none; fill: var(--primer); font-family: var(--f-data); font-weight: 600; }
 .d-walk { stroke: var(--primer); opacity: 0.85; }
 .d-lblbg { fill: var(--sheet); fill-opacity: 0.9; stroke: var(--primer); stroke-width: 1; }
+/* laster i 3D: panelerne farves efter værdien, pilene efter lasttype */
+.d-loadpanel3 polygon { stroke: var(--sheet); stroke-width: 0.5; fill-opacity: 0.8; }
+.d-ld { --lc: var(--primer); stroke: var(--lc); fill: var(--lc); }
+.d-ld.lc-G { --lc: var(--ink-2); }
+.d-ld.lc-H { --lc: var(--c-edge); }
+.d-ld.lc-S { --lc: var(--c-sec); }
+.d-ld.lc-W { --lc: var(--c-brace); }
+.d-ld.lc-P, .d-ld.lc-T { --lc: var(--primer); }
+.d-ld .lbg { fill: var(--sheet); fill-opacity: 0.9; stroke: var(--lc); stroke-width: 1; }
+.d-ld text { stroke: none; fill: var(--ink); font-family: var(--f-data); }
 .group h2 { color: var(--ink); }
 .field { display: grid; gap: 4px; min-width: 0; }
 .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
@@ -2754,7 +2764,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     quantities: quantities, findSection: findSection, parseRadii: parseRadii, fmt: fmt, normalizeParams: normalizeParams,
     computeLoads: computeLoads, peakPressure: peakPressure, mu1: mu1, CPE_PLACEHOLDER: CPE_PLACEHOLDER,
     FLAT_CPE: FLAT_CPE, ALPHA_STEEL: ALPHA_STEEL, splitBracing: splitBracing, udvProfileOf: udvProfileOf,
-    COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, caseLabel: caseLabel, proposeCombos: proposeCombos,
+    COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, caseLabel: caseLabel, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -4459,6 +4469,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var mid = [(m.start[0] + m.end[0]) / 2, (m.start[1] + m.end[1]) / 2, (m.start[2] + m.end[2]) / 2 - cz];
       return { m: m, d: mid[0] * f[0] + mid[1] * f[1] + mid[2] * f[2] };
     }).sort(function (a, b) { return a.d - b.d; });
+    var lc = formTab !== 'brace' ? activeCase() : null;
+    if (lc) out.push(loadPanels3D(g, lc, P, f, cz));
     items.forEach(function (it) {
       var m = it.m;
       out.push(lineEl(GROUP_CLASS[m.group], P(m.start), P(m.end), ' stroke-width="' + GROUP_WIDTH[m.group] + '" stroke-linecap="round"'));
@@ -4466,6 +4478,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     out.push('<g class="d-sup">');
     g.supports.forEach(function (sp) { var q = P(sp.pos); out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (3.2 * k).toFixed(1) + '"/>'); });
     out.push('</g>');
+    if (lc) out.push(loadArrows3D(g, lc, P, f, cz, k, z0 - wall));
     // RB.1 markeres ved svøbet
     var rb1 = P([R * Math.cos(info.thetas[0]) * 1.07, R * Math.sin(info.thetas[0]) * 1.07, z0]);
     out.push(textEl('svg-label strong', rb1[0], rb1[1] + 4 * k, 'RB.1', 11 * k, 'middle', ' font-weight="600"'));
@@ -4478,6 +4491,141 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     out.push('</svg>');
     return out.join('');
   }
+
+  // ---------- laster i 3D ----------
+  // lastfordelingsfladerne farvet efter værdien, bagerst først
+  function loadPanels3D(g, lc, P, f, cz) {
+    if (!lc.values || !g.covers.length || !lc.values.some(function (v) { return Math.abs(v) > 1e-12; })) return '';
+    var vmax = 0;
+    lc.values.forEach(function (v) { vmax = Math.max(vmax, Math.abs(v)); });
+    var items = g.covers.map(function (cv, i) {
+      var c = [0, 0, 0];
+      cv.points.forEach(function (q) { c[0] += q[0]; c[1] += q[1]; c[2] += q[2]; });
+      var n = cv.points.length;
+      return { cv: cv, i: i, d: (c[0] / n) * f[0] + (c[1] / n) * f[1] + (c[2] / n - cz) * f[2] };
+    }).sort(function (a, b) { return a.d - b.d; });
+    var out = ['<g class="d-loadpanel3">'];
+    items.forEach(function (it) {
+      var v = lc.values[it.i];
+      if (Math.abs(v) < 1e-12) return;
+      var pts = it.cv.points.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' ');
+      out.push('<polygon points="' + pts + '" style="fill: ' + loadFill(v, vmax) + '"><title>' + esc(it.cv.name) + ': ' + nf(v, 3) + ' kN/m²</title></polygon>');
+    });
+    out.push('</g>');
+    return out.join('');
+  }
+  // pile for lasterne: længden følger værdien (relativt til tilfældets største), farven lasttypen
+  function loadArrows3D(g, lc, P, f, cz, k, zLow) {
+    var R = g.info.R, Lmax = 0.2 * R, out = [], labels = [];
+    var grp = TR.caseGroup(lc.key);
+    var hl = 8 * k, hw = 3.4 * k, fs = 10.5 * k;
+    function depth(v) { return v[0] * f[0] + v[1] * f[1] + (v[2] - cz) * f[2]; }
+    function arrow(tail, tip, width, title) {
+      var a = P(tail), b = P(tip), dx = b[0] - a[0], dy = b[1] - a[1], L = Math.sqrt(dx * dx + dy * dy);
+      var t = title ? '<title>' + esc(title) + '</title>' : '';
+      // pilen peger næsten mod beskueren: vis kun en prik
+      if (L < hl * 1.2) return '<g>' + t + '<circle cx="' + b[0].toFixed(1) + '" cy="' + b[1].toFixed(1) + '" r="' + (2.4 * k).toFixed(1) + '"/></g>';
+      var ux = dx / L, uy = dy / L, base = [b[0] - ux * hl, b[1] - uy * hl];
+      return '<g>' + t + lineEl('', a, base, ' stroke-width="' + (width * k).toFixed(2) + '"') +
+        '<polygon points="' + b[0].toFixed(1) + ',' + b[1].toFixed(1) + ' ' + (base[0] - uy * hw).toFixed(1) + ',' + (base[1] + ux * hw).toFixed(1) +
+        ' ' + (base[0] + uy * hw).toFixed(1) + ',' + (base[1] - ux * hw).toFixed(1) + '"/></g>';
+    }
+    // etiket ved pilens hale, skubbet lidt væk fra pilen
+    function label(tail, tip, txt) {
+      var a = P(tail), b = P(tip), dx = a[0] - b[0], dy = a[1] - b[1], L = Math.sqrt(dx * dx + dy * dy) || 1;
+      var x = a[0] + dx / L * 12 * k, y = a[1] + dy / L * 12 * k + fs * 0.35;
+      var tw = txt.length * fs * 0.6, pad = 3 * k;
+      labels.push('<rect class="lbg" x="' + (x - tw / 2 - pad).toFixed(1) + '" y="' + (y - fs * 0.95).toFixed(1) + '" width="' + (tw + 2 * pad).toFixed(1) +
+        '" height="' + (fs * 1.3).toFixed(1) + '" rx="' + (2.5 * k).toFixed(1) + '"/>' + textEl('', x, y, txt, fs, 'middle'));
+    }
+    var surf = [], vmax = 0;
+    lc.loads.forEach(function (Ld) {
+      if (Ld.kind === 'surface') { surf.push(Ld); vmax = Math.max(vmax, Ld.val); }
+    });
+    if (surf.length && vmax > 0) {
+      var arr = surf.map(function (Ld, i) {
+        var pp = Ld.panel, d = Ld.dir, frac = Math.max(0.12, Ld.val / vmax), L = Lmax * frac, c = pp.centroid;
+        var inward = dot3(d, pp.normal) < 0;    // trykker på fladen: spidsen på fladen, ellers halen på fladen
+        var tail = inward ? [c[0] - d[0] * L, c[1] - d[1] * L, c[2] - d[2] * L] : c.slice();
+        var tip = inward ? c.slice() : [c[0] + d[0] * L, c[1] + d[1] * L, c[2] + d[2] * L];
+        return { Ld: Ld, i: i, tail: tail, tip: tip, d: depth(c) };
+      }).sort(function (a, b) { return a.d - b.d; });
+      arr.forEach(function (a) {
+        out.push(arrow(a.tail, a.tip, 1.3, a.Ld.panel.cover.name + ': ' + nf(a.Ld.val, 3) + ' kN/m²' + (a.Ld.comment ? ' (' + a.Ld.comment.replace('cpe', 'c_pe') + ')' : '')));
+      });
+      // værdier: én etiket pr. forskellig værdi (den forreste), eller kun største og mindste ved mange forskellige
+      var groups = {}, keys = [];
+      arr.forEach(function (a) {
+        var key = nf(a.Ld.val, 2) + (dot3(a.Ld.dir, a.Ld.panel.normal) < 0 ? '' : 'u');
+        if (!groups[key]) { groups[key] = a; keys.push(key); } else if (a.d > groups[key].d) groups[key] = a;
+      });
+      var pick = [];
+      if (keys.length <= 6) pick = keys.map(function (key) { return groups[key]; });
+      else {
+        var hi = arr[0], lo = arr[0];
+        arr.forEach(function (a) { if (a.Ld.val > hi.Ld.val) hi = a; if (a.Ld.val < lo.Ld.val) lo = a; });
+        pick = hi === lo ? [hi] : [hi, lo];
+      }
+      pick.forEach(function (a) { label(a.tail, a.tip, nf(a.Ld.val, 2) + ' kN/m²'); });
+    }
+    lc.loads.forEach(function (Ld) {
+      if (Ld.kind === 'point') {
+        var tail = [Ld.pos[0] - Ld.dir[0] * Lmax, Ld.pos[1] - Ld.dir[1] * Lmax, Ld.pos[2] - Ld.dir[2] * Lmax];
+        out.push(arrow(tail, Ld.pos, 2.4, 'Q = ' + nf(Ld.val, 2) + ' kN'));
+        label(tail, Ld.pos, 'Q = ' + nf(Ld.val, 2) + ' kN');
+      }
+    });
+    // linjelast (gangbroen): tyk streg på bjælken, pile langs den og en linje gennem halerne
+    var lines = lc.loads.filter(function (Ld) { return Ld.kind === 'line'; });
+    if (lines.length) {
+      var Ll = 0.5 * Lmax, total = 0;
+      lines.forEach(function (Ld) { total += norm3(vsub3(Ld.b, Ld.a)); });
+      var step = total / 8, mid = null, acc = 0;
+      lines.forEach(function (Ld) {
+        var a = Ld.a, b = Ld.b, d = Ld.dir, len = norm3(vsub3(b, a)), nA = Math.max(1, Math.round(len / step));
+        out.push(lineEl('', P(a), P(b), ' stroke-width="' + (5 * k).toFixed(2) + '" stroke-opacity="0.55" stroke-linecap="butt"'));
+        var off = function (q) { return [q[0] - d[0] * Ll, q[1] - d[1] * Ll, q[2] - d[2] * Ll]; };
+        out.push(lineEl('', P(off(a)), P(off(b)), ' stroke-width="' + (1.2 * k).toFixed(2) + '"'));
+        for (var j = 0; j <= nA; j++) {
+          var t = j / nA, q = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+          out.push(arrow(off(q), q, 1.3, (lc.key === 'walkDead' ? 'g = ' : 'q = ') + nf(Ld.val, 2) + ' kN/m'));
+        }
+        if (!mid && acc + len >= total / 2) {
+          var tm = len > 0 ? (total / 2 - acc) / len : 0, qm = [a[0] + (b[0] - a[0]) * tm, a[1] + (b[1] - a[1]) * tm, a[2] + (b[2] - a[2]) * tm];
+          mid = { tail: off(qm), tip: qm };
+        }
+        acc += len;
+      });
+      if (mid) label(mid.tail, mid.tip, (lc.key === 'walkDead' ? 'g = ' : 'q = ') + nf(lines[0].val, 2) + ' kN/m');
+    }
+    // temperatur: svøbets flytning af understøtningerne som vandrette pile
+    var motions = lc.loads.filter(function (Ld) { return Ld.kind === 'motion'; });
+    if (motions.length) {
+      var Lm = 0.12 * R, best = null;
+      motions.forEach(function (Ld) {
+        var tip = [Ld.pos[0] + Ld.dir[0] * Lm, Ld.pos[1] + Ld.dir[1] * Lm, Ld.pos[2] + Ld.dir[2] * Lm];
+        var a = { tail: Ld.pos, tip: tip, d: depth(Ld.pos) };
+        out.push(arrow(a.tail, a.tip, 1.8, 'u = ' + nf(Ld.val * 1000, 2) + ' mm'));
+        if (!best || a.d > best.d) best = a;
+      });
+      label(best.tip, best.tail, 'u = ' + nf(motions[0].val * 1000, 1) + ' mm');
+    }
+    // vindretning eller læside: vandret pil i højde med svøbets fod, som i planen
+    var arrowDeg = lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|liveHalf)$/.test(lc.key) ? g.params.asymDir : null);
+    var dirSvg = '';
+    if (arrowDeg !== null && isFinite(arrowDeg)) {
+      var ar = arrowDeg * Math.PI / 180, ux = Math.cos(ar), uy = Math.sin(ar), L0 = 0.55 * R;
+      var a0 = [-ux * L0, -uy * L0, zLow], a1 = [ux * L0, uy * L0, zLow];
+      dirSvg = '<g class="d-arrow">' + arrow(a0, a1, 2.2, '') + '</g>';
+      var tq = lc.windDir !== undefined ? P([-ux * (L0 + 0.12 * R), -uy * (L0 + 0.12 * R), zLow]) : P([ux * (L0 + 0.12 * R), uy * (L0 + 0.12 * R), zLow]);
+      dirSvg += textEl('svg-label strong', tq[0], tq[1] + fs * 0.35, lc.windDir !== undefined ? 'vind' : 'læ', fs * 1.1, 'middle');
+    }
+    if (!out.length && !labels.length) return dirSvg;
+    return dirSvg + '<g class="d-ld' + (grp ? ' lc-' + grp : '') + '" stroke-linecap="round">' + out.join('') + labels.join('') + '</g>';
+  }
+  function dot3(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function vsub3(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function norm3(a) { return Math.sqrt(dot3(a, a)); }
 
   // ---------- tegningshoved og mængder ----------
   function updateTitleBlock(g) {
@@ -4549,7 +4697,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     });
     if (g.supports && g.supports.length) html.push('<span><i class="tri"></i>Understøtning' + (g.info && g.info.hold && g.info.hold.length ? ', kun lodret' : '') + '</span>');
     if (g.info && g.info.hold && g.info.hold.length) html.push('<span><i class="hold"></i>Vandret fastholdt (X / Y)</span>');
-    var lc = view === 'plan' && formTab !== 'brace' ? activeCase() : null;
+    var lc = view !== 'section' && formTab !== 'brace' ? activeCase() : null;
     if (lc && lc.temp) {
       var tp = lc.temp, sg = function (x, d) { return (x > 0 ? '+' : (x < 0 ? '−' : '')) + nf(Math.abs(x), d); };
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> ΔT tag ' + sg(tp.dRoof, 1) + ' K · svøb ' + sg(tp.dShell, 1) + ' K' +
@@ -4913,7 +5061,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (!wc.length) return;
     loadView = wc[wc.length - 1].key;
     updateLoadPicker();
-    if (view !== 'plan') setView('plan');
+    if (view === 'section') setView('plan');
     else { updateLegend(geom); renderDrawing(); }
   }
   function renderDrawing() {
@@ -4942,7 +5090,11 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
             : (lcv.signed ? ' (blå er sug, rød er tryk).' : '.')) + ' Hold musen over en flade for værdien.')
         : 'Set oppefra. Radialbjælkerne er nummereret mod uret fra RB.1; trekanterne er understøtningerne ved svøbet.')
       : (view === 'section' ? 'Snit gennem centrum i samme målestok lodret og vandret. Koter i m; målekæden viser afstande fra centrum.'
-        : 'Træk i tegningen for at dreje den.');
+        : (lcv ? 'Pilene viser ' + lcv.name.toLowerCase() + ' i lastens retning' +
+          (lcv.temp ? (lcv.temp.motions ? ' (svøbets flytning af understøtningerne).' : '; temperaturen ligger på bjælkerne og har ingen pile.')
+            : lcv.line || lcv.point ? '.' : ', med længden relativt til tilfældets største værdi. Hold musen over en pil for værdien.') +
+          ' Vælg Ingen under Vis last for at skjule dem. Træk i tegningen for at dreje den.'
+          : 'Træk i tegningen for at dreje den. Vælg et lasttilfælde under Vis last for at se lasterne.'));
     $('caption').textContent += zoomHint();
     drawing.setAttribute('aria-label', view === 'plan' ? 'Plan af taget' : (view === 'section' ? 'Snit gennem tagets centrum' : '3D-visning af taget'));
   }
@@ -4965,7 +5117,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (tab === 'loads' && !loadView && loads && loads.cases.length) {
       var pick = loads.cases.filter(function (c) { return c.key === 'snowAsym'; })[0] || loads.cases[0];
       loadView = pick.key;
-      if (view !== 'plan') setView('plan');
+      if (view === 'section') setView('plan');
       updateLoadPicker();
       updateLegend(geom);
       renderDrawing();
@@ -4983,7 +5135,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   });
   $('loadView').addEventListener('change', function () {
     loadView = this.value;
-    if (loadView && view !== 'plan') setView('plan');
+    if (loadView && view === 'section') setView('plan');
     updateLegend(geom);
     renderDrawing();
     // dokumentationen følger den viste vindretning
