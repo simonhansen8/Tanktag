@@ -233,3 +233,39 @@ test('udvekslinger deles ved sektionsspærene med charnier', () => {
   const conn = bar.match(/<connectivity [^>]*>/g);
   assert.equal(conn[1], '<connectivity m_x="true" m_y="true" m_z="true" r_x="true" r_y="false" r_z="false"/>');
 });
+
+// svejst T af fladstål (flange 300x25, krop 400x6 nedad) på kantringen: brugertværsnit med origo i tyngdepunktet,
+// flangen mod lokal z (opad) som bibliotekets T-profiler, fremstillet som svejst og uden ekscentricitet
+test('svejst T-profil på kantringen eksporteres som brugertværsnit med flangen opad', () => {
+  const s = TR.findSection(LIB, 'TS|300*25+400*6');
+  assert.ok(s, 'Fandt ikke det svejste T-profil');
+  assert.ok(Math.abs(s.area - (0.3 * 0.025 + 0.4 * 0.006)) < 1e-12);
+  const pts = TR.sectionOutline(s.xml)[0];
+  const ys = pts.map((q) => q[1]);
+  assert.ok(Math.abs(Math.max(...ys) - Math.min(...ys) - 0.425) < 1e-9, 'Højden skal være 425 mm');
+  // tyngdepunktet i origo: flangens overside 64,0 mm over og kroppens underkant 361,0 mm under
+  assert.ok(Math.abs(Math.max(...ys) - 0.064015152) < 1e-8);
+  // flangen (300 bred) ligger øverst
+  const wide = pts.filter((q) => Math.abs(Math.abs(q[0]) - 0.15) < 1e-9).map((q) => q[1]);
+  assert.ok(Math.min(...wide) > 0, 'Flangen skal ligge over tyngdepunktet');
+
+  const params = Object.assign({}, TR.DEFAULTS, { profEdge: 'TS|300*25+400*6' });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  assert.equal((xml.match(/name="Svejst T, 300x25\+400x6"/g) || []).length, 1, 'Tværsnittet skal stå én gang i filen');
+  const edges = g.members.filter((m) => m.group === 'edge');
+  assert.ok(edges.length > 0);
+  edges.forEach((m) => {
+    const bar = new RegExp('<bar name="' + m.name.replace(/\./g, '\\.') + '"[\\s\\S]*?made="([^"]+)"[\\s\\S]*?<local-y x="([^"]+)" y="([^"]+)" z="([^"]+)"[\\s\\S]*?</bar>').exec(xml);
+    assert.ok(bar, 'Fandt ikke ' + m.name);
+    assert.equal(bar[1], 'welded');
+    const ly = bar.slice(2, 5).map(Number);
+    ly.forEach((v, i) => assert.ok(Math.abs(v - m.localY[i]) < 1e-6, 'Lokal y skal være modellens'));
+    // lokal z = x × y skal pege opad, så flangen ligger øverst
+    const x = [0, 1, 2].map((i) => m.end[i] - m.start[i]);
+    const z2 = x[0] * ly[1] - x[1] * ly[0];
+    assert.ok(z2 > 0, 'Lokal z skal pege opad');
+    assert.ok(!/<analytical x="(?!0")/.test(bar[0]), 'Ingen ekscentricitet');
+  });
+});
