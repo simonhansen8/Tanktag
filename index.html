@@ -124,7 +124,6 @@ fieldset.sub:disabled { opacity: 0.5; }
 .d-walk { stroke: var(--primer); opacity: 0.85; }
 .d-lblbg { fill: var(--sheet); fill-opacity: 0.9; stroke: var(--primer); stroke-width: 1; }
 /* laster i 3D: panelerne farves efter værdien, pilene efter lasttype */
-.d-loadpanel3 polygon { stroke: var(--sheet); stroke-width: 0.5; fill-opacity: 0.8; }
 .d-ld { --lc: var(--primer); stroke: var(--lc); fill: var(--lc); }
 .d-ld.lc-G { --lc: var(--ink-2); }
 .d-ld.lc-H { --lc: var(--c-edge); }
@@ -302,7 +301,6 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .d-udv-node circle { fill: var(--sheet); stroke: var(--c-udv); stroke-width: 2; }
 .svg-label { font-family: var(--f-data); fill: var(--ink-2); }
 .svg-label.strong { fill: var(--ink); }
-.svg-title { font-family: var(--f-display); font-weight: 600; fill: var(--ink-2); letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* status */
 .status { display: grid; gap: 6px; padding: 0 14px 10px; }
@@ -1103,7 +1101,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <div class="qwrap lwrap" id="lWrap"><table class="q" id="lTable"></table></div>
       </div>
       <div class="exportnote" id="exportNote">
-        <p>Filen hentes som zip med <span class="mono">.struxml</span> og <span class="mono">parametre.json</span>. Pak den ud, og åbn <span class="mono">.struxml</span> i FEM-Design med Fil › Åbn.</p>
+        <p>Filen hentes som <span class="mono">.struxml</span>. Åbn den i FEM-Design med Fil › Åbn.</p>
         <p><button type="button" class="btn small" id="btnCopyXml">Kopiér StruXML i stedet</button> <span class="hint">Indsæt i en teksteditor og gem som <span class="mono">tanktag.struxml</span>.</span></p>
       </div>
     </section>
@@ -1143,7 +1141,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     <div class="note">
       <h3>Når filen er åbnet</h3>
       <p>Lasttilfældene ligger klar: fladelaster på fladerne, gangbroen som linjelaster på sin radialbjælke, temperatur på bjælkerne og svøbets udvidelse som flytning af understøtningerne, og lastkombinationerne fra fanen Kombinationer følger med. Lav de øvrige kombinationer i FEM-Design, og tjek materialets partialkoefficienter, knækningslængder og forbindelser. Profiler og S 235–S 460 er kopier af FEM-Designs eget bibliotek; fladstål findes ikke dér og lægges ind som rektangulære brugertværsnit, som FEM-Design selv beregner tværsnitsværdier for. Parametrene står som kommentar øverst i filen, så den kan indlæses her igen med Indlæs fil.</p>
-      <p>Samme generator findes som Python-script, der læser <span class="mono">parametre.json</span>.</p>
     </div>
   </section>
 </div>
@@ -1434,7 +1431,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
   // rotation af profilet om stangaksen: 0, 90, 180 eller 270 grader ("90°" og "90" læses også)
   var ROTATIONS = [0, 90, 180, 270];
-  var ROT_CS = { 90: [0, 1], 180: [-1, 0], 270: [0, -1] }; // [cos, sin] – eksakt, så JS og Python giver samme tal
+  var ROT_CS = { 90: [0, 1], 180: [-1, 0], 270: [0, -1] }; // [cos, sin] – eksakt, så 90°, 180° og 270° ikke giver afrundingsstøj
   function rotNum(v) {
     if (typeof v === 'number') return v;
     return toNum(jsString(v).replace(/°/g, ''));
@@ -1946,7 +1943,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
 
   // ---------- laster ----------
-  // Fast antal decimaler som JavaScripts toFixed (Python-udgaven runder på samme måde)
+  // Fast antal decimaler som JavaScripts toFixed
   function fixed(x, d) {
     var s = x.toFixed(d);
     if (/^-0(\.0+)?$/.test(s)) s = s.slice(1);
@@ -2764,87 +2761,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
   var api = {
     VERSION: VERSION, DEFAULTS: DEFAULTS, computeGeometry: computeGeometry, buildStruxml: buildStruxml,
-    quantities: quantities, findSection: findSection, parseRadii: parseRadii, fmt: fmt, normalizeParams: normalizeParams,
-    computeLoads: computeLoads, peakPressure: peakPressure, mu1: mu1, CPE_PLACEHOLDER: CPE_PLACEHOLDER,
-    FLAT_CPE: FLAT_CPE, ALPHA_STEEL: ALPHA_STEEL, splitBracing: splitBracing, udvProfileOf: udvProfileOf,
-    COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, caseLabel: caseLabel, proposeCombos: proposeCombos, caseGroup: caseGroup,
+    quantities: quantities, findSection: findSection, parseRadii: parseRadii, normalizeParams: normalizeParams,
+    computeLoads: computeLoads, mu1: mu1, CPE_PLACEHOLDER: CPE_PLACEHOLDER,
+    FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, udvProfileOf: udvProfileOf,
+    COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
-})(typeof window !== 'undefined' ? window : this);
-
-</script>
-<script>
-/* Minimal ZIP-skriver (deflate via CompressionStream, ellers stored). */
-(function (root) {
-  'use strict';
-  var CRC_TABLE = (function () {
-    var t = new Uint32Array(256);
-    for (var n = 0; n < 256; n++) {
-      var c = n;
-      for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
-      t[n] = c >>> 0;
-    }
-    return t;
-  })();
-  function crc32(bytes) {
-    var c = 0xFFFFFFFF;
-    for (var i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
-    return (c ^ 0xFFFFFFFF) >>> 0;
-  }
-  async function deflateRaw(bytes) {
-    if (typeof CompressionStream === 'undefined') return null;
-    try {
-      var cs = new CompressionStream('deflate-raw');
-      var stream = new Blob([bytes]).stream().pipeThrough(cs);
-      var buf = await new Response(stream).arrayBuffer();
-      return new Uint8Array(buf);
-    } catch (e) { return null; }
-  }
-  function dosTimeDate(d) {
-    var time = (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2);
-    var date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
-    return [time & 0xFFFF, date & 0xFFFF];
-  }
-  // files: [{name, data: string|Uint8Array}]
-  async function makeZip(files, when) {
-    var enc = new TextEncoder();
-    var td = dosTimeDate(when || new Date());
-    var parts = [], central = [], offset = 0;
-    for (var i = 0; i < files.length; i++) {
-      var f = files[i];
-      var name = enc.encode(f.name);
-      var raw = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
-      var crc = crc32(raw);
-      var comp = await deflateRaw(raw);
-      var method = 8;
-      if (!comp || comp.length >= raw.length) { comp = raw; method = 0; }
-      var lh = new DataView(new ArrayBuffer(30));
-      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
-      lh.setUint16(8, method, true); lh.setUint16(10, td[0], true); lh.setUint16(12, td[1], true);
-      lh.setUint32(14, crc, true); lh.setUint32(18, comp.length, true); lh.setUint32(22, raw.length, true);
-      lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
-      parts.push(new Uint8Array(lh.buffer), name, comp);
-      var ch = new DataView(new ArrayBuffer(46));
-      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
-      ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, td[0], true);
-      ch.setUint16(14, td[1], true); ch.setUint32(16, crc, true); ch.setUint32(20, comp.length, true);
-      ch.setUint32(24, raw.length, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true);
-      ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true);
-      ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
-      central.push(new Uint8Array(ch.buffer), name);
-      offset += 30 + name.length + comp.length;
-    }
-    var cdSize = central.reduce(function (s, a) { return s + a.length; }, 0);
-    var end = new DataView(new ArrayBuffer(22));
-    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
-    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true); end.setUint16(20, 0, true);
-    return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]), { type: 'application/zip' });
-  }
-  var api = { makeZip: makeZip, crc32: crc32 };
-  if (typeof module !== 'undefined' && module.exports) module.exports = api;
-  else root.TankZip = api;
 })(typeof window !== 'undefined' ? window : this);
 
 </script>
@@ -2879,6 +2803,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
 
   // ---------- polygoner i vindens koordinater (s langs vinden, t på tværs) ----------
+  // tagets halve bredde på tværs af vinden i afstanden s fra luvkanten
+  function halfWidth(R, s) { var u = R - s; return Math.sqrt(Math.max(0, R * R - u * u)); }
   function clip(poly, a, b, d) {          // behold a·s + b·t ≤ d
     var out = [], n = poly.length;
     for (var i = 0; i < n; i++) {
@@ -3037,11 +2963,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
     var slopeMax = 0, ApTotal = 0;
     L.panels.forEach(function (pp) { slopeMax = Math.max(slopeMax, pp.slope); ApTotal += pp.areaProj; });
-    var hw = function (s) { var u = R - s; return Math.sqrt(Math.max(0, R * R - u * u)); };
     return {
       model: model, R: R, D: D, h: p.windH, f: Wd.f, ze: Wd.ze, qp: qp, peak: Wd.peak, qpMode: p.windQpMode,
       vb0: p.windVb0, cdir2: p.windCdirSeason, terrain: p.windTerrain, cpi: cpi, e: e, c: c,
-      fExists: model === 'flat' && hw(e / 10) > c + 1e-12, sF0: c < R ? R - Math.sqrt(R * R - c * c) : null,
+      fExists: model === 'flat' && halfWidth(R, e / 10) > c + 1e-12, sF0: c < R ? R - Math.sqrt(R * R - c * c) : null,
       cpeA: p.windCpeA, cpeB: p.windCpeB, cpeC: p.windCpeC, cpeConst: p.windCpe,
       placeholders: !!(TR && TR.CPE_PLACEHOLDER && model === 'dome' && p.windCpeA === TR.CPE_PLACEHOLDER[0] &&
         p.windCpeB === TR.CPE_PLACEHOLDER[1] && p.windCpeC === TR.CPE_PLACEHOLDER[2]),
@@ -3123,7 +3048,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         (extra || '') + '>' + esc(s) + '</text>';
     }
     function tw(s, size) { return String(s).length * 0.62 * size; }
-    function hw(s) { var u = R - s; return Math.sqrt(Math.max(0, R * R - u * u)); }
+    function hw(s) { return halfWidth(R, s); }
     var out = [];
     var label = 'Plan af taget for ' + dir.name + (model === 'flat' ? ' med zonerne F, G, H og I' : '') + '. Vinden blæser fra venstre.' +
       (prof ? ' Under planen: c_pe langs vindretningen med interpolationen mellem A, B og C.' : '');
@@ -3813,8 +3738,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
 
   var api = {
-    compute: compute, html: html, text: text, standalone: standalone, clipboardHtml: clipboardHtml, figure: figure, kFor: kFor,
-    content: content, mixHex: mixHex, ZONE_SHARE: ZONE_SHARE, _clip: clipAll, _area: area
+    compute: compute, html: html, text: text, standalone: standalone, clipboardHtml: clipboardHtml, kFor: kFor
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankWindDoc = api;
@@ -4744,7 +4668,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       }
       if (!LIB.materials[g.params.material]) items.push('<div class="msg bad">Stålkvaliteten findes ikke i biblioteket. Vælg en anden.</div>');
     }
-    if (libError) items.push('<div class="msg bad">Profilbiblioteket kunne ikke indlæses i denne browser (' + esc(libError) + '). Prøv en nyere browser, eller brug Python-scriptet.</div>');
+    if (libError) items.push('<div class="msg bad">Profilbiblioteket kunne ikke indlæses i denne browser (' + esc(libError) + '). Prøv en nyere browser.</div>');
     statusExtra.forEach(function (s) { items.push(s); });
     $('status').innerHTML = items.join('');
     var blocked = g.errors.length > 0 || !LIB || items.some(function (h) { return h.indexOf('msg bad') >= 0 && h.indexOf('data-export') < 0; });
@@ -5539,15 +5463,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   try { bstate.mid = window.localStorage.getItem(STORE_KEY + '-mid') !== '0'; } catch (e) { /* ok */ }
 
   // ---------- eksport ----------
-  // Claude-visningen giver adgang til at gemme filer via claude.use('downloads'); null = ikke i denne visning.
-  // Et null-svar huskes ikke, så der spørges igen ved næste klik.
-  var downloadsNs = null;
-  function getDownloads() {
-    if (downloadsNs) return Promise.resolve(downloadsNs);
-    if (!(window.claude && typeof window.claude.use === 'function')) return Promise.resolve(null);
-    return window.claude.use('downloads').then(function (d) { return (downloadsNs = d || null); }, function () { return null; });
-  }
-  var framed = (function () { try { return window.top !== window.self; } catch (e) { return true; } })();
   // almindelig browser-download, når siden kører for sig selv (fx åbnet direkte eller gemt som fil)
   function directDownload(text, name, mime) {
     try {
@@ -5559,9 +5474,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       return true;
     } catch (e) { return false; }
   }
-  var NO_SAVE_MSG = 'Denne visning af siden må ikke gemme filer. Åbn siden fra kortet i samtalen med Claude eller fra dine artefakter, så virker <b>Hent til FEM-Design</b> – eller brug <b>Kopiér StruXML i stedet</b> herunder.';
   function fileBase(p) {
-    var d = String(Math.round(p.tankDiameter * 1000) / 1000).replace('.', ',');
+    var d = radFmt(p.tankDiameter);
     var udv = geom && geom.info ? geom.info.radii.length : p.numUdv;
     return 'tanktag_D' + d + 'm_' + p.numRadial + 'RB_' + udv + 'UDV';
   }
@@ -5576,41 +5490,16 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     return TR.buildStruxml(params, LIB, { geometry: g, loads: TR.computeLoads(g) });
   }
 
-  $('btnExport').addEventListener('click', async function () {
-    var btn = this;
-    if (btn.disabled) return;
-    var xml, zip, base = fileBase(TR.normalizeParams(params));
-    try {
-      xml = buildXml();
-      zip = await window.TankZip.makeZip([
-        { name: base + '.struxml', data: xml },
-        { name: 'parametre.json', data: JSON.stringify(cleanParams(), null, 2) + '\n' }
-      ]);
-    } catch (e) {
+  $('btnExport').addEventListener('click', function () {
+    if (this.disabled) return;
+    var xml, base = fileBase(TR.normalizeParams(params));
+    try { xml = buildXml(); } catch (e) {
       addStatus('bad', 'Filen kunne ikke dannes: ' + (e && e.message ? e.message : e));
       return;
     }
-    var dl = await getDownloads();
-    if (!dl) {
-      if (!framed && directDownload(xml, base + '.struxml')) {
-        addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. Åbn den i FEM-Design med Fil › Åbn. Kommer der ingen fil, så brug <b>Kopiér StruXML i stedet</b> herunder.');
-      } else addStatus('bad', '', NO_SAVE_MSG);
-      return;
-    }
-    btn.disabled = true;
-    try {
-      await dl.save({ filename: base + '.zip', data: zip });
-      addStatus('ok', '', 'Gemt som <span class="mono">' + esc(base) + '.zip</span>. Pak den ud, og åbn <span class="mono">' + esc(base) + '.struxml</span> i FEM-Design med Fil › Åbn.');
-    } catch (e) {
-      var code = e && e.code;
-      if (code === 'declined') addStatus('ok', 'Download annulleret.');
-      else if (code === 'rate_limited') addStatus('bad', 'Der er allerede en download i gang. Prøv igen om et øjeblik.');
-      else if (code === 'rejected_extension' || code === 'extension_not_enabled') addStatus('bad', '', 'Zip-filer kan ikke gemmes i denne visning. Brug <b>Kopiér StruXML i stedet</b> herunder.');
-      else if (code === 'too_large') addStatus('bad', '', 'Filen er for stor til at blive gemt her. Brug <b>Kopiér StruXML i stedet</b> herunder.');
-      else { downloadsNs = null; addStatus('bad', '', NO_SAVE_MSG); }
-    } finally {
-      renderStatus(geom);
-    }
+    if (directDownload(xml, base + '.struxml')) {
+      addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. Åbn den i FEM-Design med Fil › Åbn. Kommer der ingen fil, så brug <b>Kopiér StruXML i stedet</b> herunder.');
+    } else addStatus('bad', '', 'Browseren tillod ikke at gemme filen. Brug <b>Kopiér StruXML i stedet</b> herunder.');
   });
 
   function copyText(text, okMsg) {
@@ -5625,7 +5514,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     } catch (e) { fallback(); }
   }
   $('btnCopyParams').addEventListener('click', function () {
-    copyText(JSON.stringify(cleanParams(), null, 2), 'Parametrene er kopieret som JSON. Gem dem som parametre.json til Python-scriptet.');
+    copyText(JSON.stringify(cleanParams(), null, 2), 'Parametrene er kopieret som JSON. Gem dem som en .json-fil, så kan de indlæses igen med Indlæs fil.');
   });
   $('btnCopyXml').addEventListener('click', function () {
     if (this.disabled) return;
@@ -5946,30 +5835,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         now.toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })
     };
   }
-  $('windDocSave').addEventListener('click', async function () {
-    var btn = this, data = windDocData();
-    if (!data || btn.disabled) return;
+  $('windDocSave').addEventListener('click', function () {
+    var data = windDocData();
+    if (!data || this.disabled) return;
     var html = WD.standalone(data, windDocMeta()), name = 'vindlast_' + fileBase(TR.normalizeParams(params)) + '.html';
-    var dl = await getDownloads();
-    if (!dl) {
-      if (!framed && directDownload(html, name, 'text/html')) wdMsg('Henter <span class="mono">' + esc(name) + '</span>.');
-      else wdMsg('Denne visning af siden må ikke gemme filer. Åbn siden fra kortet i samtalen med Claude eller fra dine artefakter – eller brug <b>Kopiér tekst</b>.', true);
-      return;
-    }
-    btn.disabled = true;
-    try {
-      await dl.save({ filename: name, data: html });
-      wdMsg('Gemt som <span class="mono">' + esc(name) + '</span>. Åbn filen i en browser, og udskriv den til PDF, hvis den skal i beregningsrapporten.');
-    } catch (e) {
-      var code = e && e.code;
-      if (code === 'declined') wdMsg('Download annulleret.');
-      else if (code === 'rate_limited') wdMsg('Der er allerede en download i gang. Prøv igen om et øjeblik.', true);
-      else if (code === 'rejected_extension' || code === 'extension_not_enabled') wdMsg('HTML-filer kan ikke gemmes i denne visning. Brug <b>Kopiér tekst</b>.', true);
-      else if (code === 'too_large') wdMsg('Filen er for stor til at blive gemt her. Brug <b>Kopiér tekst</b>.', true);
-      else { downloadsNs = null; wdMsg('Denne visning af siden må ikke gemme filer. Brug <b>Kopiér tekst</b>.', true); }
-    } finally {
-      btn.disabled = false;
-    }
+    if (directDownload(html, name, 'text/html')) wdMsg('Henter <span class="mono">' + esc(name) + '</span>. Åbn filen i en browser, og udskriv den til PDF, hvis den skal i beregningsrapporten.');
+    else wdMsg('Browseren tillod ikke at gemme filen. Brug <b>Kopiér tekst</b>.', true);
   });
   $('windDocCopy').addEventListener('click', function () {
     var data = windDocData();
@@ -6047,7 +5918,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     fillForm();
     render();
   });
-  getDownloads();
   window.TankApp = { buildXml: function () { return buildXml(); }, params: function () { return cleanParams(); } };
 })();
 
