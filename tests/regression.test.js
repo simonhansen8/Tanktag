@@ -1,0 +1,180 @@
+'use strict';
+// Regressionstest: hvert referencetag i tests/cases beregnes med koden i index.html og
+// sammenlignes med facit i tests/snapshots. Facit opdateres bevidst med `npm run test:update`.
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const zlib = require('zlib');
+const { load } = require('./load');
+
+const CASES_DIR = path.join(__dirname, 'cases');
+const SNAP_DIR = path.join(__dirname, 'snapshots');
+const UPDATE = process.env.UPDATE_SNAPSHOTS === '1';
+const TIMESTAMP = '2000-01-01T00:00:00.000';
+
+const { TR, WD, LIB } = load();
+
+// tal afrundes til 6 decimaler, så facit ikke afhænger af afrundingsstøj i sidste ciffer
+function round(v) {
+  if (typeof v === 'number') {
+    if (!isFinite(v)) return String(v);
+    const r = Math.round(v * 1e6) / 1e6;
+    return r === 0 ? 0 : r;
+  }
+  if (Array.isArray(v)) return v.map(round);
+  if (v && typeof v === 'object') {
+    const o = {};
+    Object.keys(v).forEach((k) => { if (v[k] !== undefined && typeof v[k] !== 'function') o[k] = round(v[k]); });
+    return o;
+  }
+  return v;
+}
+
+function countBy(list, key) {
+  const o = {};
+  list.forEach((x) => { o[x[key]] = (o[x[key]] || 0) + 1; });
+  return o;
+}
+
+function memberLength(m) {
+  return Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
+}
+
+function elementCounts(xml) {
+  const o = {};
+  const re = /<([a-z_]+)[\s/>]/g;
+  let m;
+  while ((m = re.exec(xml))) o[m[1]] = (o[m[1]] || 0) + 1;
+  return Object.keys(o).sort().reduce((a, k) => { a[k] = o[k]; return a; }, {});
+}
+
+function compute(spec) {
+  const params = Object.assign({}, TR.DEFAULTS, spec.params);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  assert.deepEqual(geom.errors, [], 'Geometrien giver fejl');
+  const loads0 = TR.computeLoads(geom);
+  assert.deepEqual(loads0.errors, [], 'Lasterne giver fejl');
+
+  // som knappen "Brug forslagene" på siden: de foreslåede kombinationer lægges i parametrene
+  let proposed = null;
+  if (spec.proposeCombos) {
+    proposed = TR.proposeCombos(loads0, spec.proposeCombos);
+    params.combos = TR.normCombos(proposed);
+  }
+  const g = spec.proposeCombos ? TR.computeGeometry(params) : geom;
+  const loads = spec.proposeCombos ? TR.computeLoads(g) : loads0;
+  assert.deepEqual(loads.comboErrors || [], [], 'Lastkombinationerne giver fejl');
+
+  let guid = 0;
+  const xml = TR.buildStruxml(params, LIB, {
+    geometry: g, loads,
+    guid: () => '00000000-0000-4000-8000-' + String(++guid).padStart(12, '0'),
+    timestamp: TIMESTAMP
+  });
+
+  const groups = {};
+  g.members.forEach((m) => {
+    const s = groups[m.group] || (groups[m.group] = { count: 0, length: 0 });
+    s.count++;
+    s.length += memberLength(m);
+  });
+  const wd = WD.compute(g, loads, TR);
+
+  const summary = round({
+    version: TR.VERSION,
+    geometry: {
+      info: g.info,
+      warnings: g.warnings,
+      braceErrors: g.braceErrors,
+      members: groups,
+      supports: g.supports.length,
+      covers: g.covers.length
+    },
+    quantities: TR.quantities(g, LIB),
+    loads: {
+      warnings: loads.warnings,
+      panels: loads.panels.length,
+      totalPanelArea: loads.panels.reduce((a, p) => a + p.area, 0),
+      cases: loads.cases.map((c) => ({
+        key: c.key, name: c.name, type: c.type, duration: c.duration,
+        loads: countBy(c.loads, 'kind'), F: c.F
+      })),
+      dead: loads.dead, snow: loads.snow, wind: loads.wind, press: loads.press, temp: loads.temp, walk: loads.walk,
+      combos: (loads.combos || []).map((c) => ({
+        name: c.name, type: c.type, ok: c.ok, export: c.export,
+        factors: c.items.reduce((a, it) => { a[it.key] = it.gamma; return a; }, {}), F: c.F
+      }))
+    },
+    proposedCombos: proposed,
+    windDoc: wd && {
+      model: wd.model, qp: wd.qp, e: wd.e, c: wd.c, cpi: wd.cpi,
+      cpeA: wd.cpeA, cpeB: wd.cpeB, cpeC: wd.cpeC, cpeConst: wd.cpeConst,
+      nPanels: wd.nPanels, ApTotal: wd.ApTotal,
+      zones: wd.zones.map((z) => ({ key: z.key, label: z.label, cpe0: z.cpe0, cpe1: z.cpe1, w0: z.w0, w1: z.w1 })),
+      dirs: wd.dirs.map((d) => ({ deg: d.deg, name: d.name, panels: d.rows.length, F: d.Fm, caseF: d.caseF }))
+    },
+    struxml: {
+      sha256: crypto.createHash('sha256').update(xml).digest('hex'),
+      lines: xml.split('\n').length,
+      elements: elementCounts(xml)
+    }
+  });
+  return { summary, xml, windText: wd ? WD.text(wd) : null };
+}
+
+// første forskel mellem to StruXML-filer, så en fejl siger, hvor filen har ændret sig
+function xmlDiff(oldXml, newXml) {
+  const a = oldXml.split('\n'), b = newXml.split('\n');
+  let first = -1, changed = 0;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    if (a[i] !== b[i]) { changed++; if (first < 0) first = i; }
+  }
+  if (first < 0) return null;
+  const cut = (s) => (s === undefined ? '(ingen linje)' : s.trim().slice(0, 300));
+  return 'StruXML er ændret: ' + changed + ' linjer er forskellige (facit ' + a.length + ' linjer, nu ' + b.length + ').\n' +
+    'Første forskel i linje ' + (first + 1) + ':\n  facit: ' + cut(a[first]) + '\n  nu:    ' + cut(b[first]);
+}
+
+const caseFiles = fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort();
+if (UPDATE) fs.mkdirSync(SNAP_DIR, { recursive: true });
+
+for (const file of caseFiles) {
+  const name = file.replace(/\.json$/, '');
+  const spec = JSON.parse(fs.readFileSync(path.join(CASES_DIR, file), 'utf8'));
+  const summaryPath = path.join(SNAP_DIR, name + '.json');
+  const xmlPath = path.join(SNAP_DIR, name + '.struxml.gz');
+  const windPath = path.join(SNAP_DIR, name + '.vind.txt');
+
+  test(name + ': ' + spec.description, () => {
+    const { summary, xml, windText } = compute(spec);
+
+    if (UPDATE) {
+      fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2) + '\n');
+      if (windText !== null) fs.writeFileSync(windPath, windText);
+      else if (fs.existsSync(windPath)) fs.unlinkSync(windPath);
+      // gzip-filen skrives kun om, når indholdet er ændret, så den ikke skifter uden grund
+      const old = fs.existsSync(xmlPath) ? zlib.gunzipSync(fs.readFileSync(xmlPath)).toString('utf8') : null;
+      if (old !== xml) fs.writeFileSync(xmlPath, zlib.gzipSync(xml, { level: 9 }));
+      return;
+    }
+
+    assert.ok(fs.existsSync(summaryPath), 'Facit mangler for ' + name + '. Kør `npm run test:update`.');
+    const expected = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+    const { struxml: expXml, ...expRest } = expected;
+    const { struxml: gotXml, ...gotRest } = summary;
+    assert.deepStrictEqual(gotRest, expRest, 'Geometri, mængder eller laster afviger fra facit');
+
+    if (windText !== null || fs.existsSync(windPath)) {
+      assert.ok(fs.existsSync(windPath), 'Facit for vinddokumentationen mangler. Kør `npm run test:update`.');
+      assert.equal(windText, fs.readFileSync(windPath, 'utf8'), 'Vinddokumentationen afviger fra facit');
+    }
+
+    const oldXml = zlib.gunzipSync(fs.readFileSync(xmlPath)).toString('utf8');
+    const diff = xmlDiff(oldXml, xml);
+    if (diff) assert.fail(diff);
+    assert.deepStrictEqual(gotXml, expXml, 'StruXML-oversigten afviger fra facit');
+  });
+}
