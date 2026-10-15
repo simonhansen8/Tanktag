@@ -288,15 +288,9 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .d-cnlbl text.strong { fill: var(--ink); font-weight: 600; }
 .conntypes { display: grid; gap: 6px; }
 .conntypes .hint { white-space: nowrap; }
-.asgnames { display: grid; gap: 4px; }
-.asgrow { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 8px; align-items: center; }
-.asgnames .asgrow { grid-template-columns: 78px minmax(0, 1fr); }
-.asgrow .rl { font-size: 0.85rem; min-width: 0; overflow-wrap: anywhere; }
-.asgrow select, .asgrow input[type="text"], .asgx select { min-height: 32px; padding: 4px 8px; font-size: 0.85rem; }
-.asgtypes { display: grid; gap: 10px; }
-.asgtype { display: grid; gap: 4px; }
-.asgtype h3 { margin: 0; font-size: 0.9rem; font-weight: 600; }
-.asgx { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
+.conntabs { margin-bottom: 4px; }
+.conntabs span { padding: 4px 8px; }
+.asgbox { display: grid; gap: 10px; padding-top: 10px; border-top: 1px solid var(--rule-2); }
 .conn-t td.hit { font-weight: 700; color: var(--primer); }
 .conn-t th .u { font-weight: 400; color: var(--ink-2); }
 .drawwrap { position: relative; min-width: 0; }
@@ -1112,6 +1106,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       </section>
 
       <section class="group" aria-labelledby="g-conn-sel">
+        <div class="seg compact conntabs" role="radiogroup" aria-label="Knuderne vælges til" id="connTabs"></div>
         <h2 id="g-conn-sel">Vælg knuder</h2>
         <p class="hint">Klik på knuderne i planen for at vælge dem eller fravælge dem, eller vælg en hel knudetype her. Knuderne er navngivet efter radialbjælken: K2.3 er RB.3 ved udvekslingsring 2, KR.3 ved ringbjælken og KS.3 ved svøbet, og et M (fx KSM.3) betyder midt i faget efter RB.3.</p>
         <div class="conntypes" id="connTypes"></div>
@@ -1128,27 +1123,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           </div>
         </div>
         <p class="calc" id="connSelInfo"></p>
-      </section>
-
-      <section class="group" aria-labelledby="g-conn-asg">
-        <h2 id="g-conn-asg">Samlingstyper</h2>
-        <p class="hint">Giv hver stang i hver knudetype det samlingsnummer, den skal eftervises med. Afviger enkelte knuder, så vælg dem i planen, og sæt en undtagelse nederst.</p>
-        <div class="asgnames" id="connNames"></div>
-        <div class="asgtypes" id="connAsg"></div>
-        <div class="field">
-          <span class="lbl">Undtagelser for de valgte knuder</span>
-          <div class="asgx">
-            <select id="connXRole" aria-label="Stang i de valgte knuder"></select>
-            <select id="connXSaml" aria-label="Samling for stangen i de valgte knuder"></select>
-            <button type="button" class="btn small" id="connXSet">Sæt</button>
-            <button type="button" class="btn small" id="connXClear">Fjern undtagelser</button>
+        <div class="asgbox" id="connAsgBox" hidden>
+          <div class="field">
+            <label class="lbl" for="connSamlName">Beskrivelse af samlingen</label>
+            <input type="text" id="connSamlName" placeholder="Fx IPE 330 til tagkant">
           </div>
+          <div class="field">
+            <span class="lbl">Stænger i knuden, samlingen gælder for</span>
+            <div class="conntypes" id="connRoles"></div>
+          </div>
+          <p class="calc" id="connAsgInfo"></p>
+          <div class="tools">
+            <button type="button" class="btn small" id="connSamlXlsx">Hent samlinger (Excel)</button>
+          </div>
+          <span class="doc-msg" id="connAsgMsg" aria-live="polite"></span>
         </div>
-        <p class="calc" id="connAsgInfo"></p>
-        <div class="tools">
-          <button type="button" class="btn small" id="connSamlXlsx">Hent samlinger (Excel)</button>
-        </div>
-        <span class="doc-msg" id="connAsgMsg" aria-live="polite"></span>
       </section>
       </div>
     </form>
@@ -4836,53 +4825,52 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return zip(f);
   }
 
-  // ---------- Samlinger: hver stangende i hver knude tildeles en samlingstype ----------
-  // Tildelingen gives pr. knudetype og stang, og enkelte knuder kan have undtagelser. 0 = ingen samling.
+  // ---------- Samlinger: knuderne og stængerne, hver samlingstype gælder for ----------
+  // sel[n-1] er knuderne valgt til samling n, og roles[n-1] er stængerne i knuden (null = alle stænger).
   var N_SAML = 7;
-  function asgKey(a, b) { return a + '|' + b; }
   function newAssign() {
-    var names = [];
-    for (var i = 0; i < N_SAML; i++) names.push(i === 0 ? 'IPE 330 til tagkant' : '');
-    return { names: names, types: {}, nodes: {} };
+    var a = { names: [], sel: [], roles: [] };
+    for (var i = 0; i < N_SAML; i++) { a.names.push(i === 0 ? 'IPE 330 til tagkant' : ''); a.sel.push([]); a.roles.push(null); }
+    return a;
   }
-  function samlingOf(asg, nd, role) {
-    var x = asg.nodes[asgKey(nd.id, role)];
-    return x !== undefined ? x : (asg.types[asgKey(nd.type, role)] || 0);
-  }
-  // stængerne i hver knudetype, i samme rækkefølge som i knuderne
-  function typeRoles(nodeSet) {
-    var out = {};
+  // stængerne i de givne knuder, i samme rækkefølge som i knuderne
+  function nodeRoles(nodeSet, ids) {
+    var sel = {}, out = [];
+    ids.forEach(function (id) { sel[id] = true; });
     nodeSet.nodes.forEach(function (nd) {
-      var l = out[nd.type] || (out[nd.type] = []);
-      nd.ends.forEach(function (e) { if (l.indexOf(e.role) < 0) l.push(e.role); });
+      if (sel[nd.id]) nd.ends.forEach(function (e) { if (out.indexOf(e.role) < 0) out.push(e.role); });
     });
     return out;
   }
   // udgangspunkt: samling 1 er radialbjælkens ende ved svøbet
   function seedAssign(asg, nodeSet) {
-    var tr = typeRoles(nodeSet);
-    Object.keys(tr).forEach(function (t) {
-      if (/^RB ved svøbet/.test(t) && tr[t].indexOf('RB mod centrum') >= 0) asg.types[asgKey(t, 'RB mod centrum')] = 1;
-    });
+    asg.sel[0] = nodeSet.nodes.filter(function (nd) {
+      return /^RB ved svøbet/.test(nd.type) && nd.ends.some(function (e) { return e.role === 'RB mod centrum'; });
+    }).map(function (nd) { return nd.id; });
+    asg.roles[0] = ['RB mod centrum'];
     return asg;
   }
   // stangenderne med kræfter for hver samling (ends[1..N_SAML], som endRows) og listen over tildelingen
   function samlingEnds(nodeSet, M, combos, asg) {
-    var ends = [], list = [];
-    for (var i = 0; i <= N_SAML; i++) ends.push([]);
-    nodeSet.nodes.forEach(function (nd) {
-      nd.ends.forEach(function (e) {
-        var s = samlingOf(asg, nd, e.role);
-        if (!s) return;
-        list.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), s, asg.nodes[asgKey(nd.id, e.role)] !== undefined ? 'undtagelse' : '']);
-        var d = M && M.bars[e.m.name];
-        if (!d) return;
-        combos.forEach(function (cn, c) {
-          var f = (e.end === 's' ? d.s : d.e)[c];
-          if (f) ends[s].push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f));
+    var ends = [[]], list = [];
+    for (var n = 1; n <= N_SAML; n++) {
+      var sel = {}, roles = asg.roles[n - 1], rows = [];
+      (asg.sel[n - 1] || []).forEach(function (id) { sel[id] = true; });
+      nodeSet.nodes.forEach(function (nd) {
+        if (!sel[nd.id]) return;
+        nd.ends.forEach(function (e) {
+          if (roles && roles.indexOf(e.role) < 0) return;
+          list.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), n]);
+          var d = M && M.bars[e.m.name];
+          if (!d) return;
+          combos.forEach(function (cn, c) {
+            var f = (e.end === 's' ? d.s : d.e)[c];
+            if (f) rows.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f));
+          });
         });
       });
-    });
+      ends.push(rows);
+    }
     return { ends: ends, list: list };
   }
 
@@ -4999,9 +4987,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       T.push([n, asg.names[n - 1] || '', cnt, cnt ? (SAMLING_SHEETS[n] ? 'Samling ' + n : 'mangler') : '']);
     }
     T.push([]);
-    T.push(['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Samling', 'Note'].map(function (h) { return { v: h, s: XS.th }; }));
+    T.push(['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Samling'].map(function (h) { return { v: h, s: XS.th }; }));
     se.list.forEach(function (x) { T.push(x); });
-    sheets.push({ name: 'Tildeling', rows: T, first: true, widths: [10, 30, 18, 10, 8, 9, 12] });
+    sheets.push({ name: 'Tildeling', rows: T, first: true, widths: [10, 30, 18, 10, 8, 9] });
     for (n = 1; n <= N_SAML; n++) {
       if (!se.ends[n].length) continue;
       if (SAMLING_SHEETS[n]) sheets = sheets.concat(SAMLING_SHEETS[n](se.ends[n], asg.names[n - 1], names));
@@ -5015,7 +5003,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     textRows: textRows, readFile: readFile, readXlsx: readXlsx, parseForces: parseForces, matchBars: matchBars,
     buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv,
     endRows: endRows, xlsx: xlsx,
-    N_SAML: N_SAML, asgKey: asgKey, newAssign: newAssign, samlingOf: samlingOf, typeRoles: typeRoles, seedAssign: seedAssign,
+    N_SAML: N_SAML, newAssign: newAssign, nodeRoles: nodeRoles, seedAssign: seedAssign,
     samlingEnds: samlingEnds, samlingerXlsx: samlingerXlsx
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -5058,7 +5046,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var planXf = null;
   // samlinger: indlæste kræfter (F), valgte knuder, knuder i modellen (N), kobling til stængerne (M)
   var TC = window.TankConn, CONN_KEY = STORE_KEY + '-conn';
-  var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null, labels: 'sel' };
+  var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null, labels: 'sel', tab: 0, asg: null };
   // zoom pr. visning: s = forstørrelse (1 = hele tegningen), cx/cy = udsnittets midte i viewBox-enheder
   var ZMAX = 25;
   var zoomState = { plan: { s: 1, cx: null, cy: null }, section: { s: 1, cx: null, cy: null }, '3d': { s: 1, cx: null, cy: null } };
@@ -5713,7 +5701,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     g.supports.forEach(function (sp) { var q = P(sp.pos); out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (3.2 * k).toFixed(1) + '"/>'); });
     out.push('</g>');
     if (lc) out.push(loadArrows3D(g, lc, P, f, cz, k, z0 - wall));
-    if (formTab === 'conn' && conn.N && conn.sel.length) {
+    if (formTab === 'conn' && conn.N && activeSel().length) {
       var cs3 = connSelSet();
       out.push('<g class="d-cnode">');
       conn.N.nodes.forEach(function (nd) {
@@ -6804,7 +6792,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var nd = conn.N ? conn.N.nodes.filter(function (n) { return n.id === id; })[0] : null;
     return nd ? nd.name : id;
   }
-  function connSelSet() { var o = {}; conn.sel.forEach(function (id) { o[id] = true; }); return o; }
+  function connSelSet() { var o = {}; activeSel().forEach(function (id) { o[id] = true; }); return o; }
   function storeConn() {
     try { window.localStorage.setItem(CONN_KEY, JSON.stringify({ F: conn.F, file: conn.file, sel: conn.sel })); } catch (e) { /* kun i hukommelsen */ }
   }
@@ -6827,6 +6815,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var ids = {};
       conn.N.nodes.forEach(function (nd) { ids[nd.id] = true; });
       conn.sel = conn.sel.filter(function (id) { return ids[id]; });
+      var A = asg();
+      A.sel = A.sel.map(function (l) { return l.filter(function (id) { return ids[id]; }); });
+      if (!A.seeded) { TC.seedAssign(A, conn.N); A.seeded = true; storeAsg(); }
     }
     // indlæste kræfter
     var F = conn.F, M = conn.M, warn = [];
@@ -6853,9 +6844,11 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         esc(t.name) + ' <span class="hint">' + (n ? n + ' af ' : '') + t.nodes.length + '</span></span></label>';
     }).join('') : '';
     $('connTypes').querySelectorAll('input[data-some]').forEach(function (el) { el.indeterminate = true; });
-    $('connNone').disabled = !conn.sel.length;
-    $('connSelInfo').textContent = conn.sel.length ? conn.sel.length + (conn.sel.length === 1 ? ' knude valgt: ' : ' knuder valgt: ') + shortList(conn.sel.map(connName), 12) : 'Ingen knuder valgt.';
-    renderAsg();
+    var act = activeSel();
+    $('connNone').disabled = !act.length;
+    $('connSelInfo').textContent = act.length ? act.length + (act.length === 1 ? ' knude valgt: ' : ' knuder valgt: ') + shortList(act.map(connName), 12) : 'Ingen knuder valgt.';
+    renderConnTabs();
+    renderAsgBox();
     renderConnResults();
   }
   function renderConnResults() {
@@ -6867,7 +6860,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('connSub').textContent = conn.sel.length + (conn.sel.length === 1 ? ' knude' : ' knuder') + ' · ' + G.length + (G.length === 1 ? ' knudetype' : ' knudetyper') + ' · ' + conn.F.combos.length + ' kombinationer';
     $('connBody').innerHTML = TC.governingHtml(G, { maxNodes: 30, maxBars: 10 });
   }
-  function connChanged() { storeConn(); updateConn(geom); renderDrawing(); }
+  function connChanged() { storeConn(); storeAsg(); updateConn(geom); renderDrawing(); }
   function setConnForces(F, name) {
     if (!F.ids.length) { $('connWarn').innerHTML = '<div class="msg bad">Fandt ingen stangkræfter. Brug listen <i>Bars, End forces</i> eller <i>Bars, Internal forces</i> fra FEM-Design.</div>'; return; }
     conn.F = F; conn.file = name || '';
@@ -6896,7 +6889,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (conn.F) { $('connPaste').value = ''; $('connPasteWrap').hidden = true; }
   });
   $('connForget').addEventListener('click', function () { conn.F = null; conn.file = ''; connChanged(); });
-  $('connNone').addEventListener('click', function () { conn.sel = []; connChanged(); });
+  $('connNone').addEventListener('click', function () { setActiveSel([]); connChanged(); });
   try { var cl = window.localStorage.getItem(CONN_KEY + '-labels'); if (cl === 'none' || cl === 'sel' || cl === 'all') conn.labels = cl; } catch (e) { /* ok */ }
   document.querySelectorAll('input[name="connLabels"]').forEach(function (el) {
     el.checked = el.value === conn.labels;
@@ -6910,9 +6903,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   $('connTypes').addEventListener('change', function (e) {
     var i = e.target && e.target.dataset ? Number(e.target.dataset.type) : NaN;
     if (!conn.N || !conn.N.types[i]) return;
-    var ids = conn.N.types[i].nodes, sel = connSelSet();
-    if (e.target.checked) ids.forEach(function (id) { if (!sel[id]) conn.sel.push(id); });
-    else conn.sel = conn.sel.filter(function (id) { return ids.indexOf(id) < 0; });
+    var ids = conn.N.types[i].nodes, sel = connSelSet(), act = activeSel();
+    if (e.target.checked) ids.forEach(function (id) { if (!sel[id]) act.push(id); });
+    else setActiveSel(act.filter(function (id) { return ids.indexOf(id) < 0; }));
     connChanged();
   });
   $('connReport').addEventListener('click', function () {
@@ -6937,109 +6930,80 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (directDownload(TC.allEndsCsv(conn.N, conn.sel, conn.M, conn.F.combos), name, 'text/csv;charset=utf-8')) connMsg('Henter <span class="mono">' + esc(name) + '</span>.');
     else connMsg('Browseren tillod ikke at gemme filen.', true);
   });
-  // ---------- samlingstyper: tildeling af stangender til samling 1–7 ----------
+  // ---------- knuder til lastudtræk eller til samling 1–7 ----------
+  // Fanerne over "Vælg knuder" bestemmer, hvilket sæt knuder planen viser og ændrer: lastudtrækket eller en samling.
   var ASG_KEY = CONN_KEY + '-samlinger';
   function loadAsg() {
     var a = TC.newAssign();
     a.seeded = false;
     try {
       var o = JSON.parse(window.localStorage.getItem(ASG_KEY) || 'null');
-      if (o && typeof o === 'object') {
-        if (Array.isArray(o.names)) o.names.slice(0, TC.N_SAML).forEach(function (n, i) { a.names[i] = String(n || ''); });
-        ['types', 'nodes'].forEach(function (k) {
-          if (!o[k] || typeof o[k] !== 'object') return;
-          Object.keys(o[k]).forEach(function (key) {
-            var v = Number(o[k][key]);
-            if (v >= 0 && v <= TC.N_SAML && v === Math.floor(v)) a[k][key] = v;
-          });
-        });
+      if (o && typeof o === 'object' && Array.isArray(o.sel)) {
+        for (var i = 0; i < TC.N_SAML; i++) {
+          if (Array.isArray(o.names)) a.names[i] = String(o.names[i] || '');
+          if (Array.isArray(o.sel[i])) a.sel[i] = o.sel[i].map(String);
+          if (Array.isArray(o.roles) && Array.isArray(o.roles[i])) a.roles[i] = o.roles[i].map(String);
+        }
         a.seeded = !!o.seeded;
       }
     } catch (e) { /* ok */ }
     return a;
   }
-  function storeAsg() { try { window.localStorage.setItem(ASG_KEY, JSON.stringify(conn.asg)); } catch (e) { /* kun i hukommelsen */ } }
-  function samlLabel(n) { var nm = conn.asg.names[n - 1]; return 'Samling ' + n + (nm ? ' · ' + nm : ''); }
-  function samlOpts(v, none) {
-    var o = '<option value="0"' + (v ? '' : ' selected') + '>' + (none || '–') + '</option>';
-    for (var n = 1; n <= TC.N_SAML; n++) o += '<option value="' + n + '"' + (v === n ? ' selected' : '') + '>' + esc(samlLabel(n)) + '</option>';
-    return o;
-  }
-  function renderAsg() {
-    if (!conn.asg) conn.asg = loadAsg();
-    var A = conn.asg, key = TC.asgKey;
-    if (conn.N && !A.seeded) { TC.seedAssign(A, conn.N); A.seeded = true; storeAsg(); }
-    if (!$('connNames').children.length) $('connNames').innerHTML = A.names.map(function (nm, i) {
-      return '<label class="asgrow"><span class="rl">Samling ' + (i + 1) + '</span><input type="text" data-saml="' + (i + 1) + '" value="' + esc(nm) + '" placeholder="Beskrivelse"></label>';
-    }).join('');
-    var tr = conn.N ? TC.typeRoles(conn.N) : {};
-    $('connAsg').innerHTML = conn.N ? conn.N.types.map(function (t) {
-      return '<div class="asgtype"><h3>' + esc(t.name) + ' <span class="hint">' + t.nodes.length + (t.nodes.length === 1 ? ' knude' : ' knuder') + '</span></h3>' +
-        (tr[t.name] || []).map(function (role) {
-          return '<label class="asgrow"><span class="rl">' + esc(role) + '</span><select data-type="' + esc(t.name) + '" data-role="' + esc(role) + '">' +
-            samlOpts(A.types[key(t.name, role)] || 0) + '</select></label>';
-        }).join('') + '</div>';
-    }).join('') : '<p class="hint">Knudetyperne vises, når modellen er gyldig.</p>';
-    // undtagelser for de valgte knuder
-    var sel = connSelSet(), selNodes = conn.N ? conn.N.nodes.filter(function (nd) { return sel[nd.id]; }) : [], roles = [];
-    selNodes.forEach(function (nd) { nd.ends.forEach(function (e) { if (roles.indexOf(e.role) < 0) roles.push(e.role); }); });
-    var prevRole = $('connXRole').value, prevSaml = Number($('connXSaml').value) || 0;
-    $('connXRole').innerHTML = roles.length ? roles.map(function (r) { return '<option' + (r === prevRole ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') : '<option value="">Vælg knuder i planen</option>';
-    $('connXSaml').innerHTML = samlOpts(prevSaml, 'Ingen samling');
-    $('connXRole').disabled = $('connXSaml').disabled = $('connXSet').disabled = !roles.length;
-    $('connXClear').disabled = !selNodes.some(function (nd) { return nd.ends.some(function (e) { return A.nodes[key(nd.id, e.role)] !== undefined; }); });
-    // hvor mange knuder hver samling har
-    var info = '';
-    if (conn.N) {
-      var cnt = [], nEx = 0, parts = [];
-      for (var n = 1; n <= TC.N_SAML; n++) cnt[n] = {};
-      conn.N.nodes.forEach(function (nd) {
-        nd.ends.forEach(function (e) {
-          var s = TC.samlingOf(A, nd, e.role);
-          if (s) cnt[s][nd.name] = true;
-          if (A.nodes[key(nd.id, e.role)] !== undefined) nEx++;
-        });
-      });
-      for (n = 1; n <= TC.N_SAML; n++) {
-        var k = Object.keys(cnt[n]).length;
-        if (k) parts.push('Samling ' + n + ': ' + k + (k === 1 ? ' knude' : ' knuder'));
-      }
-      info = (parts.length ? parts.join(' · ') : 'Ingen stænger er tildelt en samling.') + (nEx ? ' · ' + nEx + (nEx === 1 ? ' undtagelse' : ' undtagelser') : '');
+  function asg() { return conn.asg || (conn.asg = loadAsg()); }
+  function storeAsg() { try { window.localStorage.setItem(ASG_KEY, JSON.stringify(asg())); } catch (e) { /* kun i hukommelsen */ } }
+  function activeSel() { return conn.tab ? asg().sel[conn.tab - 1] : conn.sel; }
+  function setActiveSel(a) { if (conn.tab) asg().sel[conn.tab - 1] = a; else conn.sel = a; }
+  function samlLabel(n) { var nm = asg().names[n - 1]; return 'Samling ' + n + (nm ? ': ' + nm : ''); }
+  function renderConnTabs() {
+    var A = asg(), h = '<label><input type="radio" name="connTab" value="0"' + (conn.tab ? '' : ' checked') + '><span>Lastudtræk</span></label>';
+    for (var n = 1; n <= TC.N_SAML; n++) {
+      h += '<label title="' + esc(samlLabel(n)) + (A.sel[n - 1].length ? ' (' + A.sel[n - 1].length + ' knuder)' : '') + '"><input type="radio" name="connTab" value="' + n + '"' +
+        (conn.tab === n ? ' checked' : '') + '><span>S' + n + '</span></label>';
     }
-    $('connAsgInfo').textContent = info;
-    $('connSamlXlsx').disabled = !(conn.F && conn.M && conn.N);
+    $('connTabs').innerHTML = h;
+    $('g-conn-sel').textContent = conn.tab ? 'Vælg knuder til ' + samlLabel(conn.tab).replace(/^S/, 's') : 'Vælg knuder til lastudtræk';
   }
-  $('connNames').addEventListener('input', function (e) {
-    var n = Number(e.target.dataset && e.target.dataset.saml);
-    if (!n) return;
-    conn.asg.names[n - 1] = e.target.value;
-    storeAsg(); renderAsg();
+  function renderAsgBox() {
+    var box = $('connAsgBox');
+    box.hidden = !conn.tab;
+    if (!conn.tab) return;
+    var A = asg(), i = conn.tab - 1;
+    if (document.activeElement !== $('connSamlName')) $('connSamlName').value = A.names[i];
+    var roles = conn.N ? TC.nodeRoles(conn.N, A.sel[i]) : [], on = A.roles[i];
+    $('connRoles').innerHTML = roles.length ? roles.map(function (r) {
+      return '<label class="check"><input type="checkbox" data-role="' + esc(r) + '"' + (!on || on.indexOf(r) >= 0 ? ' checked' : '') + '> <span>' + esc(r) + '</span></label>';
+    }).join('') : '<p class="hint">Vælg knuderne først.</p>';
+    var parts = [];
+    for (var n = 1; n <= TC.N_SAML; n++) {
+      var k = A.sel[n - 1].length;
+      if (k) parts.push('S' + n + ': ' + k + (k === 1 ? ' knude' : ' knuder'));
+    }
+    $('connAsgInfo').textContent = parts.length ? 'Valgt til samlinger: ' + parts.join(' · ') : 'Ingen knuder er valgt til samlinger endnu.';
+    $('connSamlXlsx').disabled = !(conn.F && conn.M && conn.N);
+    $('connSamlXlsx').title = conn.F ? '' : 'Indlæs kræfterne fra FEM-Design først';
+  }
+  $('connTabs').addEventListener('change', function (e) {
+    if (!e.target || e.target.name !== 'connTab') return;
+    conn.tab = Number(e.target.value) || 0;
+    conn.hover = null;
+    updateConn(geom); renderDrawing();
   });
-  $('connAsg').addEventListener('change', function (e) {
-    var t = e.target;
-    if (!t.dataset || t.dataset.role === undefined) return;
-    var k = TC.asgKey(t.dataset.type, t.dataset.role), v = Number(t.value) || 0;
-    if (v) conn.asg.types[k] = v; else delete conn.asg.types[k];
-    storeAsg(); renderAsg();
+  $('connSamlName').addEventListener('input', function () {
+    if (!conn.tab) return;
+    asg().names[conn.tab - 1] = this.value;
+    storeAsg(); renderConnTabs();
   });
-  $('connXSet').addEventListener('click', function () {
-    var role = $('connXRole').value, v = Number($('connXSaml').value) || 0, sel = connSelSet();
-    if (!role || !conn.N) return;
-    conn.N.nodes.forEach(function (nd) {
-      if (sel[nd.id] && nd.ends.some(function (e) { return e.role === role; })) conn.asg.nodes[TC.asgKey(nd.id, role)] = v;
-    });
-    storeAsg(); renderAsg();
-  });
-  $('connXClear').addEventListener('click', function () {
-    var sel = connSelSet();
-    Object.keys(conn.asg.nodes).forEach(function (k) { if (sel[k.slice(0, k.lastIndexOf('|'))]) delete conn.asg.nodes[k]; });
-    storeAsg(); renderAsg();
+  $('connRoles').addEventListener('change', function () {
+    if (!conn.tab) return;
+    var boxes = [].slice.call(this.querySelectorAll('input[data-role]')), on = boxes.filter(function (b) { return b.checked; }).map(function (b) { return b.dataset.role; });
+    asg().roles[conn.tab - 1] = on.length === boxes.length ? null : on;
+    storeAsg(); renderAsgBox();
   });
   $('connSamlXlsx').addEventListener('click', function () {
     var m = $('connAsgMsg');
     if (!conn.F || !conn.N || !conn.M) return;
     var name = fileBase(TR.normalizeParams(params)) + '_samlinger.xlsx';
-    TC.samlingerXlsx(conn.N, conn.M, conn.F.combos, conn.asg).then(function (data) {
+    TC.samlingerXlsx(conn.N, conn.M, conn.F.combos, asg()).then(function (data) {
       var ok = directDownload(data, name, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       m.innerHTML = ok ? 'Henter <span class="mono">' + esc(name) + '</span>.' : 'Browseren tillod ikke at gemme filen.';
       m.classList.toggle('bad', !ok);
@@ -7070,8 +7034,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var nd = nearestNode(q, (e.pointerType === 'touch' ? 24 : 13) * q.upp);
     if (!nd) return;
     e.preventDefault();
-    var i = conn.sel.indexOf(nd.id);
-    if (i >= 0) conn.sel.splice(i, 1); else conn.sel.push(nd.id);
+    var act = activeSel(), i = act.indexOf(nd.id);
+    if (i >= 0) act.splice(i, 1); else act.push(nd.id);
     conn.hover = nd;
     connChanged();
     updateConnLive();
