@@ -115,3 +115,16 @@ test('dimensionerende tilfælde i alle knuder fra endelasterne', () => {
   if (i >= 0) assert.fail('Linje ' + (i + 1) + ' afviger fra facit:\n  facit: ' + exp[i] + '\n  nu:    ' + got[i]);
   assert.equal(got.length, exp.length);
 });
+
+test('rapporten over samlingerne indeholder grundlaget og alle knudetyper', () => {
+  const g = geometry();
+  const F = TC.parseForces(TC.textRows(fixtureText()));
+  const { N, G } = allGoverning(F, g);
+  const html = TC.report(G, { title: 'Snitkræfter i samlingerne', subtitle: 'test', file: 'Endelaster.txt', ends: F.ends, combos: F.combos, nodes: N.nodes.map((nd) => nd.id) });
+  assert.match(html, /^<!doctype html>/);
+  assert.match(html, /Endelaster\.txt \(Bars, End forces\)/);
+  assert.match(html, /8: 1 STR 6\.10a; 2 STR Nyttelast, punkt;/);
+  G.forEach((t) => assert.ok(html.includes('<h3>' + t.type.replace(/&/g, '&amp;') + '</h3>'), t.type));
+  // alle knuder står i rapporten, også når der er mange af samme type
+  assert.ok(!html.includes(' …</p>'));
+});

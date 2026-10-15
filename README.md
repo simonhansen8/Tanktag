@@ -26,7 +26,7 @@ README.md
 
 ## Regressionstest
 
-Testen kører beregningskernen fra `index.html` i Node på en række referencetage og sammenligner med gemte facit. Den fanger, hvis en ændring utilsigtet flytter geometri, mængder, laster, lastkombinationer, vinddokumentationen eller den eksporterede StruXML.
+Testen kører beregningskernen fra `index.html` i Node på en række referencetage og sammenligner med gemte facit. Den fanger, hvis en ændring utilsigtet flytter geometri, mængder, laster, lastkombinationer, last- og vinddokumentationen, den eksporterede StruXML eller de dimensionerende snitkræfter under Samlinger.
 
 ```
 npm test             # sammenlign med facit
@@ -35,8 +35,9 @@ npm run test:update  # skriv nyt facit efter en tilsigtet ændring
 
 - `tests/cases/*.json`: referencetagene, som afvigelser fra standardparametrene. Læg en ny fil her for at teste et nyt tag.
 - `tests/snapshots/<tag>.json`: oversigt over geometri, mængder, lasttilfælde med resultanter og kombinationer.
-- `tests/snapshots/<tag>.vind.txt`: vinddokumentationen som tekst.
+- `tests/snapshots/<tag>.vind.txt` og `<tag>.laster.txt`: vind- og lastdokumentationen som tekst.
 - `tests/snapshots/<tag>.struxml.gz`: hele StruXML-filen med faste GUID'er og tidsstempel.
+- `tests/fixtures/endelaster.txt.gz`: en rigtig liste *Bars, End forces* fra FEM-Design for standardtaget. `tests/conn.test.js` læser den, kontrollerer at *Internal forces* og en dansk Excel-CSV giver det samme, og sammenligner de dimensionerende tilfælde med `tests/snapshots/samlinger-endelaster.csv`.
 
 Facit er kun så godt, som det er kontrolleret: tjek tallene mod håndberegning eller FEM-Design, før et nyt facit godkendes. Ændrede facitfiler i en PR viser præcis, hvad ændringen har flyttet. Testen kører automatisk på GitHub ved hver PR og push til `main`.
 
