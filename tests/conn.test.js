@@ -128,3 +128,20 @@ test('rapporten over samlingerne indeholder grundlaget og alle knudetyper', () =
   // alle knuder står i rapporten, også når der er mange af samme type
   assert.ok(!html.includes(' …</p>'));
 });
+
+test('samling 1 hentes som Excel-ark med alle stangender og formlerne', async () => {
+  const g = geometry();
+  const F = TC.parseForces(TC.textRows(fixtureText()));
+  const N = TC.buildNodes(g), M = TC.matchBars(F, g);
+  const ends = TC.endRows(N, N.nodes.map((nd) => nd.id), M, F.combos);
+  const buf = await TC.samling1Xlsx(ends);
+  const rows = await TC.readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype');
+  assert.ok(head, 'fanen Kræfter har overskrifter');
+  assert.deepEqual(head.slice(12), ['Med', 'Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
+  const data = rows.slice(rows.indexOf(head) + 1).filter((r) => r[1]);
+  assert.equal(data.length, ends.length);
+  const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig' && r[3] === 'RB7.5');
+  assert.equal(ks7[6], ends.find((e) => e[0] === 'KS.7' && e[5] === '5 STR Sne, ensidig' && e[3] === 'RB7.5')[6]);
+  assert.ok(rows.some((r) => r[0] === 'N_Rd'), 'fanen Samling har eftervisningen');
+});

@@ -1172,6 +1172,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <button type="button" class="btn small" id="connReport">Hent rapport (HTML)</button>
         <button type="button" class="btn small" id="connCsv">Hent dimensionerende (CSV)</button>
         <button type="button" class="btn small" id="connCsvAll">Hent alle stangender (CSV)</button>
+        <button type="button" class="btn small" id="connSamling1" title="Excel-ark med eftervisning af samling 1 (IPE 330 til tagkant) for alle knuder og kombinationer">Hent samling 1 (Excel)</button>
         <span class="doc-msg" id="connMsg" aria-live="polite"></span>
       </div>
       <div class="doc-body" id="connBody"></div>
@@ -4564,8 +4565,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     return csv(rows);
   }
-  function allEndsCsv(nodeSet, selected, M, combos) {
-    var sel = {}, rows = [['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Kombination'].concat(FORCE_HEAD)];
+  // alle stangender i de valgte knuder: knude, knudetype, stang, stang-id, ende, kombination og de seks kræfter
+  function endRows(nodeSet, selected, M, combos) {
+    var sel = {}, rows = [];
     selected.forEach(function (id) { sel[id] = true; });
     nodeSet.nodes.forEach(function (nd) {
       if (!sel[nd.id]) return;
@@ -4574,11 +4576,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (!d) return;
         combos.forEach(function (cn, c) {
           var f = (e.end === 's' ? d.s : d.e)[c];
-          if (f) rows.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f.map(csvNum)));
+          if (f) rows.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f));
         });
       });
     });
-    return csv(rows);
+    return rows;
+  }
+  function allEndsCsv(nodeSet, selected, M, combos) {
+    return csv([['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Kombination'].concat(FORCE_HEAD)].concat(endRows(nodeSet, selected, M, combos).map(function (r) {
+      return r.slice(0, 6).concat(r.slice(6).map(csvNum));
+    })));
   }
 
   // ---------- dimensionerende tilfælde som HTML (siden og rapporten) ----------
@@ -4648,10 +4655,257 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       governingHtml(G, {}) + '\n</body>\n</html>\n';
   }
 
+  // ---------- Excel (.xlsx) skrives uden biblioteker ----------
+  var CRC_T = null;
+  function crc32(b) {
+    if (!CRC_T) {
+      CRC_T = new Uint32Array(256);
+      for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; }
+    }
+    var x = 0xffffffff;
+    for (var i = 0; i < b.length; i++) x = CRC_T[(x ^ b[i]) & 0xff] ^ (x >>> 8);
+    return (x ^ 0xffffffff) >>> 0;
+  }
+  function deflate(b) {
+    if (typeof CompressionStream === 'undefined') return Promise.resolve(null);
+    var stream = new Blob([b]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return new Response(stream).arrayBuffer().then(function (a) { return new Uint8Array(a); }, function () { return null; });
+  }
+  // zip-arkiv: {navn: tekst} -> Uint8Array (pakket, hvis browseren kan)
+  function zip(files) {
+    var enc = new TextEncoder(), names = Object.keys(files);
+    var raw = names.map(function (n) { return enc.encode(files[n]); });
+    return Promise.all(raw.map(deflate)).then(function (packed) {
+      var parts = [], central = [], off = 0;
+      function hdr(size) { return { b: new Uint8Array(size), v: null }; }
+      names.forEach(function (n, i) {
+        var nb = enc.encode(n), d = raw[i], p = packed[i], use = p && p.length < d.length, data = use ? p : d, crc = crc32(d);
+        var h = new DataView(new ArrayBuffer(30));
+        h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, use ? 8 : 0, true);
+        h.setUint32(14, crc, true); h.setUint32(18, data.length, true); h.setUint32(22, d.length, true); h.setUint16(26, nb.length, true);
+        var c = new DataView(new ArrayBuffer(46));
+        c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, use ? 8 : 0, true);
+        c.setUint32(16, crc, true); c.setUint32(20, data.length, true); c.setUint32(24, d.length, true); c.setUint16(28, nb.length, true); c.setUint32(42, off, true);
+        parts.push(new Uint8Array(h.buffer), nb, data);
+        central.push(new Uint8Array(c.buffer), nb);
+        off += 30 + nb.length + data.length;
+      });
+      var csize = central.reduce(function (s, a) { return s + a.length; }, 0), e = new DataView(new ArrayBuffer(22));
+      e.setUint32(0, 0x06054b50, true); e.setUint16(8, names.length, true); e.setUint16(10, names.length, true);
+      e.setUint32(12, csize, true); e.setUint32(16, off, true);
+      var all = parts.concat(central, [new Uint8Array(e.buffer)]), out = new Uint8Array(off + csize + 22), o = 0;
+      all.forEach(function (a) { out.set(a, o); o += a.length; });
+      return out;
+    });
+  }
+  function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function colName(i) { var s = ''; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - m - 1) / 26; } return s; }
+
+  // Formater (cellXfs). Rækkefølgen svarer til XF nedenfor.
+  var XS = { none: 0, bold: 1, title: 2, note: 3, input: 4, resText: 5, res1: 6, res2: 7, head2: 8, n3: 9, n2: 10, th: 11, n1: 12, res0: 13 };
+  var STYLES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<numFmts count="3"><numFmt numFmtId="164" formatCode="0.0"/><numFmt numFmtId="165" formatCode="0.00"/><numFmt numFmtId="166" formatCode="0.000"/></numFmts>' +
+    '<fonts count="6"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><name val="Calibri"/><family val="2"/></font>' +
+    '<font><b/><sz val="14"/><name val="Calibri"/><family val="2"/></font><font><i/><sz val="11"/><color rgb="FF666666"/><name val="Calibri"/><family val="2"/></font>' +
+    '<font><b/><sz val="11"/><color rgb="FF1F4E79"/><name val="Calibri"/><family val="2"/></font><font><sz val="11"/><name val="Calibri"/><family val="2"/></font></fonts>' +
+    '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/><bgColor indexed="64"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFE2EFDA"/><bgColor indexed="64"/></patternFill></fill></fills>' +
+    '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left/><right/><top/><bottom style="thin"><color rgb="FF999999"/></bottom><diagonal/></border></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="14">' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+    '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf>' +
+    '<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right"/></xf>' +
+    '<xf numFmtId="164" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+    '<xf numFmtId="165" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+    '<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+    '<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+    '<xf numFmtId="0" fontId="1" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1"/>' +
+    '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+    '<xf numFmtId="1" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
+    '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+    '<dxfs count="1"><dxf><font><b/><color rgb="FFC00000"/></font></dxf></dxfs></styleSheet>';
+
+  // et ark: rows = [[celle, ...], ...], celle = tal, tekst, {f: formel, s: format} eller {v: værdi, s: format}
+  function sheetXml(sh) {
+    var o = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'];
+    o.push('<sheetViews><sheetView workbookViewId="0"' + (sh.first ? ' tabSelected="1"' : '') + '>' +
+      (sh.freeze ? '<pane ySplit="' + (sh.freeze - 1) + '" topLeftCell="A' + sh.freeze + '" activePane="bottomLeft" state="frozen"/>' : '') + '</sheetView></sheetViews>');
+    if (sh.widths) o.push('<cols>' + sh.widths.map(function (w, i) {
+      return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + Math.abs(w) + '" customWidth="1"' + (w < 0 ? ' hidden="1"' : '') + '/>';
+    }).join('') + '</cols>');
+    o.push('<sheetData>');
+    sh.rows.forEach(function (row, r) {
+      if (!row || !row.length) return;
+      var cs = [];
+      row.forEach(function (c, i) {
+        if (c === null || c === undefined || c === '') return;
+        var ref = colName(i) + (r + 1), s = c.s ? ' s="' + c.s + '"' : '', v = typeof c === 'object' ? c.v : c;
+        if (typeof c === 'object' && c.f !== undefined) cs.push('<c r="' + ref + '"' + s + '><f' + (c.si !== undefined ? ' t="shared" si="' + c.si + '"' + (c.ref ? ' ref="' + c.ref + '"' : '') : '') + (c.f ? '>' + xmlEsc(c.f) + '</f>' : '/>') + '</c>');
+        else if (typeof v === 'number') cs.push('<c r="' + ref + '"' + s + '><v>' + (isFinite(v) ? v : 0) + '</v></c>');
+        else if (v !== null && v !== undefined && v !== '') cs.push('<c r="' + ref + '"' + s + ' t="inlineStr"><is><t xml:space="preserve">' + xmlEsc(v) + '</t></is></c>');
+        else if (c.s) cs.push('<c r="' + ref + '"' + s + '/>');
+      });
+      o.push('<row r="' + (r + 1) + '">' + cs.join('') + '</row>');
+    });
+    o.push('</sheetData>');
+    (sh.cf || []).forEach(function (x, k) {
+      o.push('<conditionalFormatting sqref="' + x.ref + '"><cfRule type="' + (x.formula ? 'expression' : 'cellIs') + '" dxfId="0" priority="' + (k + 1) + '"' +
+        (x.formula ? '' : ' operator="greaterThan"') + '><formula>' + xmlEsc(x.formula || x.gt) + '</formula></cfRule></conditionalFormatting>');
+    });
+    if (sh.lists) o.push('<dataValidations count="' + sh.lists.length + '">' + sh.lists.map(function (x) {
+      return '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="' + x.ref + '"><formula1>' + xmlEsc(x.list) + '</formula1></dataValidation>';
+    }).join('') + '</dataValidations>');
+    o.push('<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>');
+    if (sh.table) o.push('<tableParts count="1"><tablePart r:id="rId1"/></tableParts>');
+    o.push('</worksheet>');
+    return o.join('');
+  }
+  // arbejdsbog: sheets = [{name, rows, ...}], names = {navn: reference}; højst én tabel pr. ark
+  function xlsx(sheets, names) {
+    var R = 'http://schemas.openxmlformats.org/', f = {}, tn = 0, ct = [];
+    sheets.forEach(function (sh, i) {
+      f['xl/worksheets/sheet' + (i + 1) + '.xml'] = sheetXml(sh);
+      ct.push('<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>');
+      if (!sh.table) return;
+      var t = sh.table; tn++;
+      f['xl/worksheets/_rels/sheet' + (i + 1) + '.xml.rels'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="' + R + 'package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="' + R + 'officeDocument/2006/relationships/table" Target="../tables/table' + tn + '.xml"/></Relationships>';
+      f['xl/tables/table' + tn + '.xml'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<table xmlns="' + R + 'spreadsheetml/2006/main" id="' + tn + '" name="' + t.name +
+        '" displayName="' + t.name + '" ref="' + t.ref + '" headerRowCount="1"><autoFilter ref="' + t.ref + '"/><tableColumns count="' + t.cols.length + '">' +
+        t.cols.map(function (c, k) {
+          return '<tableColumn id="' + (k + 1) + '" name="' + xmlEsc(c.name) + '"' + (c.calc ? '><calculatedColumnFormula>' + xmlEsc(c.calc) + '</calculatedColumnFormula></tableColumn>' : '/>');
+        }).join('') + '</tableColumns><tableStyleInfo name="TableStyleLight9" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>';
+      ct.push('<Override PartName="/xl/tables/table' + tn + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>');
+    });
+    f['[Content_Types].xml'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="' + R + 'package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' + ct.join('') + '</Types>';
+    f['_rels/.rels'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="' + R + 'package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="' + R + 'officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+    f['xl/workbook.xml'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="' + R + 'spreadsheetml/2006/main" xmlns:r="' + R + 'officeDocument/2006/relationships">' +
+      '<bookViews><workbookView/></bookViews><sheets>' + sheets.map(function (sh, i) { return '<sheet name="' + xmlEsc(sh.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('') + '</sheets>' +
+      '<definedNames>' + Object.keys(names).map(function (n) { return '<definedName name="' + n + '">' + xmlEsc(names[n]) + '</definedName>'; }).join('') + '</definedNames>' +
+      '<calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>';
+    f['xl/_rels/workbook.xml.rels'] = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="' + R + 'package/2006/relationships">' +
+      sheets.map(function (sh, i) { return '<Relationship Id="rId' + (i + 1) + '" Type="' + R + 'officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>'; }).join('') +
+      '<Relationship Id="rId' + (sheets.length + 1) + '" Type="' + R + 'officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+    f['xl/styles.xml'] = STYLES;
+    return zip(f);
+  }
+
+  // ---------- Samling 1: IPE 330 til tagkant ----------
+  // Svejsningen eftervises for alle stangender og kombinationer i arket; formlerne står i Excel, så de kan kontrolleres og rettes dér.
+  function samling1Xlsx(ends) {
+    var KR = "'Kræfter'!", NMAX = 20000, last = Math.max(2, ends.length + 1);
+    var rng = function (c) { return KR + '$' + c + '$2:$' + c + '$' + (NMAX + 1); };
+    var names = {}, S = [], r = 0;
+    function put(row) { S[r++] = row; }
+    function sec(t) { put([{ v: t, s: XS.head2 }]); }
+    function line(lbl, val, unit, desc, kind, nm, st) {
+      var cell = typeof val === 'string' && val.charAt(0) === '=' ? { f: val.slice(1), s: st || (kind === 'in' ? XS.input : XS.resText), str: !st } : { v: val, s: kind === 'in' ? XS.input : (st || XS.resText) };
+      if (nm) names[nm] = "Samling!$B$" + (r + 1);
+      put([lbl, cell, unit || '', desc || '']);
+      return 'B' + r;
+    }
+    put([{ v: 'Samling 1: IPE 330 til tagkant', s: XS.title }]);
+    put([{ v: 'Gule celler er input. Grønne celler er resultater. Stangenderne fra Tanktag står i fanen Kræfter.', s: XS.note }]);
+    put(['Størrelse', 'Værdi', 'Enhed', 'Beskrivelse / formel'].map(function (h) { return { v: h, s: XS.th }; }));
+    sec('Svejsning (TS Tabel 6.50)');
+    line('fw,4a', 1787, 'N/mm', 'Kantsøm a = 4 mm, TS Tabel 6.50', 'in', 'fw');
+    line('L_H', 100, 'mm', 'Svejselængde, søm 1, 2 og 3', 'in', 'L_H');
+    line('k_H', 0.5, '-', 'Faktor på søm 1, 2 og 3', 'in', 'k_H');
+    line('α', 20, '°', 'Vinkel for søm 1 og 2', 'in', 'alfa');
+    line('L_V', 200, 'mm', 'Svejselængde, søm 4', 'in', 'L_V');
+    sec('Hvilke rækker i Kræfter gælder samlingen for');
+    line('Knudetype indeholder', 'RB ved svøbet', '', 'Tom = alle knudetyper', 'in', 'FiltType');
+    line('Stang indeholder', 'RB mod centrum', '', 'Tom = alle stænger', 'in', 'FiltStang');
+    var vv = line('V_d tages som', "Tz'", '', "Ty', Tz' eller resultant af Ty' og Tz'", 'in', 'VValg');
+    line('Vis knude', '', '', 'Tom = den dimensionerende knude', 'in', 'VisKnude');
+    sec('Søm 1 + 2 + 3');
+    line('H_Rd', '=L_H*k_H*fw/1000', 'kN', 'H_Rd = L_H · k_H · fw,4a', 'res', 'H_Rd', XS.res1);
+    line('N_Rd', '=(2*COS(RADIANS(alfa))+1)*H_Rd', 'kN', 'N_Rd = (2·cos α + 1) · H_Rd', 'res', 'N_Rd', XS.res1);
+    sec('Søm 4');
+    line('V_Rd', '=L_V*fw/1000', 'kN', 'V_Rd = L_V · fw,4a', 'res', 'V_Rd', XS.res1);
+    sec('Dimensionerende last');
+    line('Knude', '=IF(VisKnude="",INDEX(' + rng('A') + ',_xlfn.AGGREGATE(15,6,(ROW(' + rng('S') + ')-1)/(' + rng('S') + '=MAX(' + rng('S') + ')),1)),VisKnude)', '', 'Knude med størst udnyttelse', 'res', 'SelKnude');
+    line('Række i tabellen', '=_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=SelKnude)*(' + rng('S') + '=_xlfn.MAXIFS(' + rng('S') + ',' + rng('A') + ',SelKnude))),1)', '', 'Hjælpecelle', 'res', 'SelRow', XS.res0);
+    line('Stang', '=INDEX(' + rng('C') + ',SelRow)&" ("&INDEX(' + rng('D') + ',SelRow)&", "&INDEX(' + rng('E') + ',SelRow)&")"', '', '', 'res');
+    line('Kombination', '=INDEX(' + rng('F') + ',SelRow)', '', '', 'res');
+    line('N_d', '=INDEX(' + rng('O') + ',SelRow)', 'kN', '|N|', 'res', 'N_d', XS.res1);
+    line('V_d', '=INDEX(' + rng('P') + ',SelRow)', 'kN', '', 'res', 'V_d', XS.res1);
+    sec('Eftervisning');
+    var u1 = line('UR_N', '=N_d/N_Rd', '-', 'N_d / N_Rd', 'res', null, XS.res2);
+    var k1 = line('Kontrol søm 1 + 2 + 3', '=IF(' + u1 + '<=1,"OK","IKKE OK")', '', 'N_Rd > N_d', 'res');
+    var u2 = line('UR_V', '=V_d/V_Rd', '-', 'V_d / V_Rd', 'res', null, XS.res2);
+    var k2 = line('Kontrol søm 4', '=IF(' + u2 + '<=1,"OK","IKKE OK")', '', 'V_Rd > V_d', 'res');
+    var k3 = line('Samlingens bæreevne', '=IF(MAX(' + u1 + ',' + u2 + ')<=1,"OK","IKKE OK")', '', '', 'res');
+    var samling = {
+      name: 'Samling', rows: S, first: true, widths: [24, 30, 7, 40],
+      cf: [k1, k2, k3].map(function (c) { return { ref: c, formula: c + '="IKKE OK"' }; }),
+      lists: [{ ref: vv, list: '"Ty\',Tz\',Resultant"' }]
+    };
+
+    // Kræfter: stangenderne og beregningen for hver række (formler for række 2, Excel fylder dem ned i tabellen)
+    var head = ['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Kombination'].concat(COMP_LABEL.map(function (c, k) { return c + ' [' + COMP_UNIT[k] + ']'; }),
+      ['Med', 'Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
+    var calc = [
+      ['AND(A2<>"",ISNUMBER(SEARCH(FiltType,B2)),ISNUMBER(SEARCH(FiltStang,C2)))', 0],
+      ['AND(M2,COUNTIFS(A$1:A1,A2,M$1:M1,TRUE)=0)', 0],
+      ['IF(M2,ABS(G2),"")', XS.n3],
+      ['IF(M2,IF(VValg="Ty\'",ABS(H2),IF(VValg="Tz\'",ABS(I2),SQRT(H2^2+I2^2))),"")', XS.n3],
+      ['IF(M2,O2/N_Rd,"")', XS.n2], ['IF(M2,P2/V_Rd,"")', XS.n2], ['IF(M2,MAX(Q2,R2),"")', XS.n2]
+    ];
+    var K = [head];
+    ends.forEach(function (e, i) {
+      var row = e.slice(0, 6).concat(e.slice(6).map(function (v) { return { v: v, s: XS.n3 }; }));
+      calc.forEach(function (c, k) {
+        var col = colName(12 + k);
+        row.push(i === 0 ? { f: c[0], s: c[1], si: k, ref: col + '2:' + col + last } : { f: '', s: c[1], si: k });
+      });
+      K.push(row);
+    });
+    var kraefter = {
+      name: 'Kræfter', rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9, 7, 8, 9, 9, 7, 7, 7],
+      cf: [{ ref: 'S2:S' + (NMAX + 1), gt: '1' }],
+      table: { name: 'Kraefter', ref: 'A1:S' + last, cols: head.map(function (h, k) { return { name: h, calc: k >= 12 ? calc[k - 12][0] : null }; }) }
+    };
+
+    // Oversigt: største udnyttelse pr. knude
+    var NO = 400, O = [
+      [{ v: 'Samling 1: oversigt pr. knude', s: XS.title }],
+      [{ v: 'Største udnyttelse for hver knude, der passer på filteret i fanen Samling.', s: XS.note }],
+      [{ v: 'Største UR i alt', s: XS.bold }, { f: 'MAX(' + rng('S') + ')', s: XS.res2 }],
+      [],
+      ['Knude', 'UR', 'Status', 'Kombination', 'Stang-id', 'Ende', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'Første række', 'Dim. række'].map(function (h) { return { v: h, s: XS.th }; })
+    ];
+    for (var k = 0; k < NO; k++) {
+      var i = 6 + k, A = 'A' + i, L = 'L' + i, row = [
+        { f: 'IF(K' + i + '="","",INDEX(' + rng('A') + ',K' + i + '))', str: true },
+        { f: 'IF(' + A + '="","",_xlfn.MAXIFS(' + rng('S') + ',' + rng('A') + ',' + A + '))', s: XS.n2 },
+        { f: 'IF(' + A + '="","",IF(B' + i + '<=1,"OK","IKKE OK"))', str: true }
+      ];
+      ['F', 'D', 'E', 'O', 'P', 'Q', 'R'].forEach(function (c, j) {
+        row.push({ f: 'IF(' + A + '="","",INDEX(' + rng(c) + ',' + L + '))', s: j < 3 ? 0 : (j < 5 ? XS.n1 : XS.n2), str: j < 3 });
+      });
+      row.push({ f: 'IFERROR(_xlfn.AGGREGATE(15,6,(ROW(' + rng('N') + ')-1)/(' + rng('N') + '=TRUE),' + (k + 1) + '),"")' });
+      row.push({ f: 'IF(' + A + '="","",_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=' + A + ')*(' + rng('S') + '=B' + i + ')),1))' });
+      O.push(row);
+    }
+    var oversigt = { name: 'Oversigt', rows: O, freeze: 6, widths: [10, 7, 9, 28, 10, 7, 10, 10, 7, 7, -8, -8], cf: [{ ref: 'B6:C' + (5 + NO), formula: '$C6="IKKE OK"' }] };
+    return xlsx([samling, oversigt, kraefter], names);
+  }
+
   var api = {
     COMP_LABEL: COMP_LABEL, COMP_UNIT: COMP_UNIT, governingHtml: governingHtml, report: report,
     textRows: textRows, readFile: readFile, readXlsx: readXlsx, parseForces: parseForces, matchBars: matchBars,
-    buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv
+    buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv,
+    endRows: endRows, xlsx: xlsx, samling1Xlsx: samling1Xlsx
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankConn = api;
@@ -6567,6 +6821,16 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var name = fileBase(TR.normalizeParams(params)) + '_stangender.csv';
     if (directDownload(TC.allEndsCsv(conn.N, conn.sel, conn.M, conn.F.combos), name, 'text/csv;charset=utf-8')) connMsg('Henter <span class="mono">' + esc(name) + '</span>.');
     else connMsg('Browseren tillod ikke at gemme filen.', true);
+  });
+  $('connSamling1').addEventListener('click', function () {
+    if (!conn.F || !conn.N || !conn.M) return;
+    var name = fileBase(TR.normalizeParams(params)) + '_samling1.xlsx';
+    // alle knuder i modellen, så arket selv vælger dem, samlingen gælder for
+    var ends = TC.endRows(conn.N, conn.N.nodes.map(function (nd) { return nd.id; }), conn.M, conn.F.combos);
+    TC.samling1Xlsx(ends).then(function (data) {
+      if (directDownload(data, name, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) connMsg('Henter <span class="mono">' + esc(name) + '</span> med ' + ends.length + ' stangender.');
+      else connMsg('Browseren tillod ikke at gemme filen.', true);
+    }, function () { connMsg('Excel-arket kunne ikke laves i denne browser.', true); });
   });
   // klik på knuderne i planen
   function nearestNode(q, tol) {
