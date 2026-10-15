@@ -686,7 +686,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <label><input type="radio" name="connUdvSec" value="rigid" data-key="connUdvSec"><span>Stiv</span></label>
             <label><input type="radio" name="connUdvSec" value="hinged" data-key="connUdvSec"><span>Charnier</span></label>
           </div>
-          <p class="hint">Udvekslingsringe, som sektionsspærene går igennem, deles midt i faget ved sektionsspæret. Sektionsspæret er gennemgående, og udvekslingerne forbindes til det med denne forbindelse.</p>
+          <p class="hint">Udvekslingsringe, som sektionsspærene går igennem, deles midt i faget ved sektionsspæret og slår et knæk dér, så de følger cirklen ligesom kantringen. Sektionsspæret er gennemgående, og udvekslingerne forbindes til det med denne forbindelse.</p>
         </div>
         <div class="field">
           <span class="lbl">Understøtning ved svøbet</span>
@@ -1237,7 +1237,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     <div class="note">
       <h3>Sådan er modellen bygget</h3>
       <p>Systemlinjerne er profilernes tyngdepunktsakser, og den fysiske 3D-visning i FEM-Design viser også profilerne med tyngdepunktet på systemlinjen. Origo ligger i tankens centrum med Z opad. Bjælkernes krop står lodret (lokal y vandret), og udvekslingerne kan i stedet stilles vinkelret på tagfladen og drejes om stangaksen i kvarte omgange.</p>
-      <p>Udvekslingernes ender ligger på radialbjælkerne, og FEM-Design forbinder dem automatisk. Hvor et sektionsspær går igennem en udvekslingsring, er udvekslingen delt, så begge halvdele ender på det gennemgående sektionsspær. Charnier frigiver bøjning om begge akser; vridning og flytninger overføres. Vindgitteret er gitterstænger med kun normalkraft.</p>
+      <p>Udvekslingernes ender ligger på radialbjælkerne, og FEM-Design forbinder dem automatisk. Hvor et sektionsspær går igennem en udvekslingsring, er udvekslingen delt med et knæk på ringens cirkel, så begge halvdele ender på det gennemgående sektionsspær. Den ring, sektionsspæret ender på, er lige. Charnier frigiver bøjning om begge akser; vridning og flytninger overføres. Vindgitteret er gitterstænger med kun normalkraft.</p>
       <p>Med understøtningen Kun lodret holdes taget vandret af præcis tre fastholdelser: X ved 0°, Y ved 90° og Y ved 180°, så det hverken kan forskydes eller dreje om den lodrette akse. Det er statisk bestemt, så temperatur og svøbets udvidelse ikke giver tvang – til gengæld skal taget selv føre de vandrette laster hen til de tre punkter.</p>
     </div>
     <div class="note">
@@ -1812,40 +1812,45 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var a3 = P(rc, i3), b3 = P(rc, i3 + 1), ly3 = localYFor(vsub(b3, a3));
       ringM.push(addMember('ring', 'RING.' + (i3 + 1), a3, b3, ringFlip ? vscale(ly3, -1) : ly3, 'rigid', 'rigid', { index: i3 }));
     }
-    // udvekslinger: udvM[k][i] = [korde], eller i en ring, som sektionsspærene krydser, [RB.i → sektionsspær,
-    // sektionsspær → RB.i+1]. Ringene udenfor sektionsspærenes inderste ring deles midt på korden, hvor sektionsspæret
-    // går igennem, og forbindes til det med connUdvSec; sektionsspæret er gennemgående.
+    // punkt midt i fag i: på cirklen med radius r (knæk), og midt på korden mellem RB.i og RB.i+1
+    function Cr(r, i) { var ph = thetas[i] + Math.PI / n; return [r * Math.cos(ph), r * Math.sin(ph), zOf(r)]; }
+    function Q(r, i) { return vscale(vadd(P(r, i), P(r, i + 1)), 0.5); }
+    // udvekslinger: udvM[k][i] = [korde], eller i en ring, som sektionsspærene går igennem, [RB.i → sektionsspær,
+    // sektionsspær → RB.i+1]. Ringene udenfor sektionsspærenes inderste ring deles, hvor sektionsspæret går igennem,
+    // med et knæk på ringens cirkel (som kantringen), og forbindes til det med connUdvSec; sektionsspæret er gennemgående.
     var jSec = p.secOn ? radii.length + 1 - p.secRing : -1;
     var udvM = [];
     for (var k3 = 0; k3 < radii.length; k3++) {
       udvM.push([]);
-      var splitK = p.secOn && k3 + 1 > jSec;
-      for (var i4 = 0; i4 < n; i4++) {
-        var a4 = P(radii[k3], i4), b4 = P(radii[k3], i4 + 1);
-        var x4 = vsub(b4, a4), ly4, rot4 = udvRotationOf(p, k3 + 1);
-        if (p.udvOrientation === 'roof' && p.roofType !== 'flat') {
-          var phi = thetas[i4] + Math.PI / n;
-          ly4 = unit(cross(roofNormal(radii[k3], phi), unit(x4)));
-        } else ly4 = localYFor(x4);
+      var splitK = p.secOn && k3 + 1 > jSec, rot4 = udvRotationOf(p, k3 + 1);
+      // lokal y for en udveksling fra a til b, hvis midte ligger i retning phi
+      var udvLy = function (a, b, phi) {
+        var x = vsub(b, a), ly;
+        if (p.udvOrientation === 'roof' && p.roofType !== 'flat') ly = unit(cross(roofNormal(radii[k3], phi), unit(x)));
+        else ly = localYFor(x);
         // rotation om stangaksen: lokal y drejes mod lokal z = x × y (90° = y peger, hvor z pegede før)
         if (rot4 !== 0) {
-          var cs4 = ROT_CS[rot4], z4 = cross(unit(x4), ly4);
-          ly4 = vadd(vscale(ly4, cs4[0]), vscale(z4, cs4[1]));
+          var cs = ROT_CS[rot4], z = cross(unit(x), ly);
+          ly = vadd(vscale(ly, cs[0]), vscale(z, cs[1]));
         }
+        return ly;
+      };
+      for (var i4 = 0; i4 < n; i4++) {
+        var a4 = P(radii[k3], i4), b4 = P(radii[k3], i4 + 1), th4 = thetas[i4];
         var ex4 = { index: i4, ringNo: k3 + 1, prof: udvProfileOf(p, k3 + 1), rot: rot4 };
         if (splitK) {
-          // begge halvdele har korden som stangakse, så lokal y er den samme som for den udelte korde.
+          // knækket ligger på ringens cirkel midt i faget, så hver halvdel har sin egen stangakse.
           // De nummereres fortløbende mod uret: UDVk.(2i−1) fra RB.i og UDVk.2i til RB.i+1
-          var c4 = vscale(vadd(a4, b4), 0.5), nm4 = 'UDV' + (k3 + 1) + '.';
+          var c4 = Cr(radii[k3], i4), nm4 = 'UDV' + (k3 + 1) + '.';
           udvM[k3].push([
-            addMember('udv', nm4 + (2 * i4 + 1), a4, c4, ly4, p.connUdv, p.connUdvSec, Object.assign({ half: 0 }, ex4)),
-            addMember('udv', nm4 + (2 * i4 + 2), c4, b4, ly4, p.connUdvSec, p.connUdv, Object.assign({ half: 1 }, ex4))
+            addMember('udv', nm4 + (2 * i4 + 1), a4, c4, udvLy(a4, c4, th4 + Math.PI / (2 * n)), p.connUdv, p.connUdvSec, Object.assign({ half: 0 }, ex4)),
+            addMember('udv', nm4 + (2 * i4 + 2), c4, b4, udvLy(c4, b4, th4 + 3 * Math.PI / (2 * n)), p.connUdvSec, p.connUdv, Object.assign({ half: 1 }, ex4))
           ]);
-        } else udvM[k3].push([addMember('udv', 'UDV' + (k3 + 1) + '.' + (i4 + 1), a4, b4, ly4, p.connUdv, p.connUdv, ex4)]);
+        } else udvM[k3].push([addMember('udv', 'UDV' + (k3 + 1) + '.' + (i4 + 1), a4, b4, udvLy(a4, b4, th4 + Math.PI / n), p.connUdv, p.connUdv, ex4)]);
       }
     }
     // sektionsspærets ende på svøbet: midt i faget på cirklen med radius R
-    function Cpt(i) { var ph = thetas[i] + Math.PI / n; return [R * Math.cos(ph), R * Math.sin(ph), zOf(R)]; }
+    function Cpt(i) { return Cr(R, i); }
     // kantring: edgeM[i] = [korde], eller med sektionsspær [RB.i → sektionsspær, sektionsspær → RB.i+1]
     var edgeM = [];
     if (p.edgeRing) {
@@ -1862,10 +1867,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
 
     // sektionsspær: midt i hvert fag fra svøbet ind til korden i udvekslingsring secRing (talt fra svøbet).
-    // De deles ved hver ring, de krydser, så FEM-Design forbinder dem med udvekslingerne (midt på korderne),
-    // og den yderste ende ligger på svøbet (cirklen), ikke på korden mellem radialbjælkerne.
-    function Q(r, i) { return vscale(vadd(P(r, i), P(r, i + 1)), 0.5); }
-    function SQ(j, i) { return j === nodesR.length - 1 ? Cpt(i) : Q(nodesR[j], i); }
+    // De deles ved hver ring, de krydser, så FEM-Design forbinder dem med udvekslingerne i knækket på ringens
+    // cirkel, og den yderste ende ligger på svøbet (cirklen). Den inderste ende hviler midt på den lige korde.
+    function SQ(j, i) { return j > jSec ? Cr(nodesR[j], i) : Q(nodesR[j], i); }
     var secM = [];
     if (p.secOn) {
       for (var i9 = 0; i9 < n; i9++) {
@@ -1894,7 +1898,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     function refPos(o) {
       var i0 = o.r - 1;
       if (o.rMid && o.lMid) return vscale(vadd(SQ(o.j, i0), SQ(o.j + 1, i0)), 0.5);
-      if (o.rMid && o.j === m + 1 && p.secOn) return Cpt(i0);
+      if (o.rMid && p.secOn && o.j > jSec) return Cr(nodesR[o.j], i0);
       if (o.rMid) return vscale(vadd(P(nodesR[o.j], i0), P(nodesR[o.j], i0 + 1)), 0.5);
       if (o.lMid) return vscale(vadd(P(nodesR[o.j], i0), P(nodesR[o.j + 1], i0)), 0.5);
       return P(nodesR[o.j], i0);
@@ -2062,22 +2066,24 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             if (p.covers !== 'all') return [];
             var e = j7 === 0 ? [ringM[i7]] : udvAt(j7 - 1, h);
             if (j7 < radii.length) e = e.concat(udvAt(j7, h));
-            else if (edgeM.length) e.push(edgeM[i7][0]);
+            else if (edgeM.length) e = e.concat(h === undefined || edgeM[i7].length === 1 ? edgeM[i7] : [edgeM[i7][h]]);
             return e;
           };
-          var outer = j7 === nodesR.length - 2;
-          if (p.secOn && j7 >= jSec && outer) {
-            // yderste felt: sektionsspæret ender på svøbet, så halvfelterne ikke er plane. Hvert halvfelt deles i to
-            // trekanter, og hver trekant bæres af de bjælker, der ligger langs dens kanter.
-            var b0 = Q(r0, i7), cS = Cpt(i7), all = p.covers === 'all';
-            var e0 = all && edgeM.length ? [edgeM[i7][0]] : [], e1 = all && edgeM.length ? [edgeM[i7][1]] : [];
+          if (p.secOn && j7 === jSec) {
+            // inderste felt: sektionsspæret hviler midt på den lige korde og har knæk på cirklen udenfor, så
+            // halvfelterne ikke er plane. Hvert halvfelt deles i to trekanter, og hver trekant bæres af de bjælker,
+            // der ligger langs dens kanter.
+            var b0 = Q(r0, i7), cS = Cr(r1, i7), all = p.covers === 'all';
+            var outerAt = function (h) { return !all ? [] : (j7 < radii.length ? udvAt(j7, h) : (edgeM.length ? [edgeM[i7][h]] : [])); };
+            var e0 = outerAt(0), e1 = outerAt(1);
             covers.push({ points: [pts[0], pts[1], cS], supports: [sup[0]].concat(e0), bay: i7, interval: j7, half: 0, part: 0 });
             covers.push({ points: [pts[0], cS, b0], supports: [secM[i7][j7]].concat(all ? udvAt(j7 - 1, 0) : []), bay: i7, interval: j7, half: 0, part: 1 });
             covers.push({ points: [b0, cS, pts[3]], supports: [secM[i7][j7]].concat(all ? udvAt(j7 - 1, 1) : []), bay: i7, interval: j7, half: 1, part: 0 });
             covers.push({ points: [cS, pts[2], pts[3]], supports: [sup[1]].concat(e1), bay: i7, interval: j7, half: 1, part: 1 });
-          } else if (p.secOn && j7 >= jSec) {
-            // fladen deles ved sektionsspæret, så det bærer sin del af lasten
-            var m0 = Q(r0, i7), m1 = Q(r1, i7);
+          } else if (p.secOn && j7 > jSec) {
+            // fladen deles ved sektionsspæret, så det bærer sin del af lasten. Begge knæk ligger på cirklerne midt i
+            // faget, så halvfelterne er plane trapezer
+            var m0 = Cr(r0, i7), m1 = Cr(r1, i7);
             covers.push({ points: [pts[0], pts[1], m1, m0], supports: [sup[0], secM[i7][j7]].concat(extFor(0)), bay: i7, interval: j7, half: 0 });
             covers.push({ points: [m0, m1, pts[2], pts[3]], supports: [secM[i7][j7], sup[1]].concat(extFor(1)), bay: i7, interval: j7, half: 1 });
           } else covers.push({ points: pts, supports: sup.concat(extFor()), bay: i7, interval: j7 });
