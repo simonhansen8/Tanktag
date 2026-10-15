@@ -5001,8 +5001,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // sel[n-1] er knuderne valgt til samling n, og roles[n-1] er stængerne i knuden (null = alle stænger).
   var N_SAML = 7;
   function newAssign() {
-    var a = { names: [], sel: [], roles: [] };
-    for (var i = 0; i < N_SAML; i++) { a.names.push(i === 0 ? 'IPE 330 til tagkant' : ''); a.sel.push([]); a.roles.push(null); }
+    var a = { names: [], sel: [], roles: [], seeded: [] };
+    for (var i = 0; i < N_SAML; i++) { a.names.push(''); a.sel.push([]); a.roles.push(null); }
     return a;
   }
   // stængerne i de givne knuder, i samme rækkefølge som i knuderne
@@ -5014,12 +5014,26 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     return out;
   }
-  // udgangspunkt: samling 1 er radialbjælkens ende ved svøbet
+  // udgangspunktet for samlingerne: knudetypen og stangen i knuden. Hver samling får sit udgangspunkt én gang.
+  // Navnet er beregningens navn og sættes, hvis samlingen ikke har et; knuderne kun, hvis der ikke er valgt nogen.
+  var SEEDS = [
+    { n: 1, type: /^RB ved svøbet/, role: 'RB mod centrum', name: 'IPE 330 til tagkant' },
+    { n: 2, type: /^RB ved ringbjælken/, role: 'RB mod svøbet', name: 'IPE 330 til ringbjælke' },
+    { n: 3, type: /^SEK ved svøbet/, role: 'SEK mod centrum', name: 'IPE 180 til tagkant' }
+  ];
   function seedAssign(asg, nodeSet) {
-    asg.sel[0] = nodeSet.nodes.filter(function (nd) {
-      return /^RB ved svøbet/.test(nd.type) && nd.ends.some(function (e) { return e.role === 'RB mod centrum'; });
-    }).map(function (nd) { return nd.id; });
-    asg.roles[0] = ['RB mod centrum'];
+    if (!Array.isArray(asg.seeded)) asg.seeded = asg.seeded === true ? [1] : [];
+    SEEDS.forEach(function (sd) {
+      var i = sd.n - 1;
+      if (asg.seeded.indexOf(sd.n) >= 0) return;
+      asg.seeded.push(sd.n);
+      if (!asg.names[i]) asg.names[i] = sd.name;
+      if (asg.sel[i].length) return;
+      asg.sel[i] = nodeSet.nodes.filter(function (nd) {
+        return sd.type.test(nd.type) && nd.ends.some(function (e) { return e.role === sd.role; });
+      }).map(function (nd) { return nd.id; });
+      asg.roles[i] = [sd.role];
+    });
     return asg;
   }
   // stangenderne med kræfter for hver samling (ends[1..N_SAML], som endRows) og listen over tildelingen
@@ -5065,86 +5079,185 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     };
   }
 
-  // Samling 1: IPE 330 til tagkant. Svejsningen eftervises for hver stangende og kombination med formler i Excel.
-  function samling1Sheets(ends, title, names) {
-    var KR = "'Kræfter 1'!", NMAX = 20000, P = 'S1_';
+  // ---------- samlinger med svejsninger: beregningen, oversigten pr. knude og stangenderne ----------
+  // En samling beskrives af sine input, bæreevner, snitkræfter og kontroller (se SAMLINGER nedenfor). Formlerne står i Excel,
+  // så de kan kontrolleres og rettes dér. @navn i en formel er et navn i samlingen, fx S2_N_Rd.
+  function weldSheets(n, spec, ends, title, names) {
+    var SN = 'Samling ' + n, KR = "'Kræfter " + n + "'!", NMAX = 20000, P = 'S' + n + '_';
     var rng = function (c) { return KR + '$' + c + '$2:$' + c + '$' + (NMAX + 1); };
+    var fx = function (f) { return f.replace(/@(\w+)/g, function (m, nm) { return P + nm; }); };
     var S = [], r = 0;
     function put(row) { S[r++] = row; }
     function sec(t) { put([{ v: t, s: XS.head2 }]); }
     function line(lbl, val, unit, desc, kind, nm, st) {
-      var cell = typeof val === 'string' && val.charAt(0) === '=' ? { f: val.slice(1).replace(/\bS1_/g, P), s: st || XS.resText } : { v: val, s: kind === 'in' ? XS.input : (st || XS.resText) };
-      if (nm) names[P + nm] = "'Samling 1'!$B$" + (r + 1);
+      var cell = typeof val === 'string' && val.charAt(0) === '=' ? { f: fx(val.slice(1)), s: st || XS.resText } : { v: val, s: kind === 'in' ? XS.input : (st || XS.resText) };
+      if (nm) names[P + nm] = "'" + SN + "'!$B$" + (r + 1);
       put([lbl, cell, unit || '', desc || '']);
       return 'B' + r;
     }
-    put([{ v: 'Samling 1: ' + (title || 'IPE 330 til tagkant'), s: XS.title }]);
-    put([{ v: 'Gule celler er input. Grønne celler er resultater. Stangenderne, der er tildelt samling 1 i Tanktag, står i fanen Kræfter 1.', s: XS.note }]);
+    // kolonnerne i Kræfter n efter de seks kræfter: Første, snitkræfterne, udnyttelserne og den største udnyttelse
+    var calc = [['Første', 'COUNTIF(A$1:A1,A2)=0', 0]], col = {};
+    spec.forces.forEach(function (fo) {
+      col[fo.name] = colName(12 + calc.length);
+      calc.push([fo.label + ' [kN]', fo.choice ? fx('IF(@' + fo.choice + '="Ty\'",ABS(H2),IF(@' + fo.choice + '="Tz\'",ABS(I2),SQRT(H2^2+I2^2)))') : 'ABS(G2)', XS.n3]);
+    });
+    var urCols = spec.checks.map(function (ck) {
+      var c = colName(12 + calc.length);
+      calc.push([ck.head, fx(col[ck.force] + '2/@' + ck.cap), XS.n2]);
+      return c;
+    });
+    var UR = colName(12 + calc.length);
+    calc.push(['UR', 'MAX(' + urCols.map(function (c) { return c + '2'; }).join(',') + ')', XS.n2]);
+
+    put([{ v: SN + ': ' + (title || spec.title), s: XS.title }]);
+    put([{ v: 'Gule celler er input. Grønne celler er resultater. Stangenderne, der er tildelt samling ' + n + ' i Tanktag, står i fanen Kræfter ' + n + '.', s: XS.note }]);
     put(['Størrelse', 'Værdi', 'Enhed', 'Beskrivelse / formel'].map(function (h) { return { v: h, s: XS.th }; }));
-    sec('Svejsning (TS Tabel 6.50)');
-    line('fw,4a', 1787, 'N/mm', 'Kantsøm a = 4 mm, TS Tabel 6.50', 'in', 'fw');
-    line('L_H', 100, 'mm', 'Svejselængde, søm 1, 2 og 3', 'in', 'L_H');
-    line('k_H', 0.5, '-', 'Faktor på søm 1, 2 og 3', 'in', 'k_H');
-    line('α', 20, '°', 'Vinkel for søm 1 og 2', 'in', 'alfa');
-    line('L_V', 200, 'mm', 'Svejselængde, søm 4', 'in', 'L_V');
+    sec(spec.inputTitle);
+    spec.inputs.forEach(function (x) { line(x[0], x[1], x[2], x[3], 'in', x[4]); });
     sec('Valg');
-    var vv = line('V_d tages som', "Tz'", '', "Ty', Tz' eller resultant af Ty' og Tz'", 'in', 'VValg');
+    var lists = [];
+    spec.forces.forEach(function (fo) {
+      if (fo.choice) lists.push(line(fo.label + ' tages som', fo.def, '', "Ty', Tz' eller resultant af Ty' og Tz'" + (fo.hint ? '. ' + fo.hint : ''), 'in', fo.choice));
+    });
     line('Vis knude', '', '', 'Tom = den dimensionerende knude', 'in', 'VisKnude');
-    sec('Søm 1 + 2 + 3');
-    line('H_Rd', '=S1_L_H*S1_k_H*S1_fw/1000', 'kN', 'H_Rd = L_H · k_H · fw,4a', 'res', 'H_Rd', XS.res1);
-    line('N_Rd', '=(2*COS(RADIANS(S1_alfa))+1)*S1_H_Rd', 'kN', 'N_Rd = (2·cos α + 1) · H_Rd', 'res', 'N_Rd', XS.res1);
-    sec('Søm 4');
-    line('V_Rd', '=S1_L_V*S1_fw/1000', 'kN', 'V_Rd = L_V · fw,4a', 'res', 'V_Rd', XS.res1);
+    spec.capacities.forEach(function (cs) {
+      sec(cs.title);
+      cs.lines.forEach(function (x) { line(x[0], x[1], x[2], x[3], 'res', x[4], XS.res1); });
+    });
     sec('Dimensionerende last');
-    line('Knude', '=IF(S1_VisKnude="",INDEX(' + rng('A') + ',_xlfn.AGGREGATE(15,6,(ROW(' + rng('R') + ')-1)/(' + rng('R') + '=MAX(' + rng('R') + ')),1)),S1_VisKnude)', '', 'Knude med størst udnyttelse', 'res', 'Knude');
-    line('Række i tabellen', '=_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=S1_Knude)*(' + rng('R') + '=_xlfn.MAXIFS(' + rng('R') + ',' + rng('A') + ',S1_Knude))),1)', '', 'Hjælpecelle', 'res', 'Row', XS.res0);
-    line('Stang', '=INDEX(' + rng('C') + ',S1_Row)&" ("&INDEX(' + rng('D') + ',S1_Row)&", "&INDEX(' + rng('E') + ',S1_Row)&")"', '', '', 'res');
-    line('Kombination', '=INDEX(' + rng('F') + ',S1_Row)', '', '', 'res');
-    line('N_d', '=INDEX(' + rng('N') + ',S1_Row)', 'kN', '|N|', 'res', 'N_d', XS.res1);
-    line('V_d', '=INDEX(' + rng('O') + ',S1_Row)', 'kN', '', 'res', 'V_d', XS.res1);
+    line('Knude', '=IF(@VisKnude="",INDEX(' + rng('A') + ',_xlfn.AGGREGATE(15,6,(ROW(' + rng(UR) + ')-1)/(' + rng(UR) + '=MAX(' + rng(UR) + ')),1)),@VisKnude)', '', 'Knude med størst udnyttelse', 'res', 'Knude');
+    line('Række i tabellen', '=_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=@Knude)*(' + rng(UR) + '=_xlfn.MAXIFS(' + rng(UR) + ',' + rng('A') + ',@Knude))),1)', '', 'Hjælpecelle', 'res', 'Row', XS.res0);
+    line('Stang', '=INDEX(' + rng('C') + ',@Row)&" ("&INDEX(' + rng('D') + ',@Row)&", "&INDEX(' + rng('E') + ',@Row)&")"', '', '', 'res');
+    line('Kombination', '=INDEX(' + rng('F') + ',@Row)', '', '', 'res');
+    spec.forces.forEach(function (fo) {
+      var used = spec.checks.some(function (ck) { return ck.force === fo.name; });
+      line(fo.label, '=INDEX(' + rng(col[fo.name]) + ',@Row)', 'kN', fo.desc || (used ? '' : 'Indgår ikke i eftervisningen'), 'res', fo.name, XS.res1);
+    });
     sec('Eftervisning');
-    var u1 = line('UR_N', '=S1_N_d/S1_N_Rd', '-', 'N_d / N_Rd', 'res', null, XS.res2);
-    var k1 = line('Kontrol søm 1 + 2 + 3', '=IF(' + u1 + '<=1,"OK","IKKE OK")', '', 'N_Rd > N_d', 'res');
-    var u2 = line('UR_V', '=S1_V_d/S1_V_Rd', '-', 'V_d / V_Rd', 'res', null, XS.res2);
-    var k2 = line('Kontrol søm 4', '=IF(' + u2 + '<=1,"OK","IKKE OK")', '', 'V_Rd > V_d', 'res');
-    var k3 = line('Samlingens bæreevne', '=IF(MAX(' + u1 + ',' + u2 + ')<=1,"OK","IKKE OK")', '', '', 'res');
+    var urs = [], oks = [];
+    spec.checks.forEach(function (ck) {
+      var u = line(ck.ur, '=@' + ck.force + '/@' + ck.cap, '-', ck.urDesc, 'res', null, XS.res2);
+      urs.push(u);
+      oks.push(line(ck.label, '=IF(' + u + '<=1,"OK","IKKE OK")', '', ck.desc, 'res'));
+    });
+    oks.push(line('Samlingens bæreevne', '=IF(MAX(' + urs.join(',') + ')<=1,"OK","IKKE OK")', '', '', 'res'));
     var samling = {
-      name: 'Samling 1', rows: S, widths: [24, 30, 7, 40],
-      cf: [k1, k2, k3].map(function (c) { return { ref: c, formula: c + '="IKKE OK"' }; }),
-      lists: [{ ref: vv, list: '"Ty\',Tz\',Resultant"' }]
+      name: SN, rows: S, widths: [24, 30, 7, 46],
+      cf: oks.map(function (c) { return { ref: c, formula: c + '="IKKE OK"' }; }),
+      lists: lists.map(function (c) { return { ref: c, list: '"Ty\',Tz\',Resultant"' }; })
     };
-    var kraefter = forcesSheet(1, ends, [
-      ['Første', 'COUNTIF(A$1:A1,A2)=0', 0],
-      ['N_d [kN]', 'ABS(G2)', XS.n3],
-      ['V_d [kN]', 'IF(S1_VValg="Ty\'",ABS(H2),IF(S1_VValg="Tz\'",ABS(I2),SQRT(H2^2+I2^2)))', XS.n3],
-      ['UR_N', 'N2/S1_N_Rd', XS.n2], ['UR_V', 'O2/S1_V_Rd', XS.n2], ['UR', 'MAX(P2,Q2)', XS.n2]
-    ]);
-    kraefter.cf = [{ ref: 'R2:R' + (NMAX + 1), gt: '1' }];
-    // største udnyttelse pr. knude
+    var kraefter = forcesSheet(n, ends, calc);
+    kraefter.cf = [{ ref: UR + '2:' + UR + (NMAX + 1), gt: '1' }];
+
+    // største udnyttelse pr. knude; de to sidste kolonner er skjulte hjælpekolonner
+    var shown = ['F', 'D', 'E'].concat(spec.forces.map(function (fo) { return col[fo.name]; }), urCols);
+    var hFirst = colName(3 + shown.length), hRow = colName(4 + shown.length);
     var NO = 400, O = [
-      [{ v: 'Samling 1: oversigt pr. knude', s: XS.title }],
-      [{ v: 'Største udnyttelse for hver knude, der er tildelt samling 1.', s: XS.note }],
-      [{ v: 'Største UR i alt', s: XS.bold }, { f: 'MAX(' + rng('R') + ')', s: XS.res2 }],
+      [{ v: SN + ': oversigt pr. knude', s: XS.title }],
+      [{ v: 'Største udnyttelse for hver knude, der er tildelt samling ' + n + '.', s: XS.note }],
+      [{ v: 'Største UR i alt', s: XS.bold }, { f: 'MAX(' + rng(UR) + ')', s: XS.res2 }],
       [],
-      ['Knude', 'UR', 'Status', 'Kombination', 'Stang-id', 'Ende', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'Første række', 'Dim. række'].map(function (h) { return { v: h, s: XS.th }; })
+      ['Knude', 'UR', 'Status', 'Kombination', 'Stang-id', 'Ende'].concat(spec.forces.map(function (fo) { return fo.label + ' [kN]'; }),
+        spec.checks.map(function (ck) { return ck.head; }), ['Første række', 'Dim. række']).map(function (h) { return { v: h, s: XS.th }; })
     ];
     for (var k = 0; k < NO; k++) {
-      var i = 6 + k, A = 'A' + i, L = 'L' + i, row = [
-        { f: 'IF(K' + i + '="","",INDEX(' + rng('A') + ',K' + i + '))' },
-        { f: 'IF(' + A + '="","",_xlfn.MAXIFS(' + rng('R') + ',' + rng('A') + ',' + A + '))', s: XS.n2 },
+      var i = 6 + k, A = 'A' + i, L = hRow + i, row = [
+        { f: 'IF(' + hFirst + i + '="","",INDEX(' + rng('A') + ',' + hFirst + i + '))' },
+        { f: 'IF(' + A + '="","",_xlfn.MAXIFS(' + rng(UR) + ',' + rng('A') + ',' + A + '))', s: XS.n2 },
         { f: 'IF(' + A + '="","",IF(B' + i + '<=1,"OK","IKKE OK"))' }
       ];
-      ['F', 'D', 'E', 'N', 'O', 'P', 'Q'].forEach(function (c, j) {
-        row.push({ f: 'IF(' + A + '="","",INDEX(' + rng(c) + ',' + L + '))', s: j < 3 ? 0 : (j < 5 ? XS.n1 : XS.n2) });
+      shown.forEach(function (c, j) {
+        row.push({ f: 'IF(' + A + '="","",INDEX(' + rng(c) + ',' + L + '))', s: j < 3 ? 0 : (j < 3 + spec.forces.length ? XS.n1 : XS.n2) });
       });
       row.push({ f: 'IFERROR(_xlfn.AGGREGATE(15,6,(ROW(' + rng('M') + ')-1)/(' + rng('M') + '=TRUE),' + (k + 1) + '),"")' });
-      row.push({ f: 'IF(' + A + '="","",_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=' + A + ')*(' + rng('R') + '=B' + i + ')),1))' });
+      row.push({ f: 'IF(' + A + '="","",_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=' + A + ')*(' + rng(UR) + '=B' + i + ')),1))' });
       O.push(row);
     }
-    var oversigt = { name: 'Oversigt 1', rows: O, freeze: 6, widths: [10, 7, 9, 28, 10, 7, 10, 10, 7, 7, -8, -8], cf: [{ ref: 'B6:C' + (5 + NO), formula: '$C6="IKKE OK"' }] };
+    var oversigt = {
+      name: 'Oversigt ' + n, rows: O, freeze: 6,
+      widths: [10, 7, 9, 28, 10, 7].concat(spec.forces.map(function () { return 10; }), spec.checks.map(function () { return 8; }), [-8, -8]),
+      cf: [{ ref: 'B6:C' + (5 + NO), formula: '$C6="IKKE OK"' }]
+    };
     return [samling, oversigt, kraefter];
   }
-  var SAMLING_SHEETS = { 1: samling1Sheets };
+
+  // Samlingerne efter håndberegningerne. inputs: [betegnelse, værdi, enhed, beskrivelse, navn];
+  // capacities: afsnit med [betegnelse, formel, enhed, beskrivelse, navn]; forces: snitkræfterne i stangenden
+  // (choice = cellen, der vælger Ty', Tz' eller resultanten; uden choice er det |N|); checks: udnyttelse = kraft / bæreevne.
+  var SAMLINGER = {
+    1: {
+      title: 'IPE 330 til tagkant', inputTitle: 'Svejsning (TS Tabel 6.50)',
+      inputs: [
+        ['fw,4a', 1787, 'N/mm', 'Kantsøm a = 4 mm, TS Tabel 6.50', 'fw'],
+        ['L_H', 100, 'mm', 'Svejselængde, søm 1, 2 og 3', 'L_H'],
+        ['k_H', 0.5, '-', 'Faktor på søm 1, 2 og 3', 'k_H'],
+        ['α', 20, '°', 'Vinkel for søm 1 og 2', 'alfa'],
+        ['L_V', 200, 'mm', 'Svejselængde, søm 4', 'L_V']
+      ],
+      capacities: [
+        { title: 'Søm 1 + 2 + 3', lines: [
+          ['H_Rd', '=@L_H*@k_H*@fw/1000', 'kN', 'H_Rd = L_H · k_H · fw,4a', 'H_Rd'],
+          ['N_Rd', '=(2*COS(RADIANS(@alfa))+1)*@H_Rd', 'kN', 'N_Rd = (2·cos α + 1) · H_Rd', 'N_Rd']] },
+        { title: 'Søm 4', lines: [['V_Rd', '=@L_V*@fw/1000', 'kN', 'V_Rd = L_V · fw,4a', 'V_Rd']] }
+      ],
+      forces: [
+        { name: 'N_d', label: 'N_d', desc: '|N|' },
+        { name: 'V_d', label: 'V_d', choice: 'VValg', def: "Tz'" }
+      ],
+      checks: [
+        { force: 'N_d', cap: 'N_Rd', head: 'UR_N', ur: 'UR_N', urDesc: 'N_d / N_Rd', label: 'Kontrol søm 1 + 2 + 3', desc: 'N_Rd > N_d' },
+        { force: 'V_d', cap: 'V_Rd', head: 'UR_V', ur: 'UR_V', urDesc: 'V_d / V_Rd', label: 'Kontrol søm 4', desc: 'V_Rd > V_d' }
+      ]
+    },
+    2: {
+      title: 'IPE 330 til ringbjælke', inputTitle: 'Svejsning (TS Tabel 6.50)',
+      inputs: [
+        ['s_h', 300, 'mm', 'Længde på horisontale svejsesøm', 's_h'],
+        ['s_v', 200, 'mm', 'Længde på vertikal svejsesøm', 's_v'],
+        ['V_w,Rd', 1787, 'N/mm', 'Bæreevne på langs med dobbelt a4 kantsøm, TS Tabel 6.50', 'Vw']
+      ],
+      capacities: [
+        { title: 'Bæreevne', lines: [
+          ['N_Rd', '=@s_h*@Vw*2/1000', 'kN', 'Samlet bæreevne af svejsesømme i længderetning: N_Rd = s_h · V_w,Rd · 2', 'N_Rd'],
+          ['V_y,Rd', '=@s_v*@Vw/1000', 'kN', 'Forskydningsbæreevne: V_y,Rd = s_v · V_w,Rd', 'Vy_Rd']] }
+      ],
+      forces: [
+        { name: 'N_Ed', label: 'N_Ed', desc: '|N|' },
+        { name: 'Vy_Ed', label: 'V_y,Ed', choice: 'VyValg', def: "Tz'", hint: "Tz' er den lodrette forskydning, som den vertikale søm optager" },
+        { name: 'Vz_Ed', label: 'V_z,Ed', choice: 'VzValg', def: "Ty'" }
+      ],
+      checks: [
+        { force: 'N_Ed', cap: 'N_Rd', head: 'u_N', ur: 'u(N_Rd, N_Ed)', urDesc: 'N_Ed / N_Rd', label: 'Kontrol svejsesømme i længderetning', desc: 'N_Rd > N_Ed' },
+        { force: 'Vy_Ed', cap: 'Vy_Rd', head: 'u_Vy', ur: 'u(V_y,Rd, V_y,Ed)', urDesc: 'V_y,Ed / V_y,Rd', label: 'Kontrol forskydning', desc: 'V_y,Rd > V_y,Ed' }
+      ]
+    },
+    3: {
+      title: 'IPE 180 til tagkant', inputTitle: 'Svejsning (TS Tabel 6.50)',
+      inputs: [
+        ['s_h.1', 74, 'mm', 'Længde på horisontale svejsesøm, laskeplade', 's_h1'],
+        ['s_v.1', 85, 'mm', 'Længde på vertikal svejsesøm, laskeplade', 's_v1'],
+        ['s_h.2', 80, 'mm', 'Længde på horisontale svejsesøm, topflange', 's_h2'],
+        ['V_w,Rd', 1787, 'N/mm', 'Bæreevne på langs med dobbelt kantsøm, TS Tabel 6.50', 'Vw'],
+        ['α', 20, '°', 'Tagvinkel ved kant', 'alfa']
+      ],
+      capacities: [
+        { title: 'Bæreevne', lines: [
+          ['N_Rd', '=@s_h1/COS(RADIANS(@alfa))*@Vw*0.5*2/1000', 'kN', 'Samlet bæreevne af svejsesømme i længderetning: N_Rd = s_h.1 · 1/cos α · V_w,Rd · 0,5 · 2', 'N_Rd'],
+          ['V_z,Rd', '=@s_v1*@Vw*0.5*2/1000', 'kN', 'Forskydningsbæreevne: V_z,Rd = s_v.1 · V_w,Rd · 0,5 · 2', 'Vz_Rd'],
+          ['V_y,Rd', '=@s_h2*@Vw*0.5*2/1000', 'kN', 'Forskydningsbæreevne: V_y,Rd = s_h.2 · V_w,Rd · 0,5 · 2', 'Vy_Rd']] }
+      ],
+      forces: [
+        { name: 'N_Ed', label: 'N_Ed', desc: '|N|' },
+        { name: 'Vy_Ed', label: 'V_y,Ed', choice: 'VyValg', def: "Ty'", hint: "Ty' er den vandrette forskydning, som topflangens søm optager" },
+        { name: 'Vz_Ed', label: 'V_z,Ed', choice: 'VzValg', def: "Tz'", hint: "Tz' er den lodrette forskydning, som laskepladens vertikale søm optager" }
+      ],
+      checks: [
+        { force: 'N_Ed', cap: 'N_Rd', head: 'u_N', ur: 'u(N_Rd, N_Ed)', urDesc: 'N_Ed / N_Rd', label: 'Kontrol svejsesømme i længderetning', desc: 'N_Rd > N_Ed' },
+        { force: 'Vz_Ed', cap: 'Vz_Rd', head: 'u_Vz', ur: 'u(V_z,Rd, V_z,Ed)', urDesc: 'V_z,Ed / V_z,Rd', label: 'Kontrol forskydning V_z', desc: 'V_z,Rd > V_z,Ed' },
+        { force: 'Vy_Ed', cap: 'Vy_Rd', head: 'u_Vy', ur: 'u(V_y,Rd, V_y,Ed)', urDesc: 'V_y,Ed / V_y,Rd', label: 'Kontrol forskydning V_y', desc: 'V_y,Rd > V_y,Ed' }
+      ]
+    }
+  };
 
   // ét Excel-ark med alle samlinger: tildelingen, og for hver samling beregningen (hvis den findes) og stangenderne
   function samlingerXlsx(nodeSet, M, combos, asg) {
@@ -5156,7 +5269,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     ];
     for (var n = 1; n <= N_SAML; n++) {
       var cnt = se.list.filter(function (x) { return x[5] === n; }).length;
-      T.push([n, asg.names[n - 1] || '', cnt, cnt ? (SAMLING_SHEETS[n] ? 'Samling ' + n : 'mangler') : '']);
+      T.push([n, asg.names[n - 1] || '', cnt, cnt ? (SAMLINGER[n] ? 'Samling ' + n : 'mangler') : '']);
     }
     T.push([]);
     T.push(['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Samling'].map(function (h) { return { v: h, s: XS.th }; }));
@@ -5164,7 +5277,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     sheets.push({ name: 'Tildeling', rows: T, first: true, widths: [10, 30, 18, 10, 8, 9] });
     for (n = 1; n <= N_SAML; n++) {
       if (!se.ends[n].length) continue;
-      if (SAMLING_SHEETS[n]) sheets = sheets.concat(SAMLING_SHEETS[n](se.ends[n], asg.names[n - 1], names));
+      if (SAMLINGER[n]) sheets = sheets.concat(weldSheets(n, SAMLINGER[n], se.ends[n], asg.names[n - 1], names));
       else sheets.push(forcesSheet(n, se.ends[n]));
     }
     return xlsx(sheets, names);
@@ -5176,7 +5289,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv,
     endRows: endRows, xlsx: xlsx,
     N_SAML: N_SAML, newAssign: newAssign, nodeRoles: nodeRoles, seedAssign: seedAssign,
-    samlingEnds: samlingEnds, samlingerXlsx: samlingerXlsx
+    samlingEnds: samlingEnds, samlingerXlsx: samlingerXlsx, SAMLINGER: SAMLINGER
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankConn = api;
@@ -7006,7 +7119,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       conn.sel = conn.sel.filter(function (id) { return ids[id]; });
       var A = asg();
       A.sel = A.sel.map(function (l) { return l.filter(function (id) { return ids[id]; }); });
-      if (!A.seeded) { TC.seedAssign(A, conn.N); A.seeded = true; storeAsg(); }
+      var nSeeded = A.seeded.length;
+      TC.seedAssign(A, conn.N);
+      if (A.seeded.length !== nSeeded) storeAsg();
     }
     // indlæste kræfter
     var F = conn.F, M = conn.M, warn = [];
@@ -7124,7 +7239,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var ASG_KEY = CONN_KEY + '-samlinger';
   function loadAsg() {
     var a = TC.newAssign();
-    a.seeded = false;
     try {
       var o = JSON.parse(window.localStorage.getItem(ASG_KEY) || 'null');
       if (o && typeof o === 'object' && Array.isArray(o.sel)) {
@@ -7133,7 +7247,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
           if (Array.isArray(o.sel[i])) a.sel[i] = o.sel[i].map(String);
           if (Array.isArray(o.roles) && Array.isArray(o.roles[i])) a.roles[i] = o.roles[i].map(String);
         }
-        a.seeded = !!o.seeded;
+        // før samling 2 og 3 var udgangspunktet kun sat for samling 1 (seeded: true)
+        if (Array.isArray(o.seeded)) a.seeded = o.seeded.map(Number).filter(function (x) { return x >= 1 && x <= TC.N_SAML; });
+        else if (o.seeded) a.seeded = [1];
       }
     } catch (e) { /* ok */ }
     return a;
