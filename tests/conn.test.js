@@ -139,24 +139,57 @@ test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark
   assert.equal(ks.length, 24);
   assert.deepEqual(asg.sel[0].slice().sort(), ks.map((nd) => nd.id).sort());
   assert.deepEqual(asg.roles[0], ['RB mod centrum']);
+  // samling 2 er RB mod svøbet i de 24 KR-knuder, samling 3 SEK mod centrum i de 24 sektionsspær ved svøbet
+  assert.deepEqual(asg.sel[1].map((id) => N.nodes.find((nd) => nd.id === id).name).sort(), N.nodes.filter((nd) => /^KR\.\d+$/.test(nd.name)).map((nd) => nd.name).sort());
+  assert.equal(asg.sel[1].length, 24);
+  assert.deepEqual(asg.roles[1], ['RB mod svøbet']);
+  assert.equal(asg.sel[2].length, 24);
+  assert.ok(asg.sel[2].every((id) => N.nodes.find((nd) => nd.id === id).type === 'SEK ved svøbet'));
+  assert.deepEqual(asg.roles[2], ['SEK mod centrum']);
+  assert.deepEqual(asg.names.slice(0, 3), ['IPE 330 til tagkant', 'IPE 330 til ringbjælke', 'IPE 180 til tagkant']);
   // KS.3 fravalgt; samling 2 er alle stænger i KS.1
   const ks3 = ks.find((nd) => nd.name === 'KS.3'), ks1 = ks.find((nd) => nd.name === 'KS.1');
   asg.sel[0] = asg.sel[0].filter((id) => id !== ks3.id);
-  asg.sel[1] = [ks1.id];
+  asg.sel[1] = [ks1.id]; asg.roles[1] = null;
   assert.deepEqual(TC.nodeRoles(N, asg.sel[1]), ks1.ends.map((e) => e.role));
   const se = TC.samlingEnds(N, M, F.combos, asg);
   assert.equal(se.ends[1].length, 23 * F.combos.length);
   assert.ok(se.ends[1].every((r) => r[2] === 'RB mod centrum' && r[0] !== 'KS.3'));
   assert.equal(se.ends[2].length, ks1.ends.length * F.combos.length);
-  assert.deepEqual(se.ends.slice(3).map((e) => e.length), [0, 0, 0, 0, 0]);
+  assert.equal(se.ends[3].length, 24 * F.combos.length);
+  assert.deepEqual(se.ends.slice(4).map((e) => e.length), [0, 0, 0, 0]);
 
   const buf = await TC.samlingerXlsx(N, M, F.combos, asg);
   const rows = await TC.readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
   assert.ok(rows.some((r) => r[0] === 'N_Rd'), 'fanen Samling 1 har eftervisningen');
+  assert.ok(rows.some((r) => r[0] === 'Samling 2: IPE 330 til ringbjælke'), 'fanen Samling 2');
+  assert.ok(rows.some((r) => r[0] === 'u(V_y,Rd, V_y,Ed)'), 'samling 2 eftervises for V_y,Ed');
+  assert.ok(rows.some((r) => r[0] === 'Samling 3: IPE 180 til tagkant'), 'fanen Samling 3');
+  assert.ok(rows.some((r) => r[0] === 'u(V_z,Rd, V_z,Ed)'), 'samling 3 eftervises for V_z,Ed');
   const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype' && r[5] === 'Kombination');
   assert.deepEqual(head.slice(12), ['Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
   const data = rows.slice(rows.indexOf(head) + 1, rows.indexOf(head) + 1 + se.ends[1].length);
   assert.ok(data.every((r) => r[2] === 'RB mod centrum'));
   const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig');
   assert.equal(ks7[6], se.ends[1].find((e) => e[0] === 'KS.7' && e[5] === '5 STR Sne, ensidig')[6]);
+});
+
+test('samlinger: gemt tildeling fra før samling 2 og 3 får deres udgangspunkt uden at røre samling 1', () => {
+  const N = TC.buildNodes(geometry());
+  const asg = TC.newAssign();
+  const kr1 = N.nodes.find((nd) => nd.name === 'KR.1');
+  asg.names[0] = 'Min samling'; asg.sel[0] = [kr1.id]; asg.roles[0] = null; asg.seeded = true;
+  TC.seedAssign(asg, N);
+  assert.deepEqual(asg.seeded, [1, 2, 3]);
+  assert.deepEqual([asg.names[0], asg.sel[0], asg.roles[0]], ['Min samling', [kr1.id], null]);
+  assert.equal(asg.sel[1].length, 24);
+  assert.equal(asg.sel[2].length, 24);
+  // allerede valgte knuder overskrives ikke, og udgangspunktet sættes kun én gang
+  const b = TC.newAssign();
+  b.sel[1] = [kr1.id]; b.roles[1] = ['RING mod uret'];
+  TC.seedAssign(b, N);
+  assert.deepEqual([b.sel[1], b.roles[1]], [[kr1.id], ['RING mod uret']]);
+  b.sel[2] = [];
+  TC.seedAssign(b, N);
+  assert.deepEqual(b.sel[2], []);
 });
