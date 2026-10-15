@@ -9,7 +9,7 @@ Normer:	DS/EN 1990, DS/EN 1991-1-1, -1-3, -1-4 og -4 samt DS/EN 1993-4-2, alle m
 Lasttilfælde	Lastvarighed	Laster	Lodret, kN	Vandret, kN
 Egenlast	Permanent	25	83,27	0,00
 Nyttelast, punkt	Korttids	1	1,50	0,00
-Sne, jævn	Korttids	25	69,12	0,00
+Sne, jævn	Korttids	25	86,40	0,00
 Vind 0°	Øjeblikkelig	25	−36,50	0,00
 Undertryk	Korttids	25	27,00	0,00
 
@@ -35,14 +35,14 @@ Nyttelast, punkt	Q_k = 1,5 kN midt på RB.1 i (3,250; 0,000; 0,000) m	1,50	1,50
 ==========
 DS/EN 1991-1-3 med DK NA. Taget regnes som saddeltag med hver flades egen hældning α, så μ_1 = 0,8 for α ≤ 30°, μ_1 = 0,8 · (60° − α) / 30° for 30° < α < 60° og 0 for α ≥ 60° (tabel 5.2). Snelasten virker lodret på den vandrette projektion.
 
-s = μ · C_e · C_t · s_k = μ · 1,0 · 1,0 · 0,8 kN/m² = μ · 0,800 kN/m²
+s = μ · C_e · C_t · s_k = μ · 1,0 · 1,0 · 1 kN/m² = μ · 1,000 kN/m²
 
 Sne, jævn: 1 gruppe af flader
 Flader	Hældning α	μ	s, kN/m²	A_proj, m²	s · A_proj, kN
-25	0,0°	0,8	0,640	108,00	69,12
-25				108,00	69,12
+25	0,0°	0,8	0,800	108,00	86,40
+25				108,00	86,40
 
-Lodret resultant i filen: 69,12 kN nedad.
+Lodret resultant i filen: 86,40 kN nedad.
 
 5. Vindlast
 ===========
