@@ -1,0 +1,183 @@
+Dokumentationen gælder de aktuelle parametre og svarer til lasttilfældene og lastkombinationerne i StruXML-filen. Fladelasterne ligger på lastfordelingsfladerne (CO.i), som FEM-Design fordeler til bjælkerne langs fladernes kanter. Lodrette resultanter regnes positive nedad.
+
+1. Grundlag
+===========
+Tag:	Tank Ø12,000 m, fladt tag, rejsning f = 0,000 m til ringbjælken, 12 radialbjælker
+Lastfordelingsflader:	25 stk., areal 108,00 m² og 108,00 m² i vandret projektion
+Normer:	DS/EN 1990, DS/EN 1991-1-1, -1-3, -1-4 og -4 samt DS/EN 1993-4-2, alle med dansk nationalt anneks
+
+Lasttilfælde	Lastvarighed	Laster	Lodret, kN	Vandret, kN
+Egenlast	Permanent	25	83,27	0,00
+Nyttelast, punkt	Korttids	1	1,50	0,00
+Sne, jævn	Korttids	25	69,12	0,00
+Vind 0°	Øjeblikkelig	25	−36,50	0,00
+Undertryk	Korttids	25	27,00	0,00
+
+2. Egenlast
+===========
+Tagpladen og den øvrige permanente last virker lodret på fladernes skrå areal. Konstruktionens egen vægt er ikke med.
+
+Del	Udtryk	Værdi
+Tagplade	g_plade = t · γ_stål = 6 mm · 78,5 kN/m³	0,471 kN/m²
+Øvrig permanent last	angivet	0,300 kN/m²
+I alt	g = g_plade + g_øvrig	0,771 kN/m²
+
+Lodret resultant i filen: 83,27 kN nedad (kontrol: g · A = 0,771 · 108,00 = 83,27 kN).
+
+3. Nyttelast
+============
+Nyttelast på tag efter DS/EN 1991-1-1, kategori H. Den jævnt fordelte last virker lodret på den vandrette projektion.
+
+Lasttilfælde	Last	Lodret, kN	Kontrol, kN
+Nyttelast, punkt	Q_k = 1,5 kN midt på RB.1 i (3,250; 0,000; 0,000) m	1,50	1,50
+
+4. Snelast
+==========
+DS/EN 1991-1-3 med DK NA. Taget regnes som saddeltag med hver flades egen hældning α, så μ_1 = 0,8 for α ≤ 30°, μ_1 = 0,8 · (60° − α) / 30° for 30° < α < 60° og 0 for α ≥ 60° (tabel 5.2). Snelasten virker lodret på den vandrette projektion.
+
+s = μ · C_e · C_t · s_k = μ · 1,0 · 1,0 · 0,8 kN/m² = μ · 0,800 kN/m²
+
+Sne, jævn: 1 gruppe af flader
+Flader	Hældning α	μ	s, kN/m²	A_proj, m²	s · A_proj, kN
+25	0,0°	0,8	0,640	108,00	69,12
+25				108,00	69,12
+
+Lodret resultant i filen: 69,12 kN nedad.
+
+5. Vindlast
+===========
+DS/EN 1991-1-4 med DK NA. Peakhastighedstrykket er q_p = 0,564 kN/m² i højden z_e = 8,000 m, og vindlasten på en flade er w = q_p · (c_pe − c_pi) med c_pi = 0,0. Vindlasten virker vinkelret på fladen; positiv er tryk mod taget.
+
+Lasttilfælde	Lodret, kN	Vandret, kN	Mindste w, kN/m²	Største w, kN/m²
+Vind 0°	−36,50	0,00	−0,395	−0,282
+
+Peakhastighedstryk, zoner, formfaktorer og vindlasten på hver flade er dokumenteret herunder.
+
+5.1 Grundlag
+------------
+Norm:	DS/EN 1991-1-4 med dansk nationalt anneks (DK NA 2024)
+Tank:	D = 12,000 m, svøbets top h = 8,000 m over terræn
+Tag:	Fladt
+Formfaktorer:	Fladt tag, afsnit 7.2.3, fig. 7.6 og tabel 7.2 (skarp tagfod)
+Indvendig formfaktor:	c_pi = 0,0
+Vindretninger:	θ = 0°, målt fra X-aksen mod uret. Vinden blæser i retningen θ.
+Lastfordelingsflader:	25 stk., 108,00 m² i vandret projektion
+
+5.2 Peakhastighedstryk q_p
+--------------------------
+Størrelse	Udtryk	Værdi
+Basisvindhastighed	v_b = √(c²_dir · c²_season) · v_b,0 = √1,0 · 24,0 m/s	24,00 m/s
+Terrænkategori III	Ruhedslængde og mindste højde efter tabel 4.1	z_0 = 0,3 m, z_min = 5 m
+Referencehøjde	z_e = h (fig. 7.6)	8,000 m
+Terrænfaktor	k_r = 0,19 · (z_0 / 0,05)^0,07	0,215
+Ruhedsfaktor	c_r = k_r · ln(z / z_0)	0,707
+Middelvindhastighed	v_m = c_r · c_0 · v_b med c_0 = 1,0	16,97 m/s
+Turbulensintensitet	I_v = k_I / (c_0 · ln(z / z_0)) med k_I = 1,0	0,305
+Peakhastighedstryk	q_p = (1 + 7 · I_v) · ½ · ρ · v_m² med ρ = 1,25 kg/m³	0,564 kN/m²
+
+c_0 = 1,0 (ingen orografi), k_I = 1,0 og ρ = 1,25 kg/m³ er de anbefalede værdier, som DK NA ikke ændrer. c²_dir og c²_season står i DK NA tabel 1a og 1b, og v_b,0 = 24 m/s gælder overalt i Danmark bortset fra randzonen ved Vesterhavet.
+
+5.3 Zoner og formfaktorer
+-------------------------
+Taget regnes som fladt tag med skarp tagfod. Zonerne i fig. 7.6 gælder et rektangulært tag; her ligger de på tagets omskrevne kvadrat med bredden b = D på tværs af vinden, og kun delen inden for svøbet er tag. s måles vandret i vindretningen fra luvpunktet (tangenten til svøbet vinkelret på vinden), og t måles vandret på tværs af vinden fra tankens akse.
+
+e = min(b; 2h) = min(12,00; 16,00) = 12,00 m
+
+Zone	Afgrænsning	Mål på kvadratet, bredde × dybde	Areal inden for svøbet, m²	c_pe,10	w = q_p(c_pe − c_pi), kN/m²
+F	0 ≤ s < e/10 og |t| > D/2 − e/4 = 3,00 m	2 × e/4 × e/10 = 2 × 3,00 × 1,20 m	0,25	−1,8	−1,015
+G	0 ≤ s < e/10 = 1,20 m og |t| ≤ 3,00 m	(D − e/2) × e/10 = 6,00 × 1,20 m	5,64	−1,2	−0,677
+H	e/10 ≤ s < e/2 = 6,00 m	D × (e/2 − e/10) = 12,00 × 4,80 m	50,66	−0,7	−0,395
+I	s ≥ e/2 = 6,00 m	D × (D − e/2) = 12,00 × 6,00 m	56,55	−0,5	−0,282
+I alt			113,10		
+
+- c_pe,10 er fra tabel 7.2 for skarp tagfod. I zone I er sug −0,5 efter DK NA 7.2.3(4) (−0,2 i den europæiske tekst). Zone I har også c_pe = +0,2 (tryk), som ikke er lagt ind – generatoren laver kun sugtilfældet.
+- c_pe,10 gælder for belastede arealer på mindst 10 m². Bjælker med mindre belastet areal, tagpladen og dens fastgørelse skal eftervises med større sug efter afsnit 7.2.1 (c_pe,1 ved 1 m²).
+
+5.4 Sådan bliver lasten lagt på modellen
+----------------------------------------
+- Hver lastfordelingsflade får fladelasten |w| vinkelret på fladen. Positiv w er tryk mod tagfladen (nedad), negativ w er sug væk fra fladen (opad).
+- En flade får værdien for den zone, dens tyngdepunkt ligger i. En flade, der krydser en zonegrænse, får altså hele vejen tyngdepunktets zone. Beregningen for hver flade står under hver vindretning.
+- Lasttilfældet hedder Vind θ°, er en almindelig (statisk) last og har varighedsklassen øjeblikkelig. Lastkombinationer laves under fanen Kombinationer eller i FEM-Design.
+- Areal efter zonerne er zonens nøjagtige del af lastfladerne, og Areal i modellen er arealet af de flader, der har fået zonens værdi (begge i vandret projektion). Forskellen viser, hvor meget fladeinddelingen flytter lasten.
+
+5.5 Lasten pr. vindretning
+--------------------------
+
+5.5.1 Vind 0°
+-------------
+[Figur: se Hent som HTML]
+
+Zone	c_pe	w, kN/m²	Flader	Areal i modellen, m²	Areal efter zonerne, m²	ΣF lodret i modellen, kN	ΣF lodret efter zonerne, kN
+F	−1,8	−1,015	0	0,00	0,16	0,0	−0,2
+G	−1,2	−0,677	0	0,00	4,79	0,0	−3,2
+H	−0,7	−0,395	12	53,63	49,05	−21,2	−19,4
+I	−0,5	−0,282	13	54,38	54,00	−15,3	−15,2
+I alt			25	108,00	108,00	−36,5	−38,0
+
+ΣF lodret er positiv nedad. I modellen er ΣF lodret = −36,5 kN og ΣF vandret = 0,0 kN. Fordeles zonernes værdier nøjagtigt på lastfladerne, bliver ΣF lodret = −38,0 kN, så modellen giver 3,9 % mindre opadrettet kraft. Zone F dækker 0,16 m² af lastfladerne, men ingen flade har tyngdepunktet i zonen, så arealet får nabozonens last. Zone G dækker 4,79 m² af lastfladerne, men ingen flade har tyngdepunktet i zonen, så arealet får nabozonens last.
+
+Beregning pr. flade, Vind 0°
+----------------------------
+For θ = 0° blæser vinden i X-aksens retning, så afstanden i vindretningen er x, målt fra tankens centrum. s måles i stedet fra luvkanten A, der ligger en radius før centrum, så s = x + R = x + 6,000 m, og afstanden på tværs af vinden er t = y. Dermed er s = 0 ved A, s = R = 6,000 m ved B (centrum) og s = D = 12,000 m ved C. Zonen findes ud fra tyngdepunktets s og t med e = 12,000 m, og w = 0,564 · (c_pe − 0,0).
+
+Eksempel 1: CO.11
+-----------------
+Flade:	CO.11 (zone H)
+Tyngdepunkt i planen:	x = −2,063 m, y = 0,553 m
+Afstand fra luvkanten A:	s = x + R = −2,063 + 6,000 = 3,937 m
+Zone:	e/10 = 1,200 m ≤ s = 3,937 m < e/2 = 6,000 m, altså zone H
+Formfaktor:	c_pe,10 = −0,7 (tabel 7.2, skarp tagfod)
+Vindlast:	w = q_p · (c_pe − c_pi) = 0,564 · (−0,700 − 0,0) = −0,395 kN/m² (sug)
+I FEM-Design:	Fladelast på CO.11 med 0,395 kN/m² vinkelret på fladen, rettet væk fra den (opad). Lasten har kommentaren cpe=-0,700.
+Kraft på fladen:	w · A = −0,395 · 2,578 m² = −1,02 kN
+
+Eksempel 2: CO.3
+----------------
+Flade:	CO.3 (zone I)
+Tyngdepunkt i planen:	x = 1,510 m, y = 1,510 m
+Afstand fra luvkanten A:	s = x + R = 1,510 + 6,000 = 7,510 m
+Zone:	s = 7,510 m ≥ e/2 = 6,000 m, altså zone I
+Formfaktor:	c_pe,10 = −0,5 (tabel 7.2, skarp tagfod, DK NA)
+Vindlast:	w = q_p · (c_pe − c_pi) = 0,564 · (−0,500 − 0,0) = −0,282 kN/m² (sug)
+I FEM-Design:	Fladelast på CO.3 med 0,282 kN/m² vinkelret på fladen, rettet væk fra den (opad). Lasten har kommentaren cpe=-0,500.
+Kraft på fladen:	w · A = −0,282 · 2,578 m² = −0,73 kN
+
+Zone H: 12 flader
+Flade	x, m	y, m	s, m	t, m	Zonens betingelse	c_pe	w, kN/m²	A, m²	w · A, kN
+CO.12	−4,442	1,190	1,558	1,190	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.14	−4,442	−1,190	1,558	−1,190	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.16	−3,252	−3,252	2,748	−3,252	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.10	−3,252	3,252	2,748	3,252	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.13	−2,063	−0,553	3,937	−0,553	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+CO.11	−2,063	0,553	3,937	0,553	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+CO.15	−1,510	−1,510	4,490	−1,510	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+CO.9	−1,510	1,510	4,490	1,510	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+CO.18	−1,190	−4,442	4,810	−4,442	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.8	−1,190	4,442	4,810	4,442	1,200 ≤ s < 6,000	−0,7	−0,395	6,359	−2,51
+CO.17	−0,553	−2,063	5,447	−2,063	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+CO.7	−0,553	2,063	5,447	2,063	1,200 ≤ s < 6,000	−0,7	−0,395	2,578	−1,02
+I alt								53,625	−21,17
+
+Zone I: 13 flader
+Flade	x, m	y, m	s, m	t, m	Zonens betingelse	c_pe	w, kN/m²	A, m²	w · A, kN
+CO.25	0,000	0,000	6,000	0,000	s ≥ 6,000	−0,5	−0,282	0,750	−0,21
+CO.5	0,553	2,063	6,553	2,063	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.19	0,553	−2,063	6,553	−2,063	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.20	1,190	−4,442	7,190	−4,442	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+CO.6	1,190	4,442	7,190	4,442	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+CO.3	1,510	1,510	7,510	1,510	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.21	1,510	−1,510	7,510	−1,510	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.23	2,063	−0,553	8,063	−0,553	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.1	2,063	0,553	8,063	0,553	s ≥ 6,000	−0,5	−0,282	2,578	−0,73
+CO.4	3,252	3,252	9,252	3,252	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+CO.22	3,252	−3,252	9,252	−3,252	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+CO.24	4,442	−1,190	10,442	−1,190	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+CO.2	4,442	1,190	10,442	1,190	s ≥ 6,000	−0,5	−0,282	6,359	−1,79
+I alt								54,375	−15,33
+
+6. Tryk fra tanken
+==================
+Tankens designtryk og designvakuum virker vinkelret på tagpladen med 1 mbar = 0,1 kN/m². Den lodrette resultant er derfor trykket gange den vandrette projektion.
+
+Lasttilfælde	Tryk	Lodret, kN	p · A_proj, kN
+Undertryk	2,5 mbar = 0,250 kN/m², nedad	27,00	27,00

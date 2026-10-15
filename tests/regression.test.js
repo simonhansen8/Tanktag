@@ -122,7 +122,8 @@ function compute(spec) {
       elements: elementCounts(xml)
     }
   });
-  return { summary, xml, windText: wd ? WD.text(wd) : null };
+  const ld = WD.loads.compute(g, loads, TR);
+  return { summary, xml, windText: wd ? WD.text(wd) : null, loadText: ld ? WD.loads.text(ld) : null };
 }
 
 // første forskel mellem to StruXML-filer, så en fejl siger, hvor filen har ændret sig
@@ -147,14 +148,17 @@ for (const file of caseFiles) {
   const summaryPath = path.join(SNAP_DIR, name + '.json');
   const xmlPath = path.join(SNAP_DIR, name + '.struxml.gz');
   const windPath = path.join(SNAP_DIR, name + '.vind.txt');
+  const loadPath = path.join(SNAP_DIR, name + '.laster.txt');
 
   test(name + ': ' + spec.description, () => {
-    const { summary, xml, windText } = compute(spec);
+    const { summary, xml, windText, loadText } = compute(spec);
 
     if (UPDATE) {
       fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2) + '\n');
       if (windText !== null) fs.writeFileSync(windPath, windText);
       else if (fs.existsSync(windPath)) fs.unlinkSync(windPath);
+      if (loadText !== null) fs.writeFileSync(loadPath, loadText);
+      else if (fs.existsSync(loadPath)) fs.unlinkSync(loadPath);
       // gzip-filen skrives kun om, når indholdet er ændret, så den ikke skifter uden grund
       const old = fs.existsSync(xmlPath) ? zlib.gunzipSync(fs.readFileSync(xmlPath)).toString('utf8') : null;
       if (old !== xml) fs.writeFileSync(xmlPath, zlib.gzipSync(xml, { level: 9 }));
@@ -170,6 +174,10 @@ for (const file of caseFiles) {
     if (windText !== null || fs.existsSync(windPath)) {
       assert.ok(fs.existsSync(windPath), 'Facit for vinddokumentationen mangler. Kør `npm run test:update`.');
       assert.equal(windText, fs.readFileSync(windPath, 'utf8'), 'Vinddokumentationen afviger fra facit');
+    }
+    if (loadText !== null || fs.existsSync(loadPath)) {
+      assert.ok(fs.existsSync(loadPath), 'Facit for lastdokumentationen mangler. Kør `npm run test:update`.');
+      assert.equal(loadText, fs.readFileSync(loadPath, 'utf8'), 'Lastdokumentationen afviger fra facit');
     }
 
     const oldXml = zlib.gunzipSync(fs.readFileSync(xmlPath)).toString('utf8');

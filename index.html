@@ -719,6 +719,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="check"><input type="checkbox" id="loadsOn" data-key="loadsOn"> <span>Generér</span></label>
         </div>
         <p class="hint">Lasterne lægges som fladelaster på lastfordelingsfladerne – gangbroen dog som linjelast på en radialbjælke og temperaturen på bjælkerne og understøtningerne – med et lasttilfælde for hver lastopstilling. Lastkombinationer laver du under fanen Kombinationer eller i FEM-Design.</p>
+        <p><button type="button" class="linkbtn" id="loadDocOpen">Se dokumentationen af alle laster og kombinationer ›</button></p>
         <div class="field">
           <label class="lbl" for="asymDir">Retning mod den belastede halvdel <span class="unit">° fra X</span></label>
           <input class="num" type="text" inputmode="decimal" id="asymDir" data-key="asymDir">
@@ -1083,7 +1084,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="pane" id="pane-conn" role="tabpanel" aria-labelledby="ftab-conn" hidden>
       <section class="group" aria-labelledby="g-conn-in">
         <h2 id="g-conn-in">Snitkræfter fra FEM-Design</h2>
-        <p class="hint">Regn modellen i FEM-Design med lastkombinationer, og lav listen <i>Bars, Internal forces</i> for <i>Load combinations</i> med alle stænger og kombinationer. Gem listen som tekst eller Excel, og indlæs den her – eller kopiér tabellen og sæt den ind. Stængerne kobles på navnene, så værktøjets parametre skal svare til modellen i FEM-Design.</p>
+        <p class="hint">Regn modellen i FEM-Design med lastkombinationer, og lav listen <i>Bars, End forces</i> for <i>Load combinations</i> med alle stænger og kombinationer. Gem listen som tekst eller Excel, og indlæs den her – eller kopiér tabellen og sæt den ind. Overskrifter er ikke nødvendige, og <i>Bars, Internal forces</i> kan også bruges. Stængerne kobles på navnene, så værktøjets parametre skal svare til modellen i FEM-Design.</p>
         <div class="tools">
           <button type="button" class="btn small" id="connLoad">Indlæs fil</button>
           <input type="file" id="connFile" class="visually-hidden" accept=".txt,.csv,.tsv,.xlsx,.xls" tabindex="-1">
@@ -1157,11 +1158,24 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     <details id="connDoc" open>
       <summary><span class="doc-title">Snitkræfter i samlingerne</span><span class="doc-sub" id="connSub"></span></summary>
       <div class="doc-tools">
+        <button type="button" class="btn small" id="connReport">Hent rapport (HTML)</button>
         <button type="button" class="btn small" id="connCsv">Hent dimensionerende (CSV)</button>
         <button type="button" class="btn small" id="connCsvAll">Hent alle stangender (CSV)</button>
         <span class="doc-msg" id="connMsg" aria-live="polite"></span>
       </div>
       <div class="doc-body" id="connBody"></div>
+    </details>
+  </section>
+
+  <section class="doc" id="loadDocSec" aria-label="Dokumentation af lasterne" hidden>
+    <details id="loadDoc">
+      <summary><span class="doc-title">Dokumentation af lasterne</span><span class="doc-sub">Alle lasttilfælde med grundlag, værdier og kontrol af resultanterne samt lastkombinationerne</span></summary>
+      <div class="doc-tools">
+        <button type="button" class="btn small" id="loadDocSave">Hent som HTML</button>
+        <button type="button" class="btn small" id="loadDocCopy">Kopiér tekst</button>
+        <span class="doc-msg" id="loadDocMsg" aria-live="polite"></span>
+      </div>
+      <div class="doc-body" id="loadDocBody"></div>
     </details>
   </section>
 
@@ -3830,6 +3844,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     'h3 { font-size: 17px; margin: 26px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #cbd3d8; }',
     'h4 { font-size: 15px; margin: 22px 0 8px; }',
     'h5 { font-size: 13px; margin: 14px 0 4px; }',
+    'h6 { font-size: 12px; margin: 12px 0 4px; }',
     'p, li { max-width: 74ch; margin: 0 0 8px; }',
     'ul { padding-left: 20px; margin: 0 0 10px; }',
     '.meta { color: #51606c; font-size: 12px; margin: 0 0 16px; }',
@@ -3899,8 +3914,242 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return '<meta charset="utf-8">' + toHtml(content(d, o), o);
   }
 
+  // ---------- dokumentation af alle lasttilfælde og kombinationerne ----------
+  var DURATION = { permanent: 'Permanent', 'long-term': 'Langtids', 'short-term': 'Korttids', instantaneous: 'Øjeblikkelig' };
+  var COMBO_TYPE = {
+    ultimate_ordinary: 'Brud, almindelig', ultimate_accidental: 'Brud, ulykke', serviceability_characteristic: 'Anvendelse, karakteristisk',
+    serviceability_frequent: 'Anvendelse, hyppig', serviceability_quasi_permanent: 'Anvendelse, kvasipermanent'
+  };
+  function sum(list, f) { return list.reduce(function (a, x) { return a + f(x); }, 0); }
+  function caseFz(c) { return c ? -c.F[2] : 0; }
+  function caseFh(c) { return c ? Math.sqrt(c.F[0] * c.F[0] + c.F[1] * c.F[1]) : 0; }
+  function loadCompute(geom, L, TR) {
+    if (!geom || (geom.errors && geom.errors.length) || !L || (L.errors && L.errors.length) || !L.cases.length) return null;
+    var p = geom.params, info = geom.info, byKey = {};
+    L.cases.forEach(function (c) { byKey[c.key] = c; });
+    return {
+      p: p, info: info, L: L, byKey: byKey, wind: L.wind ? compute(geom, L, TR) : null,
+      A: sum(L.panels, function (pp) { return pp.area; }), Ap: sum(L.panels, function (pp) { return pp.areaProj; }),
+      slopeMax: Math.max.apply(null, L.panels.map(function (pp) { return pp.slope; }).concat([0]))
+    };
+  }
+  function roofLine(d) {
+    var p = d.p, info = d.info;
+    var t = p.roofType === 'cone' ? 'konisk tag med hældning ' + num(info.slopeDeg, 2) + '°'
+      : (p.roofType === 'dome' ? 'kuppeltag med kuglens radius ' + num(p.domeRadius, 3) + ' m' : 'fladt tag');
+    return 'Tank Ø' + num(2 * info.R, 3) + ' m, ' + t + ', rejsning f = ' + num(info.rise, 3) + ' m til ringbjælken, ' + p.numRadial + ' radialbjælker';
+  }
+  function resultantLine(c, expect) {
+    return 'Lodret resultant i filen: ' + num(caseFz(c), 2) + ' kN nedad' + (expect !== undefined ? ' (kontrol: ' + expect + ')' : '') +
+      (caseFh(c) > 0.005 ? ', vandret resultant ' + num(caseFh(c), 2) + ' kN' : '') + '.';
+  }
+  // flader med samme værdi samles i én række
+  function groupPanels(d, valOf, keyOf) {
+    var groups = [], idx = {};
+    d.L.panels.forEach(function (pp, i) {
+      var v = valOf(pp, i), k = keyOf ? keyOf(pp, i, v) : v.toFixed(4);
+      var g = idx[k];
+      if (!g) { g = idx[k] = { key: k, v: v, n: 0, Ap: 0, A: 0, smin: 90, smax: 0, items: [] }; groups.push(g); }
+      g.n++; g.Ap += pp.areaProj; g.A += pp.area; g.smin = Math.min(g.smin, pp.slope); g.smax = Math.max(g.smax, pp.slope); g.items.push(i);
+    });
+    return groups;
+  }
+  function slopeRange(g) { return Math.abs(g.smax - g.smin) < 0.05 ? num(g.smin, 1) + '°' : num(g.smin, 1) + '–' + num(g.smax, 1) + '°'; }
+  function loadContent(d, o) {
+    var B = [], p = d.p, L = d.L, K = d.byKey, n = 0, info = d.info;
+    function h(text) { n++; B.push({ h: 3, text: n + '. ' + text }); }
+    B.push({ p: 'Dokumentationen gælder de aktuelle parametre og svarer til lasttilfældene og lastkombinationerne i StruXML-filen. ' +
+      'Fladelasterne ligger på lastfordelingsfladerne (CO.i), som FEM-Design fordeler til bjælkerne langs fladernes kanter. ' +
+      'Lodrette resultanter regnes positive nedad.' });
+
+    h('Grundlag');
+    B.push({
+      kv: [
+        ['Tag', roofLine(d)],
+        ['Lastfordelingsflader', L.panels.length + ' stk., areal ' + num(d.A, 2) + ' m² og ' + num(d.Ap, 2) + ' m² i vandret projektion' +
+          (p.coverCenter ? '' : '. Centerpladen inden for ringbjælken er ikke med')],
+        ['Normer', 'DS/EN 1990, DS/EN 1991-1-1, -1-3, -1-4 og -4 samt DS/EN 1993-4-2, alle med dansk nationalt anneks']
+      ]
+    });
+    B.push({
+      table: {
+        head: ['Lasttilfælde', 'Lastvarighed', 'Laster', 'Lodret, kN', 'Vandret, kN'], num: [false, false, true, true, true], keep: true,
+        rows: L.cases.map(function (c) {
+          return [esc(c.name), DURATION[c.duration] || esc(c.duration), String(c.loads.length), num(caseFz(c), 2), num(caseFh(c), 2)];
+        })
+      }
+    });
+
+    if (p.deadOn && K.dead) {
+      h('Egenlast');
+      var dd = L.dead;
+      B.push({ p: 'Tagpladen og den øvrige permanente last virker lodret på fladernes skrå areal. ' +
+        (K.dead.type === 'dead_load' ? 'Konstruktionens egen vægt regner FEM-Design selv, fordi lasttilfældet har typen <i>dead load</i>.' : 'Konstruktionens egen vægt er ikke med.') });
+      B.push({
+        table: {
+          head: ['Del', 'Udtryk', 'Værdi'], num: [false, false, true], keep: true,
+          rows: [
+            ['Tagplade', 'g<sub>plade</sub> = t · γ<sub>stål</sub> = ' + trim(p.plateT, 2) + ' mm · 78,5 kN/m³', num(dd.plate, 3) + ' kN/m²'],
+            ['Øvrig permanent last', 'angivet', num(dd.g - dd.plate, 3) + ' kN/m²'],
+            ['I alt', 'g = g<sub>plade</sub> + g<sub>øvrig</sub>', '<b>' + num(dd.g, 3) + ' kN/m²</b>']
+          ]
+        }
+      });
+      B.push({ p: resultantLine(K.dead, 'g · A = ' + num(dd.g, 3) + ' · ' + num(d.A, 2) + ' = ' + num(dd.g * d.A, 2) + ' kN') });
+    }
+
+    if (p.liveOn && (K.live || K.livePoint)) {
+      h('Nyttelast');
+      B.push({ p: 'Nyttelast på tag efter DS/EN 1991-1-1, kategori H. Den jævnt fordelte last virker lodret på den vandrette projektion.' });
+      var lrows = [];
+      if (K.live) lrows.push(['Nyttelast', 'q<sub>k</sub> = ' + trim(p.liveQ, 3) + ' kN/m² på hele taget', num(caseFz(K.live), 2), 'q<sub>k</sub> · A<sub>proj</sub> = ' + num(p.liveQ * d.Ap, 2)]);
+      if (K.liveHalf) {
+        var ApH = sum(K.liveHalf.loads, function (Ld) { return Ld.panel.areaProj; });
+        lrows.push(['Nyttelast, halv', 'q<sub>k</sub> på halvdelen mod θ = ' + trim(p.asymDir, 2) + '° (' + K.liveHalf.loads.length + ' flader, A<sub>proj</sub> = ' + num(ApH, 2) + ' m²)', num(caseFz(K.liveHalf), 2), num(p.liveQ * ApH, 2)]);
+      }
+      if (K.livePoint) {
+        var pt = K.livePoint.point;
+        lrows.push(['Nyttelast, punkt', 'Q<sub>k</sub> = ' + trim(p.livePointQ, 3) + ' kN midt på RB.1 i (' + num(pt[0], 3) + '; ' + num(pt[1], 3) + '; ' + num(pt[2], 3) + ') m', num(caseFz(K.livePoint), 2), num(p.livePointQ, 2)]);
+      }
+      B.push({ table: { head: ['Lasttilfælde', 'Last', 'Lodret, kN', 'Kontrol, kN'], num: [false, false, true, true], rows: lrows, keep: true } });
+    }
+
+    if (p.walkOn && L.walk && (K.walkDead || K.walkLive)) {
+      h('Gangbro');
+      var w = L.walk;
+      B.push({ p: 'Gangbroen ligger på RB.' + w.rb + ' fra r = ' + num(w.rIn, 3) + ' m til r = ' + num(w.rOut, 3) + ' m som lodrette linjelaster på ' +
+        w.segs.length + (w.segs.length === 1 ? ' bjælkedel' : ' bjælkedele') + ' (' + esc(w.segs.map(function (s) { return s.member.name; }).join(', ')) + '). ' +
+        'Den skrå længde er ' + num(w.length, 3) + ' m og den vandrette ' + num(w.plan, 3) + ' m.' });
+      var wrows = [];
+      if (K.walkDead) wrows.push(['Gangbro, egenlast', 'g = ' + trim(w.g, 3) + ' kN/m på den skrå længde', num(caseFz(K.walkDead), 2), 'g · L = ' + num(w.g * w.length, 2)]);
+      if (K.walkLive) wrows.push(['Gangbro, nyttelast', 'q = q<sub>k</sub> · b = ' + trim(p.walkQ, 3) + ' · ' + trim(p.walkB, 3) + ' = ' + trim(w.q, 3) + ' kN/m på den vandrette længde', num(caseFz(K.walkLive), 2), 'q · L<sub>proj</sub> = ' + num(w.q * w.plan, 2)]);
+      B.push({ table: { head: ['Lasttilfælde', 'Last', 'Lodret, kN', 'Kontrol, kN'], num: [false, false, true, true], rows: wrows, keep: true } });
+    }
+
+    if (p.snowOn && L.snow && (K.snowUniform || K.snowAsym)) {
+      h('Snelast');
+      var s0 = L.snow.s0;
+      B.push({ p: 'DS/EN 1991-1-3 med DK NA. Taget regnes som saddeltag med hver flades egen hældning α, så μ<sub>1</sub> = 0,8 for α ≤ 30°, ' +
+        'μ<sub>1</sub> = 0,8 · (60° − α) / 30° for 30° &lt; α &lt; 60° og 0 for α ≥ 60° (tabel 5.2). Snelasten virker lodret på den vandrette projektion.' });
+      B.push({ formula: 's = μ · C<sub>e</sub> · C<sub>t</sub> · s<sub>k</sub> = μ · ' + coef(p.snowCe) + ' · ' + coef(p.snowCt) + ' · ' + trim(p.snowSk, 3) + ' kN/m² = μ · ' + num(s0, 3) + ' kN/m²' });
+      [['snowUniform', 'Sne, jævn'], ['snowAsym', 'Sne, ensidig']].forEach(function (sc) {
+        var c = K[sc[0]];
+        if (!c) return;
+        var asym = sc[0] === 'snowAsym', ad = p.asymDir * Math.PI / 180;
+        var groups = groupPanels(d, function (pp, i) { return c.mu[i]; }, function (pp, i, v) {
+          var lee = pp.centroid[0] * Math.cos(ad) + pp.centroid[1] * Math.sin(ad) >= -1e-9;
+          return (asym ? (lee ? 'L' : 'V') : '') + v.toFixed(4);
+        });
+        groups.sort(function (a, b) { return (a.key < b.key ? -1 : 1); });
+        var total = sum(groups, function (g) { return g.v * s0 * g.Ap; });
+        if (asym) {
+          B.push({ p: 'Ensidig sne med læsiden mod θ = ' + trim(p.asymDir, 2) + '°: μ<sub>1</sub> på læsiden og ' +
+            (L.snow.asymMu === null ? '½μ<sub>1</sub> på luvsiden (fig. 5.3)' : 'μ = ' + coef(L.snow.asymMu) + ' på luvsiden (angivet)') + '.' });
+        }
+        B.push({
+          more: esc(sc[1]) + ': ' + groups.length + (groups.length === 1 ? ' gruppe' : ' grupper') + ' af flader',
+          table: {
+            head: (asym ? ['Side'] : []).concat(['Flader', 'Hældning α', 'μ', 's, kN/m²', 'A<sub>proj</sub>, m²', 's · A<sub>proj</sub>, kN']),
+            num: (asym ? [false] : []).concat([true, true, true, true, true, true]), small: true,
+            rows: groups.map(function (g) {
+              return (asym ? [g.key.charAt(0) === 'L' ? 'Læside' : 'Luvside'] : []).concat([String(g.n), slopeRange(g), coef(g.v), num(g.v * s0, 3), num(g.Ap, 2), num(g.v * s0 * g.Ap, 2)]);
+            }),
+            total: (asym ? ['I alt'] : []).concat([String(L.panels.length), '', '', '', num(d.Ap, 2), num(total, 2)])
+          }
+        });
+        B.push({ p: resultantLine(c) });
+      });
+    }
+
+    if (p.windOn && L.wind) {
+      h('Vindlast');
+      var Wd = L.wind;
+      B.push({ p: 'DS/EN 1991-1-4 med DK NA. Peakhastighedstrykket er q<sub>p</sub> = ' + num(Wd.qp, 3) + ' kN/m²' +
+        (Wd.peak ? ' i højden z<sub>e</sub> = ' + num(Wd.ze, 3) + ' m' : ' (angivet)') + ', og vindlasten på en flade er w = q<sub>p</sub> · (c<sub>pe</sub> − c<sub>pi</sub>) med c<sub>pi</sub> = ' + coef(p.windCpi) +
+        '. Vindlasten virker vinkelret på fladen; positiv er tryk mod taget.' });
+      var wc = L.cases.filter(function (c) { return /^wind\d+$/.test(c.key); });
+      B.push({
+        table: {
+          head: ['Lasttilfælde', 'Lodret, kN', 'Vandret, kN', 'Mindste w, kN/m²', 'Største w, kN/m²'], num: [false, true, true, true, true], keep: true,
+          rows: wc.map(function (c) {
+            return [esc(c.name), num(caseFz(c), 2), num(caseFh(c), 2), num(Math.min.apply(null, c.values), 3), num(Math.max.apply(null, c.values), 3)];
+          })
+        }
+      });
+      if (o.full && d.wind) {
+        B.push({ p: 'Peakhastighedstryk, zoner, formfaktorer og vindlasten på hver flade er dokumenteret herunder.' });
+        // vinddokumentationens indledning springes over, og dens afsnit nummereres under dette
+        var started = false;
+        content(d.wind, o).forEach(function (b) {
+          if (b.h) {
+            started = true;
+            B.push(Object.assign({}, b, { h: Math.min(b.h + 1, 6), text: b.text.replace(/^(\d+(?:\.\d+)*)\.?\s/, n + '.$1 ') }));
+          } else if (started) B.push(b);
+        });
+      } else if (d.wind) B.push({ p: 'Zonerne, formfaktorerne og vindlasten på hver flade står i dokumentationen af vindlasten.' });
+    }
+
+    if (p.pressOn && (K.pressOver || K.pressVac)) {
+      h('Tryk fra tanken');
+      B.push({ p: 'Tankens designtryk og designvakuum virker vinkelret på tagpladen med 1 mbar = 0,1 kN/m². Den lodrette resultant er derfor trykket gange den vandrette projektion.' });
+      var prows = [];
+      if (K.pressOver) prows.push(['Overtryk', trim(p.pressOver, 3) + ' mbar = ' + num(L.press.over, 3) + ' kN/m², opad', num(caseFz(K.pressOver), 2), num(-L.press.over * d.Ap, 2)]);
+      if (K.pressVac) prows.push(['Undertryk', trim(p.pressVac, 3) + ' mbar = ' + num(L.press.vac, 3) + ' kN/m², nedad', num(caseFz(K.pressVac), 2), num(L.press.vac * d.Ap, 2)]);
+      B.push({ table: { head: ['Lasttilfælde', 'Tryk', 'Lodret, kN', 'p · A<sub>proj</sub>, kN'], num: [false, false, true, true], rows: prows, keep: true } });
+    }
+
+    if (p.tempOn && L.temp && K.temp) {
+      h('Temperatur');
+      var T = L.temp;
+      B.push({
+        table: {
+          head: ['Størrelse', 'Udtryk', 'Værdi'], num: [false, false, true], keep: true,
+          rows: [
+            ['Bjælkerne', 'ΔT = T<sub>tag</sub> − T<sub>0</sub> = ' + trim(p.tempRoof, 2) + ' − ' + trim(p.tempRef, 2) + ' °C', num(T.dRoof, 1) + ' K'],
+            ['Kantring og svøb', 'ΔT = T<sub>svøb</sub> − T<sub>0</sub> = ' + trim(p.tempShell, 2) + ' − ' + trim(p.tempRef, 2) + ' °C', num(T.dShell, 1) + ' K'],
+            ['Svøbets udvidelse', 'u = α · ΔT · R = ' + trim(p.tempAlpha, 2) + '·10⁻⁶ · ' + num(T.dShell, 1) + ' · ' + num(info.R, 3) + ' m', num(T.u * 1000, 2) + ' mm'],
+            ['Tagets frie udvidelse', 'u<sub>tag</sub> = 12·10⁻⁶ · ΔT<sub>tag</sub> · R', num(T.uRoof * 1000, 2) + ' mm']
+          ]
+        }
+      });
+      B.push({ p: 'Bjælkerne får ΔT ens over højden. ' + (T.determinate ? 'Taget er understøttet statisk bestemt vandret, så svøbets udvidelse flytter blot taget, og der lægges ingen flytninger på.'
+        : (T.motions ? 'Svøbets udvidelse ved hver understøtnings radius lægges som radial flytning af ' + T.motions + ' understøtninger, så kun forskellen mellem tag og svøb giver tvang.'
+          : 'Understøtningerne er radialt frie, så svøbets udvidelse giver ikke tvang.')) });
+    }
+
+    var combos = (L.combos || []).filter(function (c) { return c.export; });
+    if (combos.length) {
+      h('Lastkombinationer');
+      B.push({ p: 'Kombinationerne står i StruXML-filen med disse faktorer. Den lodrette resultant er summen af lasttilfældenes resultanter gange faktorerne.' });
+      B.push({
+        more: combos.length + (combos.length === 1 ? ' kombination' : ' kombinationer'),
+        table: {
+          head: ['Kombination', 'Type', 'Lasttilfælde med faktor', 'Lodret, kN'], num: [false, false, false, true], small: true,
+          rows: combos.map(function (c) {
+            return [esc(c.name), COMBO_TYPE[c.type] || esc(c.type), c.items.map(function (it) { return trim(it.gamma, 3) + ' · ' + esc(it.name); }).join(' + '), num(c.Fz, 2)];
+          })
+        }
+      });
+    }
+    return B;
+  }
+  function loadHtml(d, o) { return toHtml(loadContent(d, o || {}), o || {}); }
+  function loadText(d) { return toText(loadContent(d, { full: true, paint: FILE_PAINT })); }
+  function loadStandalone(d, meta) {
+    var o = { paint: FILE_PAINT, k: kFor(640), titles: false, full: true };
+    var body = toHtml(loadContent(d, o), o);
+    return '<!doctype html>\n<html lang="da">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+      '<title>' + esc(meta.title) + '</title>\n<style>\n' + FILE_CSS + '\n' + zoneCss() + '\n</style>\n</head>\n<body>\n' +
+      '<h1>' + esc(meta.title) + '</h1>\n<p class="meta">' + esc(meta.subtitle) + '</p>\n' + body + '\n</body>\n</html>\n';
+  }
+  function loadClipboardHtml(d) {
+    var o = { paint: FILE_PAINT, inline: true, noFigures: true, full: true };
+    return '<meta charset="utf-8">' + toHtml(loadContent(d, o), o);
+  }
+
   var api = {
-    compute: compute, html: html, text: text, standalone: standalone, clipboardHtml: clipboardHtml, kFor: kFor
+    compute: compute, html: html, text: text, standalone: standalone, clipboardHtml: clipboardHtml, kFor: kFor,
+    loads: { compute: loadCompute, html: loadHtml, text: loadText, standalone: loadStandalone, clipboardHtml: loadClipboardHtml }
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankWindDoc = api;
@@ -3921,8 +4170,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function cellText(v) { return v === null || v === undefined ? '' : String(v).trim(); }
   function parseNum(v) {
     if (typeof v === 'number') return v;
-    var s = cellText(v).replace(/−/g, '-').replace(/\s/g, '');
-    if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) s = s.replace(',', '.');
+    var s = cellText(v).replace(/−/g, '-').replace(/[\s\u00a0\u202f']/g, '');
+    var c = s.lastIndexOf(','), d = s.lastIndexOf('.');
+    // med både punktum og komma er det sidste decimaltegnet og det første tusindtalsskilletegn (1.234,5 og 1,234.5)
+    if (c >= 0 && d >= 0) s = c > d ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+    else if (c >= 0) s = s.split(',').length > 2 ? s.replace(/,/g, '') : s.replace(',', '.');
+    else if (s.split('.').length > 2) s = s.replace(/\./g, '');
     if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s)) return NaN;
     return Number(s);
   }
@@ -4022,12 +4275,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return Promise.resolve(textRows(text));
   }
 
-  // ---------- listen "Bars, Internal forces" ----------
+  // ---------- listerne "Bars, Internal forces" og "Bars, End forces" ----------
   function headerCols(cells) {
-    var h = cells.map(function (c) { return c.replace(/['’\s]/g, '').toLowerCase(); });
+    var h = cells.map(function (c) { return c.replace(/['’\s]/g, '').replace(/,?\[.*\]$/, '').toLowerCase(); });
     function find(names) { for (var i = 0; i < names.length; i++) { var j = h.indexOf(names[i]); if (j >= 0) return j; } return -1; }
-    return { x: find(['x']), f: [find(['n']), find(['ty']), find(['tz']), find(['mt,sv', 'mt']), find(['my']), find(['mz'])], mtTot: find(['mt,tot']) };
+    return { x: find(['x']), f: [find(['n']), find(['ty']), find(['tz']), find(['mt,sv', 'mt']), find(['my']), find(['mz'])], mtTot: find(['mt,tot']), comb: find(['comb.', 'comb']) };
   }
+  // "Bars, End forces" uden overskrift: ID, Start/End, N, Ty', Tz', Mt,SV, My', Mz', B, Mt,w, Mt,tot og evt. Comb. (FEM-Designs faste rækkefølge)
+  var END_COLS = { x: 1, f: [2, 3, 4, 5, 6, 7], mtTot: 10, comb: 11, ends: true };
+  function endOf(s) { return /^(start|begin|begyndelse)$/i.test(s) ? 's' : (/^(end|slut)$/i.test(s) ? 'e' : null); }
   // rækker (celler som tekst eller tal) → kræfterne i hver stangs to ender for hver kombination
   function parseForces(rows) {
     var combos = [], comboIdx = {}, cur = -1, col = null, raw = {}, ids = [], warnings = [], skipped = 0;
@@ -4054,11 +4310,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         cur = combo(first.slice(first.indexOf(':') + 1).trim() || first);
         return;
       }
-      if (/^id$/i.test(first)) { col = headerCols(cells); return; }
-      if (!col || !first || first.charAt(0) === '[' || col.x < 0 || col.f[0] < 0) return;
-      var x = val(r[col.x]);
-      if (!isFinite(x)) { skipped++; return; }
-      if (cur < 0) cur = combo('Uden navn');
+      if (/^id(,?\[.*\])?$/i.test(first.replace(/\s/g, ''))) { col = headerCols(cells); return; }
+      // endelaster uden overskrift kendes på Start/End i anden kolonne
+      if (!col && first && endOf(cells[1] || '')) col = END_COLS;
+      if (!col || !first || first.charAt(0) === '[' || col.f[0] < 0) return;
+      // stangende: x i Internal forces, Start/End i End forces (overskriften over den kolonne varierer)
+      var xi = col.x >= 0 ? col.x : 1, end = endOf(cells[xi] || ''), x = end ? null : val(r[xi]);
+      if (end) col.ends = true;
+      else if (col.x < 0 || !isFinite(x)) { skipped++; return; }
+      var cn = col.comb >= 0 ? cells[col.comb] || '' : '';
+      if (cn && !isFinite(parseNum(cn)) && cn !== '-') cur = combo(cn);
+      else if (cur < 0) cur = combo('Uden navn');
       var f = col.f.map(function (i, k) {
         var v = i < 0 ? NaN : val(r[i]);
         if (k === 3 && col.mtTot >= 0) { var t = val(r[col.mtTot]); if (isFinite(t)) v = t; }
@@ -4067,14 +4329,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var b = raw[first];
       if (!b) { b = raw[first] = {}; ids.push(first); }
       var e = b[cur];
-      if (!e) b[cur] = { xs: x, s: f, xe: x, e: f };
+      if (end) {
+        // endelaster: stangens længde står ikke i listen, så den kan ikke kontrolleres
+        if (!e) e = b[cur] = { xs: null, s: f, xe: null, e: f };
+        e[end] = f;
+      } else if (!e) b[cur] = { xs: x, s: f, xe: x, e: f };
       else {
         if (x < e.xs) { e.xs = x; e.s = f; }
         if (x >= e.xe) { e.xe = x; e.e = f; }   // sidste række ved stangens ende
       }
     });
-    if (!col) warnings.push('Fandt ingen overskrift med ID, x, N … – er det listen Bars, Internal forces?');
-    else if (col.x < 0 || col.f[0] < 0) warnings.push('Overskriften mangler kolonnen x eller N.');
+    if (!col) warnings.push('Fandt ingen overskrift med ID, x, N … – er det listen Bars, Internal forces eller Bars, End forces?');
+    else if ((col.x < 0 && !col.ends) || col.f[0] < 0) warnings.push('Overskriften mangler kolonnen x eller N.');
     if (skipped) warnings.push(skipped + ' rækker kunne ikke læses og er sprunget over.');
     var bars = {};
     ids.forEach(function (id) {
@@ -4086,7 +4352,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         bars[id].s.push(e ? e.s : null); bars[id].e.push(e ? e.e : null);
       });
     });
-    return { combos: combos, bars: bars, ids: ids, thousands: thousands, warnings: warnings };
+    return { combos: combos, bars: bars, ids: ids, thousands: thousands, warnings: warnings, ends: !!(col && col.ends) };
   }
 
   // ---------- kobling til modellens stænger ----------
@@ -4111,7 +4377,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (ps.every(function (p) { return p.d.xs[c] !== null; })) Lf = ps.reduce(function (s, p) { return s + p.d.xe[c] - p.d.xs[c]; }, 0);
       }
       var L = len(m);
-      if (Lf === null || Math.abs(Lf - L) > Math.max(0.005, 0.002 * L)) { mismatch.push({ name: m.name, L: L, Lf: Lf }); return; }
+      if (!F.ends && (Lf === null || Math.abs(Lf - L) > Math.max(0.005, 0.002 * L))) { mismatch.push({ name: m.name, L: L, Lf: Lf }); return; }
       bars[m.name] = { s: first.s, e: last.e };
     });
     return { bars: bars, unknown: unknown, mismatch: mismatch, missing: missing };
@@ -4275,8 +4541,75 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return csv(rows);
   }
 
+  // ---------- dimensionerende tilfælde som HTML (siden og rapporten) ----------
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function nf(x, d) { return typeof x === 'number' && isFinite(x) ? x.toLocaleString('da-DK', { minimumFractionDigits: d, maximumFractionDigits: d }) : '–'; }
+  function list(a, max) { return max && a.length > max ? a.slice(0, max).join(', ') + ' …' : a.join(', '); }
+  function governingHtml(G, o) {
+    o = o || {};
+    var h = [];
+    h.push('<p>Snitkræfterne er stangendernes kræfter i stangens lokale akser som i FEM-Design (x = 0 er stangens start), i kN og kNm. For hver stang i knudetypen vises den største og mindste værdi af hver snitkraft over de valgte knuder og alle kombinationer, med de samtidige kræfter i samme ende. Den dimensionerende værdi er fremhævet.</p>');
+    G.forEach(function (t) {
+      h.push('<h3>' + esc(t.type) + '</h3>');
+      h.push('<p class="hint">' + (t.nodes.length === 1 ? 'Knude ' : t.nodes.length + ' knuder: ') + esc(list(t.nodes, o.maxNodes)) + '</p>');
+      if (t.through.length) h.push('<p class="hint">Gennemgående stænger er ikke med, da de ikke ender i knuden: ' + esc(list(t.through, o.maxBars)) + '.</p>');
+      if (t.missing.length) h.push('<div class="msg">Mangler kræfter for ' + esc(list(t.missing, o.maxBars)) + '.</div>');
+      t.roles.forEach(function (ro) {
+        if (!ro.rows.length) return;
+        h.push('<h4>' + esc(ro.role) + '</h4>');
+        h.push('<div class="qwrap"><table class="q small conn-t"><thead><tr><th>Tilfælde</th>' + COMP_LABEL.map(function (c, k) {
+          return '<th class="n">' + esc(c) + ' <span class="u">' + COMP_UNIT[k] + '</span></th>';
+        }).join('') + '<th>Knude</th><th>Stang</th><th>Kombination</th></tr></thead><tbody>');
+        ro.rows.forEach(function (r) {
+          var f = r.hit.f, what = esc(r.what);
+          if (r.comp === 'v') what = 'Max V = ' + nf(r.v, 2) + ' kN';
+          if (r.comp === 'm') what = 'Max M = ' + nf(r.v, 2) + ' kNm';
+          h.push('<tr><td>' + what + '</td>' + f.map(function (v, k) {
+            var hit = r.comp === k || (r.comp === 'v' && (k === 1 || k === 2)) || (r.comp === 'm' && (k === 4 || k === 5));
+            return '<td class="n' + (hit ? ' hit' : '') + '">' + nf(Math.abs(v) < 0.005 ? 0 : v, 2) + '</td>';
+          }).join('') + '<td class="n">' + esc(r.hit.node) + '</td><td class="n">' + esc(r.hit.bar) + (r.hit.end === 's' ? ' start' : ' slut') + '</td><td>' + esc(r.hit.combo) + '</td></tr>');
+        });
+        h.push('</tbody></table></div>');
+      });
+    });
+    return h.join('\n');
+  }
+  var REPORT_CSS = [
+    ':root { color-scheme: light; }',
+    'body { font-family: Arial, Helvetica, sans-serif; color: #15212b; background: #ffffff; margin: 0 auto; padding: 24px 16px 40px; max-width: 1000px; font-size: 14px; line-height: 1.45; }',
+    'h1 { font-size: 24px; margin: 0 0 4px; }',
+    'h3 { font-size: 17px; margin: 26px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #cbd3d8; }',
+    'h4 { font-size: 14px; margin: 14px 0 4px; }',
+    'p, li { margin: 0 0 8px; }',
+    '.meta, .hint { color: #51606c; font-size: 12px; }',
+    '.msg { border-left: 3px solid #b7791f; background: #fdf6e7; padding: 6px 9px; margin: 0 0 8px; font-size: 13px; }',
+    '.wd-kv th { background: #f4f6f7; font-weight: 600; width: 24%; }',
+    'table { border-collapse: collapse; width: 100%; font-size: 12px; margin: 4px 0 10px; }',
+    'th, td { border: 1px solid #cbd3d8; padding: 3px 6px; text-align: left; vertical-align: top; }',
+    'thead th { background: #eceff1; font-weight: 600; }',
+    'td.n, th.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }',
+    'td.hit { font-weight: 700; color: #a3402a; }',
+    'th .u { font-weight: 400; color: #51606c; }',
+    '@page { size: A4 landscape; margin: 12mm; }',
+    '@media print { body { padding: 0; max-width: none; } h3, h4 { break-after: avoid; } table { break-inside: avoid; } thead { display: table-header-group; } }'
+  ].join('\n');
+  // rapport som selvstændig HTML-fil: grundlag (fil, kombinationer, knuder) og de dimensionerende tilfælde
+  function report(G, meta) {
+    var kv = [
+      ['Kræfter fra FEM-Design', esc(meta.file || 'Indsat tabel') + (meta.ends ? ' (Bars, End forces)' : ' (Bars, Internal forces)')],
+      ['Kombinationer', meta.combos.length + ': ' + esc(meta.combos.join('; '))],
+      ['Valgte knuder', meta.nodes.length + ' i ' + G.length + (G.length === 1 ? ' knudetype' : ' knudetyper')]
+    ];
+    return '<!doctype html>\n<html lang="da">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+      '<title>' + esc(meta.title) + '</title>\n<style>\n' + REPORT_CSS + '\n</style>\n</head>\n<body>\n' +
+      '<h1>' + esc(meta.title) + '</h1>\n<p class="meta">' + esc(meta.subtitle) + '</p>\n' +
+      '<table class="wd-kv"><tbody>' + kv.map(function (r) { return '<tr><th scope="row">' + r[0] + '</th><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>\n' +
+      (meta.warnings || []).map(function (w) { return '<div class="msg">' + esc(w) + '</div>'; }).join('\n') +
+      governingHtml(G, {}) + '\n</body>\n</html>\n';
+  }
+
   var api = {
-    COMP_LABEL: COMP_LABEL, COMP_UNIT: COMP_UNIT,
+    COMP_LABEL: COMP_LABEL, COMP_UNIT: COMP_UNIT, governingHtml: governingHtml, report: report,
     textRows: textRows, readFile: readFile, readXlsx: readXlsx, parseForces: parseForces, matchBars: matchBars,
     buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv
   };
@@ -5272,6 +5605,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     renderDrawing();
     updateZoomBar();
     updateWindDoc();
+    updateLoadDoc();
   }
   // ---------- radier for udvekslingsringene: én række pr. ring ----------
   function radTokens() { return String(params.udvRadii || '').trim().split(/[;\s]+/).filter(function (x) { return x !== ''; }); }
@@ -6080,6 +6414,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         (ok ? ' · ' + nm + ' af ' + g.members.length + ' stænger koblet' : '');
       F.warnings.forEach(function (w) { warn.push('<div class="msg">' + esc(w) + '</div>'); });
       if (F.thousands) warn.push('<div class="msg">Excel har læst FEM-Designs punktum som tusindtalsskilletegn, så tallene er divideret med 1000. Tjek et par værdier mod FEM-Design, eller indlæs den oprindelige tekstfil.</div>');
+      if (F.ends && M && Object.keys(M.bars).length) warn.push('<div class="msg ok">Listen med endelaster har ikke stængernes længde, så værktøjet kan kun koble på navnene. Tjek, at parametrene svarer til modellen i FEM-Design.</div>');
       if (M && M.mismatch.length) warn.push('<div class="msg bad">' + M.mismatch.length + (M.mismatch.length === 1 ? ' stang har' : ' stænger har') + ' en anden længde i filen end i modellen og er ikke brugt: ' +
         esc(shortList(M.mismatch.map(function (x) { return x.name; }), 8)) + '. Tjek, at værktøjets parametre svarer til modellen i FEM-Design.</div>');
       if (M && M.missing.length) warn.push('<div class="msg">' + M.missing.length + (M.missing.length === 1 ? ' stang' : ' stænger') + ' i modellen findes ikke i filen: ' + esc(shortList(M.missing, 8)) + '.</div>');
@@ -6103,38 +6438,14 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var show = !!(conn.F && conn.M && conn.N && conn.sel.length);
     $('connSec').hidden = !show;
     if (!show) { $('connBody').innerHTML = ''; return; }
-    var G = TC.governing(conn.N, conn.sel, conn.M, conn.F.combos), h = [];
+    var G = TC.governing(conn.N, conn.sel, conn.M, conn.F.combos);
     conn.G = G;
     $('connSub').textContent = conn.sel.length + (conn.sel.length === 1 ? ' knude' : ' knuder') + ' · ' + G.length + (G.length === 1 ? ' knudetype' : ' knudetyper') + ' · ' + conn.F.combos.length + ' kombinationer';
-    h.push('<p>Snitkræfterne er stangendernes kræfter i stangens lokale akser som i FEM-Design (x = 0 er stangens start), i kN og kNm. For hver stang i knudetypen vises den største og mindste værdi af hver snitkraft over de valgte knuder og alle kombinationer, med de samtidige kræfter i samme ende. Den dimensionerende værdi er fremhævet.</p>');
-    G.forEach(function (t) {
-      h.push('<h3>' + esc(t.type) + '</h3>');
-      h.push('<p class="hint">' + (t.nodes.length === 1 ? 'Knude ' : t.nodes.length + ' knuder: ') + esc(shortList(t.nodes, 30)) + '</p>');
-      if (t.through.length) h.push('<p class="hint">Gennemgående stænger er ikke med, da de ikke ender i knuden: ' + esc(shortList(t.through, 10)) + '.</p>');
-      if (t.missing.length) h.push('<div class="msg">Mangler kræfter for ' + esc(shortList(t.missing, 10)) + '.</div>');
-      t.roles.forEach(function (ro) {
-        if (!ro.rows.length) return;
-        h.push('<h4>' + esc(ro.role) + '</h4>');
-        h.push('<div class="qwrap"><table class="q small conn-t"><thead><tr><th>Tilfælde</th>' + TC.COMP_LABEL.map(function (c, k) {
-          return '<th class="n">' + esc(c) + ' <span class="u">' + TC.COMP_UNIT[k] + '</span></th>';
-        }).join('') + '<th>Knude</th><th>Stang</th><th>Kombination</th></tr></thead><tbody>');
-        ro.rows.forEach(function (r) {
-          var f = r.hit.f, what = esc(r.what);
-          if (r.comp === 'v') what = 'Max V = ' + nf(r.v, 2) + ' kN';
-          if (r.comp === 'm') what = 'Max M = ' + nf(r.v, 2) + ' kNm';
-          h.push('<tr><td>' + what + '</td>' + f.map(function (v, k) {
-            var hit = r.comp === k || (r.comp === 'v' && (k === 1 || k === 2)) || (r.comp === 'm' && (k === 4 || k === 5));
-            return '<td class="n' + (hit ? ' hit' : '') + '">' + nf(Math.abs(v) < 0.005 ? 0 : v, 2) + '</td>';
-          }).join('') + '<td class="n">' + esc(r.hit.node) + '</td><td class="n">' + esc(r.hit.bar) + (r.hit.end === 's' ? ' start' : ' slut') + '</td><td>' + esc(r.hit.combo) + '</td></tr>');
-        });
-        h.push('</tbody></table></div>');
-      });
-    });
-    $('connBody').innerHTML = h.join('');
+    $('connBody').innerHTML = TC.governingHtml(G, { maxNodes: 30, maxBars: 10 });
   }
   function connChanged() { storeConn(); updateConn(geom); renderDrawing(); }
   function setConnForces(F, name) {
-    if (!F.ids.length) { $('connWarn').innerHTML = '<div class="msg bad">Fandt ingen stangkræfter. Brug listen <i>Bars, Internal forces</i> fra FEM-Design.</div>'; return; }
+    if (!F.ids.length) { $('connWarn').innerHTML = '<div class="msg bad">Fandt ingen stangkræfter. Brug listen <i>Bars, End forces</i> eller <i>Bars, Internal forces</i> fra FEM-Design.</div>'; return; }
     conn.F = F; conn.file = name || '';
     connChanged();
   }
@@ -6169,6 +6480,16 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (e.target.checked) ids.forEach(function (id) { if (!sel[id]) conn.sel.push(id); });
     else conn.sel = conn.sel.filter(function (id) { return ids.indexOf(id) < 0; });
     connChanged();
+  });
+  $('connReport').addEventListener('click', function () {
+    if (!conn.G) return;
+    var p = TR.normalizeParams(params), name = fileBase(p) + '_samlinger.html', meta = windDocMeta();
+    var html = TC.report(conn.G, {
+      title: 'Snitkræfter i samlingerne', subtitle: meta.subtitle, file: conn.file, ends: conn.F.ends, combos: conn.F.combos, nodes: conn.sel,
+      warnings: conn.F.ends ? ['Listen med endelaster har ikke stængernes længde, så stængerne er kun koblet på navnene.'] : []
+    });
+    if (directDownload(html, name, 'text/html')) connMsg('Henter <span class="mono">' + esc(name) + '</span>. Åbn filen i en browser, og udskriv den til PDF, hvis den skal sendes videre.');
+    else connMsg('Browseren tillod ikke at gemme filen.', true);
   });
   $('connCsv').addEventListener('click', function () {
     if (!conn.G) return;
@@ -6602,14 +6923,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (directDownload(html, name, 'text/html')) wdMsg('Henter <span class="mono">' + esc(name) + '</span>. Åbn filen i en browser, og udskriv den til PDF, hvis den skal i beregningsrapporten.');
     else wdMsg('Browseren tillod ikke at gemme filen. Brug <b>Kopiér tekst</b>.', true);
   });
-  $('windDocCopy').addEventListener('click', function () {
-    var data = windDocData();
-    if (!data) return;
-    var text = WD.text(data, {}), html = WD.clipboardHtml(data);
-    var ok = function () { wdMsg('Teksten og tabellerne er kopieret – sæt dem ind i Word eller Excel. Figurerne kommer med i <b>Hent som HTML</b>.'); };
+  // tekst og tabeller til udklipsholderen som HTML og ren tekst; afviser browseren, vises teksten til at kopiere selv
+  function copyDoc(text, html, msg, areaId) {
+    var ok = function () { msg('Teksten og tabellerne er kopieret – sæt dem ind i Word eller Excel. Figurerne kommer med i <b>Hent som HTML</b>.'); };
     var fallback = function () {
-      wdMsg('Kopiering blev afvist af browseren. Markér teksten herunder, og kopiér den selv.<textarea id="windDocArea" readonly style="display:block;width:100%;height:140px;margin-top:8px;font-family:var(--f-data);font-size:12px;background:var(--field);color:var(--ink);border:1px solid var(--rule)"></textarea>', true);
-      var ta = $('windDocArea'); if (ta) { ta.value = text; ta.focus(); ta.select(); }
+      msg('Kopiering blev afvist af browseren. Markér teksten herunder, og kopiér den selv.<textarea id="' + areaId + '" readonly style="display:block;width:100%;height:140px;margin-top:8px;font-family:var(--f-data);font-size:12px;background:var(--field);color:var(--ink);border:1px solid var(--rule)"></textarea>', true);
+      var ta = $(areaId); if (ta) { ta.value = text; ta.focus(); ta.select(); }
     };
     var plainCopy = function () {
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback);
@@ -6623,6 +6942,47 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         })]).then(ok, plainCopy);
       } else plainCopy();
     } catch (e) { plainCopy(); }
+  }
+  $('windDocCopy').addEventListener('click', function () {
+    var data = windDocData();
+    if (data) copyDoc(WD.text(data, {}), WD.clipboardHtml(data), wdMsg, 'windDocArea');
+  });
+
+  // ---------- dokumentation af alle laster ----------
+  var LD = WD && WD.loads;
+  function loadDocData() { return LD && geom && !geom.errors.length && loads && !loads.errors.length ? LD.compute(geom, loads, TR) : null; }
+  function ldMsg(html, bad) { var m = $('loadDocMsg'); m.innerHTML = html || ''; m.classList.toggle('bad', !!bad); }
+  function updateLoadDoc() {
+    var data = loadDocData();
+    $('loadDocSec').hidden = !data;
+    $('loadDocOpen').parentNode.hidden = !data;
+    if (!data || !$('loadDoc').open) return;
+    var body = $('loadDocBody'), open = [].map.call(body.querySelectorAll('details.wd-more'), function (x) { return x.open; });
+    body.innerHTML = LD.html(data, { page: true }) +
+      (data.wind ? '<p><button type="button" class="linkbtn" data-open="windDoc">Se dokumentationen af vindlasten ›</button></p>' : '');
+    body.querySelectorAll('details.wd-more').forEach(function (x, i) { if (open[i]) x.open = true; });
+  }
+  $('loadDoc').addEventListener('toggle', function () { if (this.open) { ldMsg(''); updateLoadDoc(); } });
+  $('loadDocOpen').addEventListener('click', function () {
+    var det = $('loadDoc');
+    if (det.open) updateLoadDoc(); else det.open = true;
+    $('loadDocSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  $('loadDocBody').addEventListener('click', function (e) {
+    if (e.target && e.target.dataset && e.target.dataset.open === 'windDoc') $('windDocOpen').click();
+  });
+  $('loadDocSave').addEventListener('click', function () {
+    var data = loadDocData();
+    if (!data) return;
+    var meta = windDocMeta();
+    meta.title = 'Laster på tanktaget';
+    var html = LD.standalone(data, meta), name = 'laster_' + fileBase(TR.normalizeParams(params)) + '.html';
+    if (directDownload(html, name, 'text/html')) ldMsg('Henter <span class="mono">' + esc(name) + '</span> med vindlasten i fuld længde. Åbn filen i en browser, og udskriv den til PDF, hvis den skal i beregningsrapporten.');
+    else ldMsg('Browseren tillod ikke at gemme filen. Brug <b>Kopiér tekst</b>.', true);
+  });
+  $('loadDocCopy').addEventListener('click', function () {
+    var data = loadDocData();
+    if (data) copyDoc(LD.text(data), LD.clipboardHtml(data), ldMsg, 'loadDocArea');
   });
 
   // ---------- indlæs ----------
