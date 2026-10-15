@@ -1012,8 +1012,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
       <section class="group" aria-labelledby="g-brace-txt">
         <h2 id="g-brace-txt">Stænger som tekst</h2>
-        <textarea id="bracing" data-key="bracing" rows="3" spellcheck="false" autocapitalize="characters" aria-describedby="braceSyntax" placeholder="fx 1:S-2:5; 2:5-1:4"></textarea>
-        <p class="hint" id="braceSyntax">Hver stang skrives start-slut, adskilt af semikolon. 3:2 er RB.3 ved udvekslingsring 2, R er ringbjælken og S svøbet. Et + betyder midt til næste: 3:2+ ligger midt på RB.3 mellem ring 2 og 3, og 3+:2 midt på udvekslingen mellem RB.3 og RB.4.</p>
+        <textarea id="bracing" data-key="bracing" rows="3" spellcheck="false" autocapitalize="characters" aria-describedby="braceSyntax" placeholder="fx KS.1-K5.2; K5.2-K4.1"></textarea>
+        <p class="hint" id="braceSyntax">Hver stang skrives start-slut, adskilt af semikolon, med knudenavnene fra FEM-Design. K2.3 er RB.3 ved udvekslingsring 2, KR.3 ved ringbjælken og KS.3 ved svøbet. M betyder midt til næste radialbjælke og L midt til næste ring: K2M.3 ligger midt på udvekslingen mellem RB.3 og RB.4, og K2L.3 midt på RB.3 mellem ring 2 og 3.</p>
         <p><button type="button" class="btn small" id="braceFix" hidden>Fjern de ugyldige stænger</button></p>
       </section>
       </div>
@@ -1281,7 +1281,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     radialSpring: 50000,       // kN/m – radial fjeder ved 'radialSpring'
     covers: 'radial',          // 'none' | 'radial' | 'all'  (lastfordelingsflader)
     coverCenter: true,         // flade inden for ringbjælken (bæres af ringen)
-    bracing: '23:S-22:3; 22:S-23:3; 22:3-23:2; 23:2-22:1; 23:1-22:2; 22:2-23:3', // vindgitter, tegnes i fanen Vindgitter: "1:S-2:4; 2:4-1:3" (RB:ring, R = ringbjælke, S = svøb, + = midt til næste)
+    bracing: 'KS.23-K3.22; KS.22-K3.23; K3.22-K2.23; K2.23-K1.22; K1.23-K2.22; K2.22-K3.23', // vindgitter, tegnes i fanen Vindgitter: "KS.1-K4.2; K4.2-K3.1" (K + ring.RB, R = ringbjælke, S = svøb, M/L = midt til næste RB/ring)
     bracingRepeat: 3,          // mønstret gentages så mange gange rundt om taget (1 = ingen gentagelse)
     profBrace: 'LE|70*7',      // vindgitteret skrives som gitterstænger (truss members): kun normalkraft, altid charnier
     braceTensionOnly: false,   // kun træk: trykkapacitet 0 (sprød), ens for alle beregninger – virker i NLE-kombinationer
@@ -1437,8 +1437,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return parts.map(function (p) { return Number(p.replace(',', '.')); });
   }
 
-  // vindgitter: stænger adskilt af semikolon (eller linjeskift), endepunkter "r:L" adskilt af bindestreg
-  var REF_RE = /^(\d{1,4})(\+?):(R|S|\d{1,4})(\+?)$/i;
+  // vindgitter: stænger adskilt af semikolon (eller linjeskift), endepunkter adskilt af bindestreg. Knuderne
+  // skrives som i FEM-Design: KS.22 (svøbet), KR.22 (ringbjælken), K2.22 (udvekslingsring 2) ved RB.22, M = midt
+  // i faget efter RB.22, L = midt mellem ringen og den næste udad. Den gamle form "22:S" / "22+:2+" læses stadig.
+  var REF_RE = /^K?(R|S|\d{1,4})(M?)(L?)\.(\d{1,4})$/i;
+  var OLD_REF_RE = /(^|[^\w.:+])(\d{1,4})(\+?):(R|S|\d{1,4})(\+?)(?![\w.:+])/gi;
+  function modernBracing(str) {
+    return String(str).replace(OLD_REF_RE, function (all, pre, r, rMid, L, lMid) {
+      return pre + 'K' + L.toUpperCase() + (rMid ? 'M' : '') + (lMid ? 'L' : '') + '.' + r;
+    });
+  }
   function splitBracing(str) {
     return String(str === null || str === undefined ? '' : str).split(/[;\n]/)
       .map(function (x) { return x.trim(); }).filter(function (x) { return x !== ''; });
@@ -1625,7 +1633,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.secRing = toNum(q.secRing);
     q.coverCenter = q.coverCenter === true || q.coverCenter === 'true';
     q.udvRadii = q.udvRadii === null || q.udvRadii === undefined ? '' : String(q.udvRadii);
-    q.bracing = q.bracing === null || q.bracing === undefined ? '' : String(q.bracing);
+    q.bracing = q.bracing === null || q.bracing === undefined ? '' : modernBracing(q.bracing);
     q.bracingRepeat = toNum(q.bracingRepeat);
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
@@ -1852,8 +1860,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }
     }
 
-    // vindgitter: knudereference "r:L" – r = radialbjælke 1…n (r+ = midt mellem r og r+1),
-    // L = R (ringbjælke), 1…m (udvekslingsring) eller S (svøb); L+ = midt mellem L og næste ring udad
+    // vindgitter: knude ved radialbjælke r = 1…n (rMid = midt mellem r og r+1) og ring j: 0 = ringbjælke,
+    // 1…m = udvekslingsring, m+1 = svøb (lMid = midt mellem j og næste ring udad)
     var m = radii.length, baseCount = members.length;
     var braceErrors = [], bracePoints = [], braceLines = splitBracing(p.bracing), lineRefs = [];
     // navn i FEM-Design efter samme mønster som stængerne (bogstaver.nummer): KR.11 ved ringbjælken, K2.11 ved
@@ -1875,9 +1883,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     function parseRef(tok) {
       var mm = REF_RE.exec(tok);
       if (!mm) return null;
-      var Ls = mm[3].toUpperCase(), o = { r: parseInt(mm[1], 10), rMid: mm[2] === '+', lMid: mm[4] === '+' };
+      var Ls = mm[1].toUpperCase(), o = { r: parseInt(mm[4], 10), rMid: mm[2] !== '', lMid: mm[3] !== '' };
       o.j = Ls === 'R' ? 0 : (Ls === 'S' ? m + 1 : parseInt(Ls, 10));
-      var key = o.r + (o.rMid ? '+' : '') + ':' + (Ls === 'R' || Ls === 'S' ? Ls : String(o.j)) + (o.lMid ? '+' : '');
+      var key = 'K' + (Ls === 'R' || Ls === 'S' ? Ls : String(o.j)) + (o.rMid ? 'M' : '') + (o.lMid ? 'L' : '') + '.' + o.r;
       if (o.r < 1 || o.r > n) o.err = 'Vindgitter: radialbjælke ' + o.r + ' findes ikke (1–' + n + ').';
       else if (Ls !== 'R' && Ls !== 'S' && (o.j < 1 || o.j > m)) {
         o.err = m ? 'Vindgitter: udvekslingsring ' + o.j + ' findes ikke (1–' + m + ').'
@@ -1902,8 +1910,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     braceLines.forEach(function (raw) {
       var parts = raw.split('-'), A = null, B = null;
-      if (parts.length === 2) { A = parseRef(parts[0].replace(/\s+/g, '')); B = parseRef(parts[1].replace(/\s+/g, '')); }
-      if (!A || !B) { braceErrors.push('Vindgitter: "' + raw + '" kan ikke læses – skriv fx "1:S-2:4".'); lineRefs.push(null); return; }
+      if (parts.length === 2) { A = parseRef(modernBracing(parts[0].replace(/\s+/g, ''))); B = parseRef(modernBracing(parts[1].replace(/\s+/g, ''))); }
+      if (!A || !B) { braceErrors.push('Vindgitter: "' + raw + '" kan ikke læses – skriv fx "KS.1-K4.2".'); lineRefs.push(null); return; }
       var err = A.err || B.err;
       if (!err) {
         var pa = refPos(A), pb = refPos(B);
@@ -2977,7 +2985,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     VERSION: VERSION, DEFAULTS: DEFAULTS, computeGeometry: computeGeometry, buildStruxml: buildStruxml,
     quantities: quantities, findSection: findSection, parseRadii: parseRadii, normalizeParams: normalizeParams,
     computeLoads: computeLoads, mu1: mu1, CPE_PLACEHOLDER: CPE_PLACEHOLDER,
-    FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, udvProfileOf: udvProfileOf,
+    FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, modernBracing: modernBracing, udvProfileOf: udvProfileOf,
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
     weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections
@@ -5197,7 +5205,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         out.push('<circle' + (on ? ' class="on"' : '') + ' cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + ((on ? 4.6 : 3.2) * k).toFixed(2) + '"/>');
       });
       out.push('</g>');
-      // knudenavne (3:2, 11:S …) skrevet udad fra centrum, så de ikke ligger oven på radialbjælken
+      // knudenavne (K2.3, KS.11 …) skrevet udad fra centrum, så de ikke ligger oven på radialbjælken
       if (conn.labels !== 'none') {
         out.push('<g class="d-cnlbl">');
         conn.N.nodes.forEach(function (nd) {
@@ -6276,7 +6284,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (bstate.hover) {
       var c = toPlan(bstate.hover.pos);
       h.push('<circle class="hover" cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + (8 * k).toFixed(2) + '"/>');
-      h.push(textEl('svg-label strong', c[0] + 11 * k, c[1] - 9 * k, bstate.hover.ref, 12 * k, 'start'));
+      h.push(textEl('svg-label strong', c[0] + 11 * k, c[1] - 9 * k, bstate.hover.fd || bstate.hover.ref, 12 * k, 'start'));
     }
     gl.innerHTML = h.join('');
   }
@@ -6347,6 +6355,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('braceFix').hidden = !(ok && g.braceLineOk && g.braceLineOk.some(function (x) { return !x; }));
     var ta = $('bracing');
     ta.setAttribute('aria-invalid', String(!!(ok && g.braceErrors && g.braceErrors.length)));
+    // gemte projekter med den gamle form "22:S" skrives om til knudenavnene fra FEM-Design (KS.22)
+    var modern = TR.modernBracing(params.bracing || '');
+    if (document.activeElement !== ta && modern !== String(params.bracing || '')) { params.bracing = modern; storeParams(); }
     if (document.activeElement !== ta && ta.value !== String(params.bracing || '')) ta.value = String(params.bracing || '');
     $('braceUndo').disabled = !bstate.undo.length;
     $('braceDelete').disabled = !(bstate.sel >= 0);
@@ -6362,7 +6373,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var tol = (e.pointerType === 'touch' ? 24 : 13) * q.upp, sp = nearestSnap(q, tol);
     e.preventDefault();
     if (bstate.start && !bstate.drag) {           // andet klik i klik-klik
-      if (sp && sp.ref !== bstate.start.ref) addBraceLine(bstate.start.ref, sp.ref);
+      if (sp && sp.ref !== bstate.start.ref) addBraceLine(bstate.start.fd, sp.fd);
       bstate.start = null; bstate.hover = sp;
       updateLive();
       return;
@@ -6390,7 +6401,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (!drawMode() || !bstate.drag) return;
     bstate.drag = false;
     var q = svgPoint(e), sp = q ? nearestSnap(q, (e.pointerType === 'touch' ? 24 : 13) * q.upp) : null;
-    if (sp && bstate.start && sp.ref !== bstate.start.ref) { var a = bstate.start.ref; bstate.start = null; addBraceLine(a, sp.ref); }
+    if (sp && bstate.start && sp.ref !== bstate.start.ref) { var a = bstate.start.fd; bstate.start = null; addBraceLine(a, sp.fd); }
     else if (bstate.moved) bstate.start = null;   // sluppet uden for en knude
     updateLive();
   });

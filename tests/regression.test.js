@@ -322,3 +322,17 @@ test('svejst C-profil på ringbjælken har FEM-Designs tværsnitsværdier og fla
   assert.deepEqual(g.members.filter((m) => m.group !== 'ring').map((m) => m.localY),
     base.members.filter((m) => m.group !== 'ring').map((m) => m.localY));
 });
+
+test('vindgitteret skrives med knudenavnene fra FEM-Design, og den gamle form "22:S" læses stadig', () => {
+  assert.equal(TR.modernBracing('23:S-22:3; 3+:2+ - 1:r; KS.4-K2.3'), 'KS.23-K3.22; K2ML.3 - KR.1; KS.4-K2.3');
+  const ny = TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS)));
+  const gl = TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS,
+    { bracing: '23:S-22:3; 22:S-23:3; 22:3-23:2; 23:2-22:1; 23:1-22:2; 22:2-23:3' })));
+  assert.equal(gl.params.bracing, TR.DEFAULTS.bracing);
+  assert.deepEqual(gl.braceErrors, []);
+  assert.deepEqual(gl.members.map((m) => m.name + m.start + m.end), ny.members.map((m) => m.name + m.start + m.end));
+  assert.equal(ny.info.brace.members, 18);
+  // knudenavnet står i fejlbeskeden, som i FEM-Design
+  const fejl = TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { bracing: 'ks.1-k2m.1; KSL.1-K1.2' })));
+  assert.deepEqual(fejl.braceErrors, ['Vindgitter: "KSL.1" peger ud over svøbet.']);
+});
