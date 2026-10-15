@@ -1083,7 +1083,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="pane" id="pane-conn" role="tabpanel" aria-labelledby="ftab-conn" hidden>
       <section class="group" aria-labelledby="g-conn-in">
         <h2 id="g-conn-in">Snitkræfter fra FEM-Design</h2>
-        <p class="hint">Regn modellen i FEM-Design med lastkombinationer, og lav listen <i>Bars, Internal forces</i> for <i>Load combinations</i> med alle stænger og kombinationer. Gem listen som tekst eller Excel, og indlæs den her – eller kopiér tabellen og sæt den ind. Stængerne kobles på navnene, så værktøjets parametre skal svare til modellen i FEM-Design.</p>
+        <p class="hint">Regn modellen i FEM-Design med lastkombinationer, og lav listen <i>Bars, End forces</i> for <i>Load combinations</i> med alle stænger og kombinationer. Gem listen som tekst eller Excel, og indlæs den her – eller kopiér tabellen og sæt den ind. Overskrifter er ikke nødvendige, og <i>Bars, Internal forces</i> kan også bruges. Stængerne kobles på navnene, så værktøjets parametre skal svare til modellen i FEM-Design.</p>
         <div class="tools">
           <button type="button" class="btn small" id="connLoad">Indlæs fil</button>
           <input type="file" id="connFile" class="visually-hidden" accept=".txt,.csv,.tsv,.xlsx,.xls" tabindex="-1">
@@ -3921,8 +3921,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function cellText(v) { return v === null || v === undefined ? '' : String(v).trim(); }
   function parseNum(v) {
     if (typeof v === 'number') return v;
-    var s = cellText(v).replace(/−/g, '-').replace(/\s/g, '');
-    if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) s = s.replace(',', '.');
+    var s = cellText(v).replace(/−/g, '-').replace(/[\s\u00a0\u202f']/g, '');
+    var c = s.lastIndexOf(','), d = s.lastIndexOf('.');
+    // med både punktum og komma er det sidste decimaltegnet og det første tusindtalsskilletegn (1.234,5 og 1,234.5)
+    if (c >= 0 && d >= 0) s = c > d ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+    else if (c >= 0) s = s.split(',').length > 2 ? s.replace(/,/g, '') : s.replace(',', '.');
+    else if (s.split('.').length > 2) s = s.replace(/\./g, '');
     if (!/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s)) return NaN;
     return Number(s);
   }
@@ -4022,12 +4026,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return Promise.resolve(textRows(text));
   }
 
-  // ---------- listen "Bars, Internal forces" ----------
+  // ---------- listerne "Bars, Internal forces" og "Bars, End forces" ----------
   function headerCols(cells) {
-    var h = cells.map(function (c) { return c.replace(/['’\s]/g, '').toLowerCase(); });
+    var h = cells.map(function (c) { return c.replace(/['’\s]/g, '').replace(/,?\[.*\]$/, '').toLowerCase(); });
     function find(names) { for (var i = 0; i < names.length; i++) { var j = h.indexOf(names[i]); if (j >= 0) return j; } return -1; }
-    return { x: find(['x']), f: [find(['n']), find(['ty']), find(['tz']), find(['mt,sv', 'mt']), find(['my']), find(['mz'])], mtTot: find(['mt,tot']) };
+    return { x: find(['x']), f: [find(['n']), find(['ty']), find(['tz']), find(['mt,sv', 'mt']), find(['my']), find(['mz'])], mtTot: find(['mt,tot']), comb: find(['comb.', 'comb']) };
   }
+  // "Bars, End forces" uden overskrift: ID, Start/End, N, Ty', Tz', Mt,SV, My', Mz', B, Mt,w, Mt,tot og evt. Comb. (FEM-Designs faste rækkefølge)
+  var END_COLS = { x: 1, f: [2, 3, 4, 5, 6, 7], mtTot: 10, comb: 11, ends: true };
+  function endOf(s) { return /^(start|begin|begyndelse)$/i.test(s) ? 's' : (/^(end|slut)$/i.test(s) ? 'e' : null); }
   // rækker (celler som tekst eller tal) → kræfterne i hver stangs to ender for hver kombination
   function parseForces(rows) {
     var combos = [], comboIdx = {}, cur = -1, col = null, raw = {}, ids = [], warnings = [], skipped = 0;
@@ -4054,11 +4061,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         cur = combo(first.slice(first.indexOf(':') + 1).trim() || first);
         return;
       }
-      if (/^id$/i.test(first)) { col = headerCols(cells); return; }
-      if (!col || !first || first.charAt(0) === '[' || col.x < 0 || col.f[0] < 0) return;
-      var x = val(r[col.x]);
-      if (!isFinite(x)) { skipped++; return; }
-      if (cur < 0) cur = combo('Uden navn');
+      if (/^id(,?\[.*\])?$/i.test(first.replace(/\s/g, ''))) { col = headerCols(cells); return; }
+      // endelaster uden overskrift kendes på Start/End i anden kolonne
+      if (!col && first && endOf(cells[1] || '')) col = END_COLS;
+      if (!col || !first || first.charAt(0) === '[' || col.f[0] < 0) return;
+      // stangende: x i Internal forces, Start/End i End forces (overskriften over den kolonne varierer)
+      var xi = col.x >= 0 ? col.x : 1, end = endOf(cells[xi] || ''), x = end ? null : val(r[xi]);
+      if (end) col.ends = true;
+      else if (col.x < 0 || !isFinite(x)) { skipped++; return; }
+      var cn = col.comb >= 0 ? cells[col.comb] || '' : '';
+      if (cn && !isFinite(parseNum(cn)) && cn !== '-') cur = combo(cn);
+      else if (cur < 0) cur = combo('Uden navn');
       var f = col.f.map(function (i, k) {
         var v = i < 0 ? NaN : val(r[i]);
         if (k === 3 && col.mtTot >= 0) { var t = val(r[col.mtTot]); if (isFinite(t)) v = t; }
@@ -4067,14 +4080,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var b = raw[first];
       if (!b) { b = raw[first] = {}; ids.push(first); }
       var e = b[cur];
-      if (!e) b[cur] = { xs: x, s: f, xe: x, e: f };
+      if (end) {
+        // endelaster: stangens længde står ikke i listen, så den kan ikke kontrolleres
+        if (!e) e = b[cur] = { xs: null, s: f, xe: null, e: f };
+        e[end] = f;
+      } else if (!e) b[cur] = { xs: x, s: f, xe: x, e: f };
       else {
         if (x < e.xs) { e.xs = x; e.s = f; }
         if (x >= e.xe) { e.xe = x; e.e = f; }   // sidste række ved stangens ende
       }
     });
-    if (!col) warnings.push('Fandt ingen overskrift med ID, x, N … – er det listen Bars, Internal forces?');
-    else if (col.x < 0 || col.f[0] < 0) warnings.push('Overskriften mangler kolonnen x eller N.');
+    if (!col) warnings.push('Fandt ingen overskrift med ID, x, N … – er det listen Bars, Internal forces eller Bars, End forces?');
+    else if ((col.x < 0 && !col.ends) || col.f[0] < 0) warnings.push('Overskriften mangler kolonnen x eller N.');
     if (skipped) warnings.push(skipped + ' rækker kunne ikke læses og er sprunget over.');
     var bars = {};
     ids.forEach(function (id) {
@@ -4086,7 +4103,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         bars[id].s.push(e ? e.s : null); bars[id].e.push(e ? e.e : null);
       });
     });
-    return { combos: combos, bars: bars, ids: ids, thousands: thousands, warnings: warnings };
+    return { combos: combos, bars: bars, ids: ids, thousands: thousands, warnings: warnings, ends: !!(col && col.ends) };
   }
 
   // ---------- kobling til modellens stænger ----------
@@ -4111,7 +4128,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (ps.every(function (p) { return p.d.xs[c] !== null; })) Lf = ps.reduce(function (s, p) { return s + p.d.xe[c] - p.d.xs[c]; }, 0);
       }
       var L = len(m);
-      if (Lf === null || Math.abs(Lf - L) > Math.max(0.005, 0.002 * L)) { mismatch.push({ name: m.name, L: L, Lf: Lf }); return; }
+      if (!F.ends && (Lf === null || Math.abs(Lf - L) > Math.max(0.005, 0.002 * L))) { mismatch.push({ name: m.name, L: L, Lf: Lf }); return; }
       bars[m.name] = { s: first.s, e: last.e };
     });
     return { bars: bars, unknown: unknown, mismatch: mismatch, missing: missing };
@@ -6080,6 +6097,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         (ok ? ' · ' + nm + ' af ' + g.members.length + ' stænger koblet' : '');
       F.warnings.forEach(function (w) { warn.push('<div class="msg">' + esc(w) + '</div>'); });
       if (F.thousands) warn.push('<div class="msg">Excel har læst FEM-Designs punktum som tusindtalsskilletegn, så tallene er divideret med 1000. Tjek et par værdier mod FEM-Design, eller indlæs den oprindelige tekstfil.</div>');
+      if (F.ends && M && Object.keys(M.bars).length) warn.push('<div class="msg ok">Listen med endelaster har ikke stængernes længde, så værktøjet kan kun koble på navnene. Tjek, at parametrene svarer til modellen i FEM-Design.</div>');
       if (M && M.mismatch.length) warn.push('<div class="msg bad">' + M.mismatch.length + (M.mismatch.length === 1 ? ' stang har' : ' stænger har') + ' en anden længde i filen end i modellen og er ikke brugt: ' +
         esc(shortList(M.mismatch.map(function (x) { return x.name; }), 8)) + '. Tjek, at værktøjets parametre svarer til modellen i FEM-Design.</div>');
       if (M && M.missing.length) warn.push('<div class="msg">' + M.missing.length + (M.missing.length === 1 ? ' stang' : ' stænger') + ' i modellen findes ikke i filen: ' + esc(shortList(M.missing, 8)) + '.</div>');
@@ -6134,7 +6152,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   function connChanged() { storeConn(); updateConn(geom); renderDrawing(); }
   function setConnForces(F, name) {
-    if (!F.ids.length) { $('connWarn').innerHTML = '<div class="msg bad">Fandt ingen stangkræfter. Brug listen <i>Bars, Internal forces</i> fra FEM-Design.</div>'; return; }
+    if (!F.ids.length) { $('connWarn').innerHTML = '<div class="msg bad">Fandt ingen stangkræfter. Brug listen <i>Bars, End forces</i> eller <i>Bars, Internal forces</i> fra FEM-Design.</div>'; return; }
     conn.F = F; conn.file = name || '';
     connChanged();
   }

@@ -1,0 +1,117 @@
+'use strict';
+// Samlinger: indlæsning af FEM-Designs stangkræfter og de dimensionerende tilfælde i knuderne.
+// tests/fixtures/endelaster.txt.gz er en rigtig liste "Bars, End forces" fra FEM-Design (standardtaget, 8 STR-kombinationer),
+// gemt som tekstfil uden overskrift. Facit for de dimensionerende tilfælde opdateres med `npm run test:update`.
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const path = require('path');
+const zlib = require('zlib');
+const { load } = require('./load');
+
+const { TR, TC } = load();
+const UPDATE = process.env.UPDATE_SNAPSHOTS === '1';
+const FIXTURE = path.join(__dirname, 'fixtures', 'endelaster.txt.gz');
+const SNAP = path.join(__dirname, 'snapshots', 'samlinger-endelaster.csv');
+
+function geometry() {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  return TR.computeGeometry(params);
+}
+// -0 og 0 er det samme her
+function z(a) { return a.map((v) => v + 0); }
+function fixtureText() { return zlib.gunzipSync(fs.readFileSync(FIXTURE)).toString('utf8'); }
+function memberLength(m) { return Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]); }
+function allGoverning(F, g) {
+  const N = TC.buildNodes(g), M = TC.matchBars(F, g);
+  return { N, M, G: TC.governing(N, N.nodes.map((nd) => nd.id), M, F.combos) };
+}
+// samme kræfter som listen "Bars, Internal forces" med x = 0 og x = L, i det format, opbygningen angiver
+function asInternalForces(F, g, o) {
+  const lengths = {};
+  g.members.forEach((m) => { lengths[m.name] = memberLength(m); });
+  const fmt = o.fmt || ((v) => v.toFixed(3));
+  const lines = [];
+  F.combos.forEach((cn, c) => {
+    lines.push('Bars, Internal forces, Load comb.: ' + cn);
+    lines.push(['ID', 'x', 'N', "Ty'", "Tz'", 'Mt,SV', "My'", "Mz'", 'B', 'Mt,w', 'Mt,tot'].join(o.sep));
+    lines.push(['[-]', '[m]', '[kN]', '[kN]', '[kN]', '[kNm]', '[kNm]', '[kNm]', '[kNm²]', '[kNm]', '[kNm]'].join(o.sep));
+    F.ids.forEach((id) => {
+      const L = lengths[id.replace(/\.\d+$/, '')];
+      const b = F.bars[id];
+      [[0, b.s[c]], [L, b.e[c]]].forEach(([x, f]) => {
+        lines.push([id, fmt(x)].concat(f.map(fmt), ['-', '-', '-']).join(o.sep));
+      });
+    });
+    lines.push('');
+  });
+  return lines.join('\r\n');
+}
+
+test('endelaster uden overskrift læses og kobles til alle stænger', () => {
+  const g = geometry();
+  const F = TC.parseForces(TC.textRows(fixtureText()));
+  assert.deepEqual(F.warnings, []);
+  assert.equal(F.ends, true);
+  assert.equal(F.thousands, false);
+  assert.deepEqual(F.combos, ['1 STR 6.10a', '2 STR Nyttelast, punkt', '3 STR Gangbro, nyttelast', '4 STR Sne, jævn',
+    '5 STR Sne, ensidig', '6 STR Vind 0°', '7 STR Overtryk', '8 STR Undertryk']);
+  assert.equal(F.ids.length, g.members.length);
+  // første række i filen: KANT1.1.1 Start 275.098 -17.138 1.021 -0.000 0.000 -19.103, og End med Mz = 19.163
+  assert.deepEqual(z(F.bars['KANT1.1.1'].s[0]), [275.098, -17.138, 1.021, 0, 0, -19.103]);
+  assert.deepEqual(z(F.bars['KANT1.1.1'].e[0]), [275.098, -17.138, -1.021, 0, 0, 19.163]);
+  const { M } = allGoverning(F, g);
+  assert.equal(Object.keys(M.bars).length, g.members.length);
+  assert.deepEqual([M.unknown, M.missing, M.mismatch], [[], [], []]);
+});
+
+test('endelaster med overskrift giver det samme som uden', () => {
+  const text = fixtureText();
+  const head = ['ID', 'Pos.', 'N', "Ty'", "Tz'", 'Mt,SV', "My'", "Mz'", 'B', 'Mt,w', 'Mt,tot', 'Comb.'].join('\t');
+  const F0 = TC.parseForces(TC.textRows(text));
+  const F1 = TC.parseForces(TC.textRows(head + '\r\n' + text));
+  assert.deepEqual(F1, F0);
+});
+
+test('samme kræfter som Internal forces giver samme dimensionerende tilfælde', () => {
+  const g = geometry();
+  const F = TC.parseForces(TC.textRows(fixtureText()));
+  const ref = TC.governingCsv(allGoverning(F, g).G);
+  // FEM-Designs tekstfil med tabulator og punktum
+  const Ftab = TC.parseForces(TC.textRows(asInternalForces(F, g, { sep: '\t' })));
+  assert.deepEqual(Ftab.warnings, []);
+  assert.equal(TC.governingCsv(allGoverning(Ftab, g).G), ref);
+  // gemt fra dansk Excel som CSV: semikolon, decimalkomma og punktum som tusindtalsskilletegn
+  const dk = (v) => v.toFixed(3).replace('.', ',').replace(/\B(?=(\d{3})+,)/g, '.');
+  assert.equal(dk(-1234.5), '-1.234,500');
+  const Fdk = TC.parseForces(TC.textRows(asInternalForces(F, g, { sep: ';', fmt: dk })));
+  assert.deepEqual(Fdk.warnings, []);
+  assert.equal(TC.governingCsv(allGoverning(Fdk, g).G), ref);
+});
+
+test('Excel med dansk talformat: punktum læst som tusindtalsskilletegn rettes', () => {
+  // tal ≥ 1 bliver hele tal ×1000, tal under 1 bliver stående som tekst
+  const rows = [
+    ['Bars, Internal forces, Load comb.: STR 6.10a'],
+    ['ID', 'x', 'N', "Ty'", "Tz'", 'Mt', "My'", "Mz'"],
+    ['RB.1', 0, 275098, '0.512', -17138, '-0.000', 1021, 19103],
+    ['RB.1', 4500, 275098, '0.512', -17138, '-0.000', 1021, -19163]
+  ];
+  const F = TC.parseForces(rows);
+  assert.equal(F.thousands, true);
+  assert.deepEqual(z(F.bars['RB.1'].s[0]), [275.098, 0.512, -17.138, 0, 1.021, 19.103]);
+  assert.equal(F.bars['RB.1'].xe[0], 4.5);
+});
+
+test('dimensionerende tilfælde i alle knuder fra endelasterne', () => {
+  const g = geometry();
+  const F = TC.parseForces(TC.textRows(fixtureText()));
+  const csv = TC.governingCsv(allGoverning(F, g).G);
+  if (UPDATE) { fs.writeFileSync(SNAP, csv); return; }
+  assert.ok(fs.existsSync(SNAP), 'Facit mangler. Kør `npm run test:update`.');
+  const exp = fs.readFileSync(SNAP, 'utf8').split('\r\n'), got = csv.split('\r\n');
+  const i = got.findIndex((l, k) => l !== exp[k]);
+  if (i >= 0) assert.fail('Linje ' + (i + 1) + ' afviger fra facit:\n  facit: ' + exp[i] + '\n  nu:    ' + got[i]);
+  assert.equal(got.length, exp.length);
+});

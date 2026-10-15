@@ -1,5 +1,5 @@
 'use strict';
-// Henter beregningskernen, vinddokumentationen og profilbiblioteket direkte fra index.html,
+// Henter beregningskernen, vinddokumentationen, samlingsmodulet og profilbiblioteket direkte fra index.html,
 // så testene kører på præcis den kode, siden bruger.
 const fs = require('fs');
 const path = require('path');
@@ -33,10 +33,11 @@ function load() {
   };
   const TR = runModule(find('root.TankRoof = api'), 'index.html#TankRoof');
   const WD = runModule(find('root.TankWindDoc = api'), 'index.html#TankWindDoc');
+  const TC = runModule(find('root.TankConn = api'), 'index.html#TankConn');
   const lm = /const LIB_B64 = "([^"]+)"/.exec(html);
   if (!lm) throw new Error('Fandt ikke LIB_B64 i index.html');
   const LIB = JSON.parse(zlib.inflateSync(Buffer.from(lm[1], 'base64')).toString('utf8'));
-  return { TR, WD, LIB };
+  return { TR, WD, TC, LIB };
 }
 
 module.exports = { load };
