@@ -288,6 +288,15 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .d-cnlbl text.strong { fill: var(--ink); font-weight: 600; }
 .conntypes { display: grid; gap: 6px; }
 .conntypes .hint { white-space: nowrap; }
+.asgnames { display: grid; gap: 4px; }
+.asgrow { display: grid; grid-template-columns: minmax(0, 1fr) 150px; gap: 8px; align-items: center; }
+.asgnames .asgrow { grid-template-columns: 78px minmax(0, 1fr); }
+.asgrow .rl { font-size: 0.85rem; min-width: 0; overflow-wrap: anywhere; }
+.asgrow select, .asgrow input[type="text"], .asgx select { min-height: 32px; padding: 4px 8px; font-size: 0.85rem; }
+.asgtypes { display: grid; gap: 10px; }
+.asgtype { display: grid; gap: 4px; }
+.asgtype h3 { margin: 0; font-size: 0.9rem; font-weight: 600; }
+.asgx { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px; }
 .conn-t td.hit { font-weight: 700; color: var(--primer); }
 .conn-t th .u { font-weight: 400; color: var(--ink-2); }
 .drawwrap { position: relative; min-width: 0; }
@@ -1120,6 +1129,27 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </div>
         <p class="calc" id="connSelInfo"></p>
       </section>
+
+      <section class="group" aria-labelledby="g-conn-asg">
+        <h2 id="g-conn-asg">Samlingstyper</h2>
+        <p class="hint">Giv hver stang i hver knudetype det samlingsnummer, den skal eftervises med. Afviger enkelte knuder, så vælg dem i planen, og sæt en undtagelse nederst.</p>
+        <div class="asgnames" id="connNames"></div>
+        <div class="asgtypes" id="connAsg"></div>
+        <div class="field">
+          <span class="lbl">Undtagelser for de valgte knuder</span>
+          <div class="asgx">
+            <select id="connXRole" aria-label="Stang i de valgte knuder"></select>
+            <select id="connXSaml" aria-label="Samling for stangen i de valgte knuder"></select>
+            <button type="button" class="btn small" id="connXSet">Sæt</button>
+            <button type="button" class="btn small" id="connXClear">Fjern undtagelser</button>
+          </div>
+        </div>
+        <p class="calc" id="connAsgInfo"></p>
+        <div class="tools">
+          <button type="button" class="btn small" id="connSamlXlsx">Hent samlinger (Excel)</button>
+        </div>
+        <span class="doc-msg" id="connAsgMsg" aria-live="polite"></span>
+      </section>
       </div>
     </form>
 
@@ -1172,7 +1202,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <button type="button" class="btn small" id="connReport">Hent rapport (HTML)</button>
         <button type="button" class="btn small" id="connCsv">Hent dimensionerende (CSV)</button>
         <button type="button" class="btn small" id="connCsvAll">Hent alle stangender (CSV)</button>
-        <button type="button" class="btn small" id="connSamling1" title="Excel-ark med eftervisning af samling 1 (IPE 330 til tagkant) for alle knuder og kombinationer">Hent samling 1 (Excel)</button>
         <span class="doc-msg" id="connMsg" aria-live="polite"></span>
       </div>
       <div class="doc-body" id="connBody"></div>
@@ -4807,22 +4836,90 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return zip(f);
   }
 
-  // ---------- Samling 1: IPE 330 til tagkant ----------
-  // Svejsningen eftervises for alle stangender og kombinationer i arket; formlerne står i Excel, så de kan kontrolleres og rettes dér.
-  function samling1Xlsx(ends) {
-    var KR = "'Kræfter'!", NMAX = 20000, last = Math.max(2, ends.length + 1);
+  // ---------- Samlinger: hver stangende i hver knude tildeles en samlingstype ----------
+  // Tildelingen gives pr. knudetype og stang, og enkelte knuder kan have undtagelser. 0 = ingen samling.
+  var N_SAML = 7;
+  function asgKey(a, b) { return a + '|' + b; }
+  function newAssign() {
+    var names = [];
+    for (var i = 0; i < N_SAML; i++) names.push(i === 0 ? 'IPE 330 til tagkant' : '');
+    return { names: names, types: {}, nodes: {} };
+  }
+  function samlingOf(asg, nd, role) {
+    var x = asg.nodes[asgKey(nd.id, role)];
+    return x !== undefined ? x : (asg.types[asgKey(nd.type, role)] || 0);
+  }
+  // stængerne i hver knudetype, i samme rækkefølge som i knuderne
+  function typeRoles(nodeSet) {
+    var out = {};
+    nodeSet.nodes.forEach(function (nd) {
+      var l = out[nd.type] || (out[nd.type] = []);
+      nd.ends.forEach(function (e) { if (l.indexOf(e.role) < 0) l.push(e.role); });
+    });
+    return out;
+  }
+  // udgangspunkt: samling 1 er radialbjælkens ende ved svøbet
+  function seedAssign(asg, nodeSet) {
+    var tr = typeRoles(nodeSet);
+    Object.keys(tr).forEach(function (t) {
+      if (/^RB ved svøbet/.test(t) && tr[t].indexOf('RB mod centrum') >= 0) asg.types[asgKey(t, 'RB mod centrum')] = 1;
+    });
+    return asg;
+  }
+  // stangenderne med kræfter for hver samling (ends[1..N_SAML], som endRows) og listen over tildelingen
+  function samlingEnds(nodeSet, M, combos, asg) {
+    var ends = [], list = [];
+    for (var i = 0; i <= N_SAML; i++) ends.push([]);
+    nodeSet.nodes.forEach(function (nd) {
+      nd.ends.forEach(function (e) {
+        var s = samlingOf(asg, nd, e.role);
+        if (!s) return;
+        list.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), s, asg.nodes[asgKey(nd.id, e.role)] !== undefined ? 'undtagelse' : '']);
+        var d = M && M.bars[e.m.name];
+        if (!d) return;
+        combos.forEach(function (cn, c) {
+          var f = (e.end === 's' ? d.s : d.e)[c];
+          if (f) ends[s].push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f));
+        });
+      });
+    });
+    return { ends: ends, list: list };
+  }
+
+  var END_HEAD = ['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Kombination'].concat(COMP_LABEL.map(function (c, k) { return c + ' [' + COMP_UNIT[k] + ']'; }));
+  // fanen med stangenderne som Excel-tabel; calc = [[overskrift, formel for række 2, format], ...] fyldes ned i tabellen
+  function forcesSheet(n, ends, calc) {
+    calc = calc || [];
+    var last = Math.max(2, ends.length + 1), head = END_HEAD.concat(calc.map(function (c) { return c[0]; })), K = [head];
+    ends.forEach(function (e, i) {
+      var row = e.slice(0, 6).concat(e.slice(6).map(function (v) { return { v: v, s: XS.n3 }; }));
+      calc.forEach(function (c, k) {
+        var col = colName(12 + k);
+        row.push(i === 0 ? { f: c[1], s: c[2], si: k, ref: col + '2:' + col + last } : { f: '', s: c[2], si: k });
+      });
+      K.push(row);
+    });
+    return {
+      name: 'Kræfter ' + n, rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9].concat(calc.map(function () { return 8; })),
+      table: { name: 'Kraefter' + n, ref: 'A1:' + colName(head.length - 1) + last, cols: head.map(function (h, k) { return { name: h, calc: k >= 12 ? calc[k - 12][1] : null }; }) }
+    };
+  }
+
+  // Samling 1: IPE 330 til tagkant. Svejsningen eftervises for hver stangende og kombination med formler i Excel.
+  function samling1Sheets(ends, title, names) {
+    var KR = "'Kræfter 1'!", NMAX = 20000, P = 'S1_';
     var rng = function (c) { return KR + '$' + c + '$2:$' + c + '$' + (NMAX + 1); };
-    var names = {}, S = [], r = 0;
+    var S = [], r = 0;
     function put(row) { S[r++] = row; }
     function sec(t) { put([{ v: t, s: XS.head2 }]); }
     function line(lbl, val, unit, desc, kind, nm, st) {
-      var cell = typeof val === 'string' && val.charAt(0) === '=' ? { f: val.slice(1), s: st || (kind === 'in' ? XS.input : XS.resText), str: !st } : { v: val, s: kind === 'in' ? XS.input : (st || XS.resText) };
-      if (nm) names[nm] = "Samling!$B$" + (r + 1);
+      var cell = typeof val === 'string' && val.charAt(0) === '=' ? { f: val.slice(1).replace(/\bS1_/g, P), s: st || XS.resText } : { v: val, s: kind === 'in' ? XS.input : (st || XS.resText) };
+      if (nm) names[P + nm] = "'Samling 1'!$B$" + (r + 1);
       put([lbl, cell, unit || '', desc || '']);
       return 'B' + r;
     }
-    put([{ v: 'Samling 1: IPE 330 til tagkant', s: XS.title }]);
-    put([{ v: 'Gule celler er input. Grønne celler er resultater. Stangenderne fra Tanktag står i fanen Kræfter.', s: XS.note }]);
+    put([{ v: 'Samling 1: ' + (title || 'IPE 330 til tagkant'), s: XS.title }]);
+    put([{ v: 'Gule celler er input. Grønne celler er resultater. Stangenderne, der er tildelt samling 1 i Tanktag, står i fanen Kræfter 1.', s: XS.note }]);
     put(['Størrelse', 'Værdi', 'Enhed', 'Beskrivelse / formel'].map(function (h) { return { v: h, s: XS.th }; }));
     sec('Svejsning (TS Tabel 6.50)');
     line('fw,4a', 1787, 'N/mm', 'Kantsøm a = 4 mm, TS Tabel 6.50', 'in', 'fw');
@@ -4830,90 +4927,96 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     line('k_H', 0.5, '-', 'Faktor på søm 1, 2 og 3', 'in', 'k_H');
     line('α', 20, '°', 'Vinkel for søm 1 og 2', 'in', 'alfa');
     line('L_V', 200, 'mm', 'Svejselængde, søm 4', 'in', 'L_V');
-    sec('Hvilke rækker i Kræfter gælder samlingen for');
-    line('Knudetype indeholder', 'RB ved svøbet', '', 'Tom = alle knudetyper', 'in', 'FiltType');
-    line('Stang indeholder', 'RB mod centrum', '', 'Tom = alle stænger', 'in', 'FiltStang');
+    sec('Valg');
     var vv = line('V_d tages som', "Tz'", '', "Ty', Tz' eller resultant af Ty' og Tz'", 'in', 'VValg');
     line('Vis knude', '', '', 'Tom = den dimensionerende knude', 'in', 'VisKnude');
     sec('Søm 1 + 2 + 3');
-    line('H_Rd', '=L_H*k_H*fw/1000', 'kN', 'H_Rd = L_H · k_H · fw,4a', 'res', 'H_Rd', XS.res1);
-    line('N_Rd', '=(2*COS(RADIANS(alfa))+1)*H_Rd', 'kN', 'N_Rd = (2·cos α + 1) · H_Rd', 'res', 'N_Rd', XS.res1);
+    line('H_Rd', '=S1_L_H*S1_k_H*S1_fw/1000', 'kN', 'H_Rd = L_H · k_H · fw,4a', 'res', 'H_Rd', XS.res1);
+    line('N_Rd', '=(2*COS(RADIANS(S1_alfa))+1)*S1_H_Rd', 'kN', 'N_Rd = (2·cos α + 1) · H_Rd', 'res', 'N_Rd', XS.res1);
     sec('Søm 4');
-    line('V_Rd', '=L_V*fw/1000', 'kN', 'V_Rd = L_V · fw,4a', 'res', 'V_Rd', XS.res1);
+    line('V_Rd', '=S1_L_V*S1_fw/1000', 'kN', 'V_Rd = L_V · fw,4a', 'res', 'V_Rd', XS.res1);
     sec('Dimensionerende last');
-    line('Knude', '=IF(VisKnude="",INDEX(' + rng('A') + ',_xlfn.AGGREGATE(15,6,(ROW(' + rng('S') + ')-1)/(' + rng('S') + '=MAX(' + rng('S') + ')),1)),VisKnude)', '', 'Knude med størst udnyttelse', 'res', 'SelKnude');
-    line('Række i tabellen', '=_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=SelKnude)*(' + rng('S') + '=_xlfn.MAXIFS(' + rng('S') + ',' + rng('A') + ',SelKnude))),1)', '', 'Hjælpecelle', 'res', 'SelRow', XS.res0);
-    line('Stang', '=INDEX(' + rng('C') + ',SelRow)&" ("&INDEX(' + rng('D') + ',SelRow)&", "&INDEX(' + rng('E') + ',SelRow)&")"', '', '', 'res');
-    line('Kombination', '=INDEX(' + rng('F') + ',SelRow)', '', '', 'res');
-    line('N_d', '=INDEX(' + rng('O') + ',SelRow)', 'kN', '|N|', 'res', 'N_d', XS.res1);
-    line('V_d', '=INDEX(' + rng('P') + ',SelRow)', 'kN', '', 'res', 'V_d', XS.res1);
+    line('Knude', '=IF(S1_VisKnude="",INDEX(' + rng('A') + ',_xlfn.AGGREGATE(15,6,(ROW(' + rng('R') + ')-1)/(' + rng('R') + '=MAX(' + rng('R') + ')),1)),S1_VisKnude)', '', 'Knude med størst udnyttelse', 'res', 'Knude');
+    line('Række i tabellen', '=_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=S1_Knude)*(' + rng('R') + '=_xlfn.MAXIFS(' + rng('R') + ',' + rng('A') + ',S1_Knude))),1)', '', 'Hjælpecelle', 'res', 'Row', XS.res0);
+    line('Stang', '=INDEX(' + rng('C') + ',S1_Row)&" ("&INDEX(' + rng('D') + ',S1_Row)&", "&INDEX(' + rng('E') + ',S1_Row)&")"', '', '', 'res');
+    line('Kombination', '=INDEX(' + rng('F') + ',S1_Row)', '', '', 'res');
+    line('N_d', '=INDEX(' + rng('N') + ',S1_Row)', 'kN', '|N|', 'res', 'N_d', XS.res1);
+    line('V_d', '=INDEX(' + rng('O') + ',S1_Row)', 'kN', '', 'res', 'V_d', XS.res1);
     sec('Eftervisning');
-    var u1 = line('UR_N', '=N_d/N_Rd', '-', 'N_d / N_Rd', 'res', null, XS.res2);
+    var u1 = line('UR_N', '=S1_N_d/S1_N_Rd', '-', 'N_d / N_Rd', 'res', null, XS.res2);
     var k1 = line('Kontrol søm 1 + 2 + 3', '=IF(' + u1 + '<=1,"OK","IKKE OK")', '', 'N_Rd > N_d', 'res');
-    var u2 = line('UR_V', '=V_d/V_Rd', '-', 'V_d / V_Rd', 'res', null, XS.res2);
+    var u2 = line('UR_V', '=S1_V_d/S1_V_Rd', '-', 'V_d / V_Rd', 'res', null, XS.res2);
     var k2 = line('Kontrol søm 4', '=IF(' + u2 + '<=1,"OK","IKKE OK")', '', 'V_Rd > V_d', 'res');
     var k3 = line('Samlingens bæreevne', '=IF(MAX(' + u1 + ',' + u2 + ')<=1,"OK","IKKE OK")', '', '', 'res');
     var samling = {
-      name: 'Samling', rows: S, first: true, widths: [24, 30, 7, 40],
+      name: 'Samling 1', rows: S, widths: [24, 30, 7, 40],
       cf: [k1, k2, k3].map(function (c) { return { ref: c, formula: c + '="IKKE OK"' }; }),
       lists: [{ ref: vv, list: '"Ty\',Tz\',Resultant"' }]
     };
-
-    // Kræfter: stangenderne og beregningen for hver række (formler for række 2, Excel fylder dem ned i tabellen)
-    var head = ['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Kombination'].concat(COMP_LABEL.map(function (c, k) { return c + ' [' + COMP_UNIT[k] + ']'; }),
-      ['Med', 'Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
-    var calc = [
-      ['AND(A2<>"",ISNUMBER(SEARCH(FiltType,B2)),ISNUMBER(SEARCH(FiltStang,C2)))', 0],
-      ['AND(M2,COUNTIFS(A$1:A1,A2,M$1:M1,TRUE)=0)', 0],
-      ['IF(M2,ABS(G2),"")', XS.n3],
-      ['IF(M2,IF(VValg="Ty\'",ABS(H2),IF(VValg="Tz\'",ABS(I2),SQRT(H2^2+I2^2))),"")', XS.n3],
-      ['IF(M2,O2/N_Rd,"")', XS.n2], ['IF(M2,P2/V_Rd,"")', XS.n2], ['IF(M2,MAX(Q2,R2),"")', XS.n2]
-    ];
-    var K = [head];
-    ends.forEach(function (e, i) {
-      var row = e.slice(0, 6).concat(e.slice(6).map(function (v) { return { v: v, s: XS.n3 }; }));
-      calc.forEach(function (c, k) {
-        var col = colName(12 + k);
-        row.push(i === 0 ? { f: c[0], s: c[1], si: k, ref: col + '2:' + col + last } : { f: '', s: c[1], si: k });
-      });
-      K.push(row);
-    });
-    var kraefter = {
-      name: 'Kræfter', rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9, 7, 8, 9, 9, 7, 7, 7],
-      cf: [{ ref: 'S2:S' + (NMAX + 1), gt: '1' }],
-      table: { name: 'Kraefter', ref: 'A1:S' + last, cols: head.map(function (h, k) { return { name: h, calc: k >= 12 ? calc[k - 12][0] : null }; }) }
-    };
-
-    // Oversigt: største udnyttelse pr. knude
+    var kraefter = forcesSheet(1, ends, [
+      ['Første', 'COUNTIF(A$1:A1,A2)=0', 0],
+      ['N_d [kN]', 'ABS(G2)', XS.n3],
+      ['V_d [kN]', 'IF(S1_VValg="Ty\'",ABS(H2),IF(S1_VValg="Tz\'",ABS(I2),SQRT(H2^2+I2^2)))', XS.n3],
+      ['UR_N', 'N2/S1_N_Rd', XS.n2], ['UR_V', 'O2/S1_V_Rd', XS.n2], ['UR', 'MAX(P2,Q2)', XS.n2]
+    ]);
+    kraefter.cf = [{ ref: 'R2:R' + (NMAX + 1), gt: '1' }];
+    // største udnyttelse pr. knude
     var NO = 400, O = [
       [{ v: 'Samling 1: oversigt pr. knude', s: XS.title }],
-      [{ v: 'Største udnyttelse for hver knude, der passer på filteret i fanen Samling.', s: XS.note }],
-      [{ v: 'Største UR i alt', s: XS.bold }, { f: 'MAX(' + rng('S') + ')', s: XS.res2 }],
+      [{ v: 'Største udnyttelse for hver knude, der er tildelt samling 1.', s: XS.note }],
+      [{ v: 'Største UR i alt', s: XS.bold }, { f: 'MAX(' + rng('R') + ')', s: XS.res2 }],
       [],
       ['Knude', 'UR', 'Status', 'Kombination', 'Stang-id', 'Ende', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'Første række', 'Dim. række'].map(function (h) { return { v: h, s: XS.th }; })
     ];
     for (var k = 0; k < NO; k++) {
       var i = 6 + k, A = 'A' + i, L = 'L' + i, row = [
-        { f: 'IF(K' + i + '="","",INDEX(' + rng('A') + ',K' + i + '))', str: true },
-        { f: 'IF(' + A + '="","",_xlfn.MAXIFS(' + rng('S') + ',' + rng('A') + ',' + A + '))', s: XS.n2 },
-        { f: 'IF(' + A + '="","",IF(B' + i + '<=1,"OK","IKKE OK"))', str: true }
+        { f: 'IF(K' + i + '="","",INDEX(' + rng('A') + ',K' + i + '))' },
+        { f: 'IF(' + A + '="","",_xlfn.MAXIFS(' + rng('R') + ',' + rng('A') + ',' + A + '))', s: XS.n2 },
+        { f: 'IF(' + A + '="","",IF(B' + i + '<=1,"OK","IKKE OK"))' }
       ];
-      ['F', 'D', 'E', 'O', 'P', 'Q', 'R'].forEach(function (c, j) {
-        row.push({ f: 'IF(' + A + '="","",INDEX(' + rng(c) + ',' + L + '))', s: j < 3 ? 0 : (j < 5 ? XS.n1 : XS.n2), str: j < 3 });
+      ['F', 'D', 'E', 'N', 'O', 'P', 'Q'].forEach(function (c, j) {
+        row.push({ f: 'IF(' + A + '="","",INDEX(' + rng(c) + ',' + L + '))', s: j < 3 ? 0 : (j < 5 ? XS.n1 : XS.n2) });
       });
-      row.push({ f: 'IFERROR(_xlfn.AGGREGATE(15,6,(ROW(' + rng('N') + ')-1)/(' + rng('N') + '=TRUE),' + (k + 1) + '),"")' });
-      row.push({ f: 'IF(' + A + '="","",_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=' + A + ')*(' + rng('S') + '=B' + i + ')),1))' });
+      row.push({ f: 'IFERROR(_xlfn.AGGREGATE(15,6,(ROW(' + rng('M') + ')-1)/(' + rng('M') + '=TRUE),' + (k + 1) + '),"")' });
+      row.push({ f: 'IF(' + A + '="","",_xlfn.AGGREGATE(15,6,(ROW(' + rng('A') + ')-1)/((' + rng('A') + '=' + A + ')*(' + rng('R') + '=B' + i + ')),1))' });
       O.push(row);
     }
-    var oversigt = { name: 'Oversigt', rows: O, freeze: 6, widths: [10, 7, 9, 28, 10, 7, 10, 10, 7, 7, -8, -8], cf: [{ ref: 'B6:C' + (5 + NO), formula: '$C6="IKKE OK"' }] };
-    return xlsx([samling, oversigt, kraefter], names);
+    var oversigt = { name: 'Oversigt 1', rows: O, freeze: 6, widths: [10, 7, 9, 28, 10, 7, 10, 10, 7, 7, -8, -8], cf: [{ ref: 'B6:C' + (5 + NO), formula: '$C6="IKKE OK"' }] };
+    return [samling, oversigt, kraefter];
+  }
+  var SAMLING_SHEETS = { 1: samling1Sheets };
+
+  // ét Excel-ark med alle samlinger: tildelingen, og for hver samling beregningen (hvis den findes) og stangenderne
+  function samlingerXlsx(nodeSet, M, combos, asg) {
+    var se = samlingEnds(nodeSet, M, combos, asg), names = {}, sheets = [];
+    var T = [
+      [{ v: 'Tildeling af samlinger', s: XS.title }],
+      [{ v: 'Hvilke stangender i hvilke knuder hver samling gælder for, som de er sat i Tanktag.', s: XS.note }],
+      ['Samling', 'Beskrivelse', 'Stangender', 'Beregning'].map(function (h) { return { v: h, s: XS.th }; })
+    ];
+    for (var n = 1; n <= N_SAML; n++) {
+      var cnt = se.list.filter(function (x) { return x[5] === n; }).length;
+      T.push([n, asg.names[n - 1] || '', cnt, cnt ? (SAMLING_SHEETS[n] ? 'Samling ' + n : 'mangler') : '']);
+    }
+    T.push([]);
+    T.push(['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Samling', 'Note'].map(function (h) { return { v: h, s: XS.th }; }));
+    se.list.forEach(function (x) { T.push(x); });
+    sheets.push({ name: 'Tildeling', rows: T, first: true, widths: [10, 30, 18, 10, 8, 9, 12] });
+    for (n = 1; n <= N_SAML; n++) {
+      if (!se.ends[n].length) continue;
+      if (SAMLING_SHEETS[n]) sheets = sheets.concat(SAMLING_SHEETS[n](se.ends[n], asg.names[n - 1], names));
+      else sheets.push(forcesSheet(n, se.ends[n]));
+    }
+    return xlsx(sheets, names);
   }
 
   var api = {
     COMP_LABEL: COMP_LABEL, COMP_UNIT: COMP_UNIT, governingHtml: governingHtml, report: report,
     textRows: textRows, readFile: readFile, readXlsx: readXlsx, parseForces: parseForces, matchBars: matchBars,
     buildNodes: buildNodes, governing: governing, governingCsv: governingCsv, allEndsCsv: allEndsCsv,
-    endRows: endRows, xlsx: xlsx, samling1Xlsx: samling1Xlsx
+    endRows: endRows, xlsx: xlsx,
+    N_SAML: N_SAML, asgKey: asgKey, newAssign: newAssign, samlingOf: samlingOf, typeRoles: typeRoles, seedAssign: seedAssign,
+    samlingEnds: samlingEnds, samlingerXlsx: samlingerXlsx
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankConn = api;
@@ -6752,6 +6855,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('connTypes').querySelectorAll('input[data-some]').forEach(function (el) { el.indeterminate = true; });
     $('connNone').disabled = !conn.sel.length;
     $('connSelInfo').textContent = conn.sel.length ? conn.sel.length + (conn.sel.length === 1 ? ' knude valgt: ' : ' knuder valgt: ') + shortList(conn.sel.map(connName), 12) : 'Ingen knuder valgt.';
+    renderAsg();
     renderConnResults();
   }
   function renderConnResults() {
@@ -6833,15 +6937,113 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (directDownload(TC.allEndsCsv(conn.N, conn.sel, conn.M, conn.F.combos), name, 'text/csv;charset=utf-8')) connMsg('Henter <span class="mono">' + esc(name) + '</span>.');
     else connMsg('Browseren tillod ikke at gemme filen.', true);
   });
-  $('connSamling1').addEventListener('click', function () {
+  // ---------- samlingstyper: tildeling af stangender til samling 1–7 ----------
+  var ASG_KEY = CONN_KEY + '-samlinger';
+  function loadAsg() {
+    var a = TC.newAssign();
+    a.seeded = false;
+    try {
+      var o = JSON.parse(window.localStorage.getItem(ASG_KEY) || 'null');
+      if (o && typeof o === 'object') {
+        if (Array.isArray(o.names)) o.names.slice(0, TC.N_SAML).forEach(function (n, i) { a.names[i] = String(n || ''); });
+        ['types', 'nodes'].forEach(function (k) {
+          if (!o[k] || typeof o[k] !== 'object') return;
+          Object.keys(o[k]).forEach(function (key) {
+            var v = Number(o[k][key]);
+            if (v >= 0 && v <= TC.N_SAML && v === Math.floor(v)) a[k][key] = v;
+          });
+        });
+        a.seeded = !!o.seeded;
+      }
+    } catch (e) { /* ok */ }
+    return a;
+  }
+  function storeAsg() { try { window.localStorage.setItem(ASG_KEY, JSON.stringify(conn.asg)); } catch (e) { /* kun i hukommelsen */ } }
+  function samlLabel(n) { var nm = conn.asg.names[n - 1]; return 'Samling ' + n + (nm ? ' · ' + nm : ''); }
+  function samlOpts(v, none) {
+    var o = '<option value="0"' + (v ? '' : ' selected') + '>' + (none || '–') + '</option>';
+    for (var n = 1; n <= TC.N_SAML; n++) o += '<option value="' + n + '"' + (v === n ? ' selected' : '') + '>' + esc(samlLabel(n)) + '</option>';
+    return o;
+  }
+  function renderAsg() {
+    if (!conn.asg) conn.asg = loadAsg();
+    var A = conn.asg, key = TC.asgKey;
+    if (conn.N && !A.seeded) { TC.seedAssign(A, conn.N); A.seeded = true; storeAsg(); }
+    if (!$('connNames').children.length) $('connNames').innerHTML = A.names.map(function (nm, i) {
+      return '<label class="asgrow"><span class="rl">Samling ' + (i + 1) + '</span><input type="text" data-saml="' + (i + 1) + '" value="' + esc(nm) + '" placeholder="Beskrivelse"></label>';
+    }).join('');
+    var tr = conn.N ? TC.typeRoles(conn.N) : {};
+    $('connAsg').innerHTML = conn.N ? conn.N.types.map(function (t) {
+      return '<div class="asgtype"><h3>' + esc(t.name) + ' <span class="hint">' + t.nodes.length + (t.nodes.length === 1 ? ' knude' : ' knuder') + '</span></h3>' +
+        (tr[t.name] || []).map(function (role) {
+          return '<label class="asgrow"><span class="rl">' + esc(role) + '</span><select data-type="' + esc(t.name) + '" data-role="' + esc(role) + '">' +
+            samlOpts(A.types[key(t.name, role)] || 0) + '</select></label>';
+        }).join('') + '</div>';
+    }).join('') : '<p class="hint">Knudetyperne vises, når modellen er gyldig.</p>';
+    // undtagelser for de valgte knuder
+    var sel = connSelSet(), selNodes = conn.N ? conn.N.nodes.filter(function (nd) { return sel[nd.id]; }) : [], roles = [];
+    selNodes.forEach(function (nd) { nd.ends.forEach(function (e) { if (roles.indexOf(e.role) < 0) roles.push(e.role); }); });
+    var prevRole = $('connXRole').value, prevSaml = Number($('connXSaml').value) || 0;
+    $('connXRole').innerHTML = roles.length ? roles.map(function (r) { return '<option' + (r === prevRole ? ' selected' : '') + '>' + esc(r) + '</option>'; }).join('') : '<option value="">Vælg knuder i planen</option>';
+    $('connXSaml').innerHTML = samlOpts(prevSaml, 'Ingen samling');
+    $('connXRole').disabled = $('connXSaml').disabled = $('connXSet').disabled = !roles.length;
+    $('connXClear').disabled = !selNodes.some(function (nd) { return nd.ends.some(function (e) { return A.nodes[key(nd.id, e.role)] !== undefined; }); });
+    // hvor mange knuder hver samling har
+    var info = '';
+    if (conn.N) {
+      var cnt = [], nEx = 0, parts = [];
+      for (var n = 1; n <= TC.N_SAML; n++) cnt[n] = {};
+      conn.N.nodes.forEach(function (nd) {
+        nd.ends.forEach(function (e) {
+          var s = TC.samlingOf(A, nd, e.role);
+          if (s) cnt[s][nd.name] = true;
+          if (A.nodes[key(nd.id, e.role)] !== undefined) nEx++;
+        });
+      });
+      for (n = 1; n <= TC.N_SAML; n++) {
+        var k = Object.keys(cnt[n]).length;
+        if (k) parts.push('Samling ' + n + ': ' + k + (k === 1 ? ' knude' : ' knuder'));
+      }
+      info = (parts.length ? parts.join(' · ') : 'Ingen stænger er tildelt en samling.') + (nEx ? ' · ' + nEx + (nEx === 1 ? ' undtagelse' : ' undtagelser') : '');
+    }
+    $('connAsgInfo').textContent = info;
+    $('connSamlXlsx').disabled = !(conn.F && conn.M && conn.N);
+  }
+  $('connNames').addEventListener('input', function (e) {
+    var n = Number(e.target.dataset && e.target.dataset.saml);
+    if (!n) return;
+    conn.asg.names[n - 1] = e.target.value;
+    storeAsg(); renderAsg();
+  });
+  $('connAsg').addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t.dataset || t.dataset.role === undefined) return;
+    var k = TC.asgKey(t.dataset.type, t.dataset.role), v = Number(t.value) || 0;
+    if (v) conn.asg.types[k] = v; else delete conn.asg.types[k];
+    storeAsg(); renderAsg();
+  });
+  $('connXSet').addEventListener('click', function () {
+    var role = $('connXRole').value, v = Number($('connXSaml').value) || 0, sel = connSelSet();
+    if (!role || !conn.N) return;
+    conn.N.nodes.forEach(function (nd) {
+      if (sel[nd.id] && nd.ends.some(function (e) { return e.role === role; })) conn.asg.nodes[TC.asgKey(nd.id, role)] = v;
+    });
+    storeAsg(); renderAsg();
+  });
+  $('connXClear').addEventListener('click', function () {
+    var sel = connSelSet();
+    Object.keys(conn.asg.nodes).forEach(function (k) { if (sel[k.slice(0, k.lastIndexOf('|'))]) delete conn.asg.nodes[k]; });
+    storeAsg(); renderAsg();
+  });
+  $('connSamlXlsx').addEventListener('click', function () {
+    var m = $('connAsgMsg');
     if (!conn.F || !conn.N || !conn.M) return;
-    var name = fileBase(TR.normalizeParams(params)) + '_samling1.xlsx';
-    // alle knuder i modellen, så arket selv vælger dem, samlingen gælder for
-    var ends = TC.endRows(conn.N, conn.N.nodes.map(function (nd) { return nd.id; }), conn.M, conn.F.combos);
-    TC.samling1Xlsx(ends).then(function (data) {
-      if (directDownload(data, name, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')) connMsg('Henter <span class="mono">' + esc(name) + '</span> med ' + ends.length + ' stangender.');
-      else connMsg('Browseren tillod ikke at gemme filen.', true);
-    }, function () { connMsg('Excel-arket kunne ikke laves i denne browser.', true); });
+    var name = fileBase(TR.normalizeParams(params)) + '_samlinger.xlsx';
+    TC.samlingerXlsx(conn.N, conn.M, conn.F.combos, conn.asg).then(function (data) {
+      var ok = directDownload(data, name, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      m.innerHTML = ok ? 'Henter <span class="mono">' + esc(name) + '</span>.' : 'Browseren tillod ikke at gemme filen.';
+      m.classList.toggle('bad', !ok);
+    }, function () { m.textContent = 'Excel-arket kunne ikke laves i denne browser.'; m.classList.add('bad'); });
   });
   // klik på knuderne i planen
   function nearestNode(q, tol) {
