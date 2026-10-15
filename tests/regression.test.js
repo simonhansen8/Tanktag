@@ -337,8 +337,8 @@ test('vindgitteret skrives med knudenavnene fra FEM-Design, og den gamle form "2
   assert.deepEqual(fejl.braceErrors, ['Vindgitter: "KSL.1" peger ud over svøbet.']);
 });
 
-test('sne på kuppeltag følger 5.3.5: μ3 = 0,2 + 10 h/b, trekanterne i fig. 5.6 og DK NA fig. 5.5.b/c', () => {
-  const p = TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { snowDk: true, snowMu4: '1,2', asymDir: 30 }));
+test('sne på kuppeltag følger 5.3.5: μ3 = 0,2 + 10 h/b og trekanterne i fig. 5.6 i hvert snit gennem toppen', () => {
+  const p = TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { asymDir: 30 }));
   const L = TR.computeLoads(TR.computeGeometry(p));
   assert.deepEqual(L.errors, []);
   const sd = L.snow.dome, R = p.tankDiameter / 2;
@@ -349,20 +349,19 @@ test('sne på kuppeltag følger 5.3.5: μ3 = 0,2 + 10 h/b, trekanterne i fig. 5.
   const Ap = L.panels.reduce((a, pp) => a + pp.areaProj, 0);
   const byKey = Object.fromEntries(L.cases.map((c) => [c.key, c]));
   const share = (k) => -byKey[k].F[2] / (L.snow.s0 * Ap);
-  // gennemsnittet af profilet over l_s: (½μ3 + μ3)/4 og (½μ4 + μ4)/4, og ingen flade over toppunktet
+  // over kuplens areal er middelværdien (½μ3 + μ3)/4 som i snittet, og ingen flade over toppunktet
   assert.ok(Math.abs(share('snowUniform') - 0.8) < 1e-9);
-  assert.ok(Math.abs(share('snowAsym') / (0.375 * sd.mu3) - 1) < 0.05);
-  assert.ok(Math.abs(share('snowDk') / (0.375 * 1.2) - 1) < 0.05);
+  assert.ok(Math.abs(share('snowAsym') / (0.375 * sd.mu3) - 1) < 0.02);
   assert.ok(Math.max(...byKey.snowAsym.mu) <= sd.mu3 + 1e-12);
-  assert.ok(Math.max(...byKey.snowDk.mu) <= 1.2 + 1e-12);
-  // læsiden (mod θ) bærer mest
+  // fladerne langs skillelinjen har sne; profilet er kun 0 ved toppen og ved kanten
   const ad = p.asymDir * Math.PI / 180;
-  const lee = (c) => L.panels.reduce((a, pp, i) => a + ((pp.centroid[0] * Math.cos(ad) + pp.centroid[1] * Math.sin(ad) > 0) ? c.mu[i] * pp.areaProj : 0), 0);
-  ['snowAsym', 'snowDk'].forEach((k) => assert.ok(lee(byKey[k]) > 0.6 * -byKey[k].F[2] / L.snow.s0, k + ': mest på læsiden'));
-  // μ4 skal angives, og det ekstra tilfælde findes kun på kuppeltag
-  const tom = TR.computeLoads(TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { snowDk: true }))));
-  assert.equal(tom.errors.length, 1);
-  const kegle = TR.computeLoads(TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { roofType: 'cone', snowDk: true }))));
-  assert.deepEqual(kegle.errors, []);
-  assert.ok(!kegle.cases.some((c) => c.key === 'snowDk'));
+  const langs = L.panels.map((pp, i) => i).filter((i) => {
+    const [x, y] = L.panels[i].centroid, r = Math.hypot(x, y);
+    return Math.abs(x * Math.cos(ad) + y * Math.sin(ad)) < 1.5 && r > 2 && r < 0.8 * R;
+  });
+  assert.ok(langs.length >= 4);
+  langs.forEach((i) => assert.ok(byKey.snowAsym.mu[i] > 0.2, L.panels[i].cover.name + ' har sne'));
+  // læsiden (mod θ) bærer to tredjedele
+  const lee = L.panels.reduce((a, pp, i) => a + ((pp.centroid[0] * Math.cos(ad) + pp.centroid[1] * Math.sin(ad) > 0) ? byKey.snowAsym.mu[i] * pp.areaProj : 0), 0);
+  assert.ok(lee > 0.6 * -byKey.snowAsym.F[2] / L.snow.s0, 'mest på læsiden');
 });

@@ -12,7 +12,7 @@ Nyttelast, punkt	Korttids	1	1,50	0,00
 Gangbro, egenlast	Permanent	5	16,40	0,00
 Gangbro, nyttelast	Korttids	5	25,71	0,00
 Sne, jævn	Korttids	217	730,24	0,00
-Sne, ensidig	Korttids	210	369,53	0,00
+Sne, ensidig	Korttids	217	362,41	0,00
 Vind 0°	Øjeblikkelig	217	−854,91	46,56
 Overtryk	Korttids	217	−136,92	0,00
 Undertryk	Korttids	217	228,20	0,00
@@ -46,7 +46,7 @@ Gangbro, nyttelast	q = q_k · b = 2 · 0,8 = 1,6 kN/m på den vandrette længde	
 
 5. Snelast
 ==========
-DS/EN 1991-1-3 med DK NA. Kuppeltaget regnes som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så profilet i fig. 5.6 lægges i snittet gennem centrum langs θ = 0° (mod læsiden), og for hver flade skaleres det til kuplens korde gennem fladens tyngdepunkt. Fladen får μ i tyngdepunktet. Snelasten virker lodret på den vandrette projektion.
+DS/EN 1991-1-3 med DK NA. Kuppeltaget regnes som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så profilet i fig. 5.6 bruges i hvert lodret snit gennem toppen: på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° ligger læ-trekanten, og på luvsiden luv-trekanten, begge som funktion af afstanden fra toppen. Hver flade får middelværdien af μ over sin vandrette projektion. Snelasten virker lodret på den vandrette projektion.
 
 s = μ · C_e · C_t · s_k = μ · 1,0 · 1,0 · 1 kN/m² = μ · 1,000 kN/m²
 
@@ -64,17 +64,17 @@ Sne, ensidig. Fig. 5.6 tilfælde (ii): to trekanter over hver sin halvdel af l_s
 
 Sne, ensidig: flader i 8 bånd langs snittet
 Placering, andel af l_s	Flader	μ	A_proj, m²	s · A_proj, kN
-0,000–0,125	20	0,094–0,259	110,57	16,62
-0,125–0,250	35	0,274–0,526	125,77	51,19
-0,250–0,375	23	0,295–0,49	101,58	39,59
-0,375–0,500	29	0,0–0,222	113,83	15,77
-0,500–0,625	32	0,0–0,445	123,14	31,55
-0,625–0,750	23	0,59–0,979	101,58	79,19
-0,750–0,875	35	0,549–1,052	125,77	102,37
-0,875–1,000	20	0,188–0,517	110,57	33,25
-I alt	217		912,80	369,53
+0,000–0,125	48	0,093–0,253	215,19	30,55
+0,125–0,250	35	0,316–0,461	134,45	54,26
+0,250–0,375	11	0,407	55,52	22,58
+0,375–0,500	11	0,212	34,16	7,23
+0,500–0,625	14	0,061–0,424	43,48	16,63
+0,625–0,750	13	0,608–0,813	65,61	51,32
+0,750–0,875	37	0,633–0,922	149,20	118,72
+0,875–1,000	48	0,186–0,506	215,19	61,11
+I alt	217		912,80	362,41
 
-Lodret resultant i filen: 369,53 kN nedad.
+Lodret resultant i filen: 362,41 kN nedad.
 
 6. Vindlast
 ===========
@@ -434,8 +434,8 @@ STR Gangbro, nyttelast	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast +
 STR Gangbro, nyttelast + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Gangbro, nyttelast + 1,5 · Undertryk + 0,9 · Temperatur	765,93
 STR Sne, jævn	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, jævn + 1,5 · Undertryk	1.822,72
 STR Sne, jævn + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, jævn + 1,5 · Undertryk + 0,9 · Temperatur	1.822,72
-STR Sne, ensidig	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk	1.281,66
-STR Sne, ensidig + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk + 0,9 · Temperatur	1.281,66
+STR Sne, ensidig	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk	1.270,97
+STR Sne, ensidig + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk + 0,9 · Temperatur	1.270,97
 STR Vind 0°	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 1,5 · Vind 0° + 1,5 · Overtryk	−1.141,19
 STR Vind 0° + temperatur	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 1,5 · Vind 0° + 1,5 · Overtryk + 0,9 · Temperatur	−1.141,19
 STR Overtryk	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 0,45 · Vind 0° + 1,5 · Overtryk	−243,53
@@ -450,8 +450,8 @@ SLS kar. Gangbro, nyttelast	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gang
 SLS kar. Gangbro, nyttelast + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Gangbro, nyttelast + 1 · Undertryk + 0,6 · Temperatur	638,97
 SLS kar. Sne, jævn	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, jævn + 1 · Undertryk	1.343,50
 SLS kar. Sne, jævn + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, jævn + 1 · Undertryk + 0,6 · Temperatur	1.343,50
-SLS kar. Sne, ensidig	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk	982,80
-SLS kar. Sne, ensidig + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk + 0,6 · Temperatur	982,80
+SLS kar. Sne, ensidig	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk	975,67
+SLS kar. Sne, ensidig + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk + 0,6 · Temperatur	975,67
 SLS kar. Vind 0°	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Vind 0° + 1 · Overtryk	−606,77
 SLS kar. Vind 0° + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Vind 0° + 1 · Overtryk + 0,6 · Temperatur	−606,77
 SLS kar. Overtryk	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 0,3 · Vind 0° + 1 · Overtryk	−8,33
