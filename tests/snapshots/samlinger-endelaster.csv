@@ -1,687 +1,687 @@
 ﻿Knudetype;Stang;Tilfælde;N [kN];Ty' [kN];Tz' [kN];Mt [kNm];My' [kNm];Mz' [kNm];Resultant;Knude;Stang-id;Ende;Kombination
-RB ved ringbjælken;RB mod svøbet;Max N;152,462;-0,007;-3,593;0,004;31,473;-0,030;;1:R;RB1.1;start;6 STR Vind 0°
-RB ved ringbjælken;RB mod svøbet;Min N;-192,623;0,035;7,089;-0,048;-14,613;0,141;;7:R;RB7.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Max Ty';147,842;0,048;-11,750;0,015;21,583;0,084;;15:R;RB15.1;start;6 STR Vind 0°
-RB ved ringbjælken;RB mod svøbet;Min Ty';-130,848;-0,061;16,204;0,032;-13,325;-0,166;;23:R;RB23.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Max Tz';-190,383;-0,001;18,070;0,001;-15,089;-0,007;;1:R;RB1.1;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RB mod svøbet;Min Tz';149,259;0,022;-13,461;0,006;22,921;0,027;;14:R;RB14.1;start;6 STR Vind 0°
-RB ved ringbjælken;RB mod svøbet;Max Mt;-128,515;-0,016;6,734;0,057;-19,001;-0,037;;19:R;RB19.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Min Mt;-111,241;0,032;10,456;-0,049;-22,625;0,122;;8:R;RB8.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Max My';148,059;-0,012;-4,736;0,012;32,416;-0,057;;24:R;RB24.1;start;6 STR Vind 0°
-RB ved ringbjælken;RB mod svøbet;Min My';-135,023;-0,036;1,574;0,022;-28,048;-0,087;;15:R;RB15.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Max Mz';-144,602;0,046;13,144;-0,036;-12,899;0,186;;5:R;RB5.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Min Mz';-130,848;-0,061;16,204;0,032;-13,325;-0,166;;23:R;RB23.1;start;5 STR Sne, ensidig
-RB ved ringbjælken;RB mod svøbet;Max V = √(Ty² + Tz²);-190,383;-0,001;18,070;0,001;-15,089;-0,007;18,070;1:R;RB1.1;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RB mod svøbet;Max M = √(My² + Mz²);148,059;-0,012;-4,736;0,012;32,416;-0,057;32,416;24:R;RB24.1;start;6 STR Vind 0°
-RB ved ringbjælken;RING mod uret;Max N;558,620;-8,540;18,300;-0,931;-100,826;-15,462;;8:R;RING.8;start;6 STR Vind 0°
-RB ved ringbjælken;RING mod uret;Min N;-668,607;0,007;-0,338;0,000;91,474;0,499;;3:R;RING.3;start;4 STR Sne, jævn
-RB ved ringbjælken;RING mod uret;Max Ty';-530,924;50,658;-32,297;0,663;73,953;0,259;;19:R;RING.19;start;5 STR Sne, ensidig
-RB ved ringbjælken;RING mod uret;Min Ty';-382,665;-48,703;3,309;-2,366;39,886;-24,937;;1:R;RING.1;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING mod uret;Max Tz';-538,329;-16,764;33,755;-1,713;73,609;-1,066;;8:R;RING.8;start;5 STR Sne, ensidig
-RB ved ringbjælken;RING mod uret;Min Tz';-530,924;50,658;-32,297;0,663;73,953;0,259;;19:R;RING.19;start;5 STR Sne, ensidig
-RB ved ringbjælken;RING mod uret;Max Mt;-381,965;43,396;-4,081;2,352;40,881;-13,602;;24:R;RING.24;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING mod uret;Min Mt;-382,665;-48,703;3,309;-2,366;39,886;-24,937;;1:R;RING.1;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING mod uret;Max My';-533,857;-7,850;-1,020;-0,032;103,011;-3,914;;13:R;RING.13;start;5 STR Sne, ensidig
-RB ved ringbjælken;RING mod uret;Min My';531,083;5,992;4,793;0,024;-121,841;13,638;;2:R;RING.2;start;6 STR Vind 0°
-RB ved ringbjælken;RING mod uret;Max Mz';531,083;5,992;4,793;0,024;-121,841;13,638;;2:R;RING.2;start;6 STR Vind 0°
-RB ved ringbjælken;RING mod uret;Min Mz';-382,665;-48,703;3,309;-2,366;39,886;-24,937;;1:R;RING.1;start;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING mod uret;Max V = √(Ty² + Tz²);-530,924;50,658;-32,297;0,663;73,953;0,259;60,078;19:R;RING.19;start;5 STR Sne, ensidig
-RB ved ringbjælken;RING mod uret;Max M = √(My² + Mz²);531,083;5,992;4,793;0,024;-121,841;13,638;122,602;2:R;RING.2;start;6 STR Vind 0°
-RB ved ringbjælken;RING med uret;Max N;558,620;-8,540;18,311;-0,931;-96,047;-13,233;;9:R;RING.8;slut;6 STR Vind 0°
-RB ved ringbjælken;RING med uret;Min N;-668,607;0,007;0,332;0,000;91,473;0,497;;4:R;RING.3;slut;4 STR Sne, jævn
-RB ved ringbjælken;RING med uret;Max Ty';-530,924;50,658;-31,627;0,663;65,610;-12,965;;20:R;RING.19;slut;5 STR Sne, ensidig
-RB ved ringbjælken;RING med uret;Min Ty';-382,665;-48,703;3,824;-2,366;40,817;-12,223;;2:R;RING.1;slut;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING med uret;Max Tz';-538,329;-16,764;34,428;-1,713;82,509;3,311;;9:R;RING.8;slut;5 STR Sne, ensidig
-RB ved ringbjælken;RING med uret;Min Tz';-530,924;50,658;-31,627;0,663;65,610;-12,965;;20:R;RING.19;slut;5 STR Sne, ensidig
-RB ved ringbjælken;RING med uret;Max Mt;-381,965;43,396;-3,565;2,352;39,883;-24,930;;1:R;RING.24;slut;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING med uret;Min Mt;-382,665;-48,703;3,824;-2,366;40,817;-12,223;;2:R;RING.1;slut;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING med uret;Max My';-533,321;3,851;8,722;0,073;103,020;-3,913;;13:R;RING.12;slut;5 STR Sne, ensidig
-RB ved ringbjælken;RING med uret;Min My';531,186;-6,774;-0,338;-0,023;-121,836;13,630;;2:R;RING.1;slut;6 STR Vind 0°
-RB ved ringbjælken;RING med uret;Max Mz';531,186;-6,774;-0,338;-0,023;-121,836;13,630;;2:R;RING.1;slut;6 STR Vind 0°
-RB ved ringbjælken;RING med uret;Min Mz';-381,965;43,396;-3,565;2,352;39,883;-24,930;;1:R;RING.24;slut;3 STR Gangbro, nyttelast
-RB ved ringbjælken;RING med uret;Max V = √(Ty² + Tz²);-530,924;50,658;-31,627;0,663;65,610;-12,965;59,720;20:R;RING.19;slut;5 STR Sne, ensidig
-RB ved ringbjælken;RING med uret;Max M = √(My² + Mz²);531,186;-6,774;-0,338;-0,023;-121,836;13,630;122,596;2:R;RING.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Max N;166,137;0,031;-10,069;0,004;25,455;-0,001;;1:1;RB1.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Min N;-197,538;0,002;14,449;0,001;23,814;-0,003;;1:1;RB1.2;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;RB mod svøbet;Max Ty';-181,947;0,193;14,017;0,059;8,039;0,032;;20:1;RB20.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Min Ty';-120,652;-0,196;11,676;-0,050;6,833;-0,003;;8:1;RB8.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Max Tz';-130,403;0,078;15,886;0,012;37,476;0,052;;1:1;RB1.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Min Tz';159,650;-0,024;-18,108;-0,006;-20,946;-0,020;;13:1;RB13.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Max Mt;-138,017;0,190;9,259;0,059;-4,468;0,024;;19:1;RB19.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Min Mt;-120,652;-0,196;11,676;-0,050;6,833;-0,003;;8:1;RB8.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Max My';-130,403;0,078;15,886;0,012;37,476;0,052;;1:1;RB1.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Min My';-161,193;0,024;5,140;-0,001;-40,003;0,040;;13:1;RB13.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod svøbet;Max Mz';124,948;-0,003;-10,764;-0,026;5,180;0,153;;8:1;RB8.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Min Mz';157,314;0,038;-16,089;0,024;-10,848;-0,076;;17:1;RB17.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Max V = √(Ty² + Tz²);159,650;-0,024;-18,108;-0,006;-20,946;-0,020;18,108;13:1;RB13.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod svøbet;Max M = √(My² + Mz²);-161,193;0,024;5,140;-0,001;-40,003;0,040;40,003;13:1;RB13.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Max N;152,295;-0,007;2,146;0,004;25,456;0,000;;1:1;RB1.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Min N;-191,271;-0,001;0,612;0,001;23,821;-0,003;;1:1;RB1.1;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;RB mod centrum;Max Ty';145,843;0,047;-4,602;0,029;-10,847;-0,074;;17:1;RB17.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Min Ty';124,478;-0,052;-0,865;-0,036;5,184;0,151;;8:1;RB8.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Max Tz';-121,998;-0,031;6,580;0,009;37,478;0,053;;1:1;RB1.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Min Tz';150,348;-0,002;-6,585;-0,005;-20,946;-0,020;;13:1;RB13.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Max Mt;-128,809;-0,016;-0,607;0,057;-4,469;0,028;;19:1;RB19.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Min Mt;-111,535;0,032;3,123;-0,049;6,838;-0,007;;8:1;RB8.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Max My';-121,998;-0,031;6,580;0,009;37,478;0,053;;1:1;RB1.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Min My';-151,392;-0,010;-6,355;-0,004;-40,003;0,040;;13:1;RB13.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;RB mod centrum;Max Mz';124,478;-0,052;-0,865;-0,036;5,184;0,151;;8:1;RB8.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Min Mz';145,843;0,047;-4,602;0,029;-10,847;-0,074;;17:1;RB17.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Max V = √(Ty² + Tz²);150,348;-0,002;-6,585;-0,005;-20,946;-0,020;6,585;13:1;RB13.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;RB mod centrum;Max M = √(My² + Mz²);-151,392;-0,010;-6,355;-0,004;-40,003;0,040;40,003;13:1;RB13.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1;UDV1 mod uret;Max N;54,354;-0,042;0,004;0,000;0,000;0,000;;2:1;UDV1.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 mod uret;Min N;-46,259;-0,047;0,005;0,000;0,000;0,000;;8:1;UDV1.8;start;4 STR Sne, jævn
-RB ved udvekslingsring 1;UDV1 mod uret;Max Ty';54,343;-0,042;0,004;0,000;0,000;0,000;;1:1;UDV1.1;start;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 mod uret;Min Ty';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Max Tz';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Min Tz';54,343;-0,042;0,004;0,000;0,000;0,000;;1:1;UDV1.1;start;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 mod uret;Max Mt;-26,050;-0,047;0,005;0,004;0,000;0,000;;24:1;UDV1.24;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;UDV1 mod uret;Min Mt;-26,047;-0,047;0,005;-0,004;0,000;0,000;;1:1;UDV1.1;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;UDV1 mod uret;Max My';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Min My';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Max Mz';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Min Mz';-13,596;-0,056;0,006;0,000;0,000;0,000;;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Max V = √(Ty² + Tz²);-13,596;-0,056;0,006;0,000;0,000;0,000;0,056;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 mod uret;Max M = √(My² + Mz²);-13,596;-0,056;0,006;0,000;0,000;0,000;0,000;1:1;UDV1.1;start;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Max N;54,354;0,042;-0,004;0,000;0,000;0,000;;3:1;UDV1.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 med uret;Min N;-46,260;0,047;-0,005;0,000;0,000;0,000;;8:1;UDV1.7;slut;4 STR Sne, jævn
-RB ved udvekslingsring 1;UDV1 med uret;Max Ty';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Min Ty';54,304;0,042;-0,004;0,001;0,000;0,000;;1:1;UDV1.24;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 med uret;Max Tz';54,304;0,042;-0,004;0,001;0,000;0,000;;1:1;UDV1.24;slut;6 STR Vind 0°
-RB ved udvekslingsring 1;UDV1 med uret;Min Tz';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Max Mt;-26,050;0,047;-0,005;0,004;0,000;0,000;;1:1;UDV1.24;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;UDV1 med uret;Min Mt;-26,047;0,047;-0,005;-0,004;0,000;0,000;;2:1;UDV1.1;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 1;UDV1 med uret;Max My';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Min My';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Max Mz';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Min Mz';-13,598;0,056;-0,006;0,000;0,000;0,000;;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Max V = √(Ty² + Tz²);-13,598;0,056;-0,006;0,000;0,000;0,000;0,056;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 1;UDV1 med uret;Max M = √(My² + Mz²);-13,598;0,056;-0,006;0,000;0,000;0,000;0,000;1:1;UDV1.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;RB mod svøbet;Max N;181,144;-0,052;-12,151;-0,001;10,000;-0,094;;1:2;RB1.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod svøbet;Min N;-206,873;-0,002;11,360;0,000;43,604;-0,010;;1:2;RB1.3;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 2;RB mod svøbet;Max Ty';-131,141;0,167;10,104;-0,015;27,469;0,593;;8:2;RB8.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Min Ty';-165,492;-0,075;12,350;0,006;55,657;-0,319;;24:2;RB24.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Max Tz';-203,627;-0,001;13,858;0,000;21,895;0,000;;24:2;RB24.3;start;4 STR Sne, jævn
-RB ved udvekslingsring 2;RB mod svøbet;Min Tz';176,344;-0,007;-17,085;-0,003;-56,463;0,054;;13:2;RB13.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod svøbet;Max Mt;-149,981;0,015;9,093;0,027;8,869;-0,553;;19:2;RB19.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Min Mt;155,356;-0,039;-13,778;-0,017;-34,384;0,161;;9:2;RB9.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod svøbet;Max My';-142,889;-0,044;12,293;0,002;66,593;-0,183;;1:2;RB1.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Min My';176,344;-0,007;-17,085;-0,003;-56,463;0,054;;13:2;RB13.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod svøbet;Max Mz';-131,141;0,167;10,104;-0,015;27,469;0,593;;8:2;RB8.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Min Mz';-194,171;0,005;13,432;0,026;31,495;-0,554;;20:2;RB20.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod svøbet;Max V = √(Ty² + Tz²);176,344;-0,007;-17,085;-0,003;-56,463;0,054;17,085;13:2;RB13.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod svøbet;Max M = √(My² + Mz²);-142,889;-0,044;12,293;0,002;66,593;-0,183;66,593;1:2;RB1.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Max N;165,744;0,031;0,461;0,004;10,000;-0,094;;1:2;RB1.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod centrum;Min N;-199,118;0,002;-1,658;0,001;43,605;-0,010;;1:2;RB1.2;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 2;RB mod centrum;Max Ty';-183,145;0,193;0,893;0,059;31,496;-0,552;;20:2;RB20.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Min Ty';-121,469;-0,196;1,523;-0,050;27,470;0,591;;8:2;RB8.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Max Tz';-131,601;0,078;2,764;0,012;66,594;-0,183;;1:2;RB1.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Min Tz';132,071;0,027;-5,024;0,018;-53,296;-0,158;;16:2;RB16.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod centrum;Max Mt;-138,834;0,190;-0,891;0,059;8,868;-0,550;;19:2;RB19.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Min Mt;-121,469;-0,196;1,523;-0,050;27,470;0,591;;8:2;RB8.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Max My';-131,601;0,078;2,764;0,012;66,594;-0,183;;1:2;RB1.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Min My';159,257;-0,024;-4,614;-0,006;-56,463;0,054;;13:2;RB13.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod centrum;Max Mz';-121,469;-0,196;1,523;-0,050;27,470;0,591;;8:2;RB8.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Min Mz';-183,145;0,193;0,893;0,059;31,496;-0,552;;20:2;RB20.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;RB mod centrum;Max V = √(Ty² + Tz²);132,071;0,027;-5,024;0,018;-53,296;-0,158;5,024;16:2;RB16.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;RB mod centrum;Max M = √(My² + Mz²);-131,601;0,078;2,764;0,012;66,594;-0,183;66,594;1:2;RB1.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2;UDV2 mod uret;Max N;68,978;-0,067;0,011;-0,001;0,000;0,000;;8:2;UDV2.8;start;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 mod uret;Min N;-56,941;-0,074;0,012;0,000;0,000;0,000;;3:2;UDV2.3;start;4 STR Sne, jævn
-RB ved udvekslingsring 2;UDV2 mod uret;Max Ty';61,161;-0,067;0,011;0,000;0,000;0,000;;1:2;UDV2.1;start;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 mod uret;Min Ty';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Max Tz';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Min Tz';61,161;-0,067;0,011;0,000;0,000;0,000;;1:2;UDV2.1;start;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 mod uret;Max Mt;-43,530;-0,074;0,012;0,001;0,000;0,000;;16:2;UDV2.16;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2;UDV2 mod uret;Min Mt;-31,073;-0,074;0,012;-0,001;0,000;0,000;;1:2;UDV2.1;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 2;UDV2 mod uret;Max My';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Min My';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Max Mz';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Min Mz';-14,907;-0,089;0,014;0,000;0,000;0,000;;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Max V = √(Ty² + Tz²);-14,907;-0,089;0,014;0,000;0,000;0,000;0,090;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 mod uret;Max M = √(My² + Mz²);-14,907;-0,089;0,014;0,000;0,000;0,000;0,000;1:2;UDV2.1;start;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Max N;68,978;0,067;-0,011;-0,001;0,000;0,000;;9:2;UDV2.8;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 med uret;Min N;-56,941;0,074;-0,012;0,000;0,000;0,000;;4:2;UDV2.3;slut;4 STR Sne, jævn
-RB ved udvekslingsring 2;UDV2 med uret;Max Ty';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Min Ty';61,244;0,067;-0,011;0,000;0,000;0,000;;1:2;UDV2.24;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 med uret;Max Tz';61,244;0,067;-0,011;0,000;0,000;0,000;;1:2;UDV2.24;slut;6 STR Vind 0°
-RB ved udvekslingsring 2;UDV2 med uret;Min Tz';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Max Mt;-31,069;0,074;-0,012;0,001;0,000;0,000;;1:2;UDV2.24;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 2;UDV2 med uret;Min Mt;-31,073;0,074;-0,012;-0,001;0,000;0,000;;2:2;UDV2.1;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 2;UDV2 med uret;Max My';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Min My';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Max Mz';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Min Mz';-14,906;0,089;-0,014;0,000;0,000;0,000;;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Max V = √(Ty² + Tz²);-14,906;0,089;-0,014;0,000;0,000;0,000;0,090;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 2;UDV2 med uret;Max M = √(My² + Mz²);-14,906;0,089;-0,014;0,000;0,000;0,000;0,000;1:2;UDV2.24;slut;1 STR 6.10a
-RB ved udvekslingsring 3;RB mod svøbet;Max N;215,733;0,000;2,719;0,001;-75,831;0,071;;13:3;RB13.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod svøbet;Min N;-237,557;-0,269;-5,532;-0,010;37,219;0,085;;8:3;RB8.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max Ty';-188,179;0,122;5,681;-0,001;-23,412;-0,240;;16:3;RB16.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Min Ty';-237,557;-0,269;-5,532;-0,010;37,219;0,085;;8:3;RB8.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max Tz';-188,179;0,122;5,681;-0,001;-23,412;-0,240;;16:3;RB16.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Min Tz';-237,557;-0,269;-5,532;-0,010;37,219;0,085;;8:3;RB8.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max Mt;191,668;0,106;-2,488;0,004;-10,871;0,038;;24:3;RB24.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod svøbet;Min Mt;-237,557;-0,269;-5,532;-0,010;37,219;0,085;;8:3;RB8.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max My';-173,202;0,045;-4,307;-0,001;76,630;-0,050;;1:3;RB1.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Min My';215,733;0,000;2,719;0,001;-75,831;0,071;;13:3;RB13.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod svøbet;Max Mz';195,145;-0,116;0,661;-0,001;-48,304;0,259;;9:3;RB9.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod svøbet;Min Mz';-170,793;0,059;0,010;-0,009;15,520;-0,599;;19:3;RB19.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max V = √(Ty² + Tz²);-188,179;0,122;5,681;-0,001;-23,412;-0,240;5,682;16:3;RB16.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod svøbet;Max M = √(My² + Mz²);-173,202;0,045;-4,307;-0,001;76,630;-0,050;76,630;1:3;RB1.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Max N;180,414;-0,053;3,509;-0,001;-3,704;0,065;;1:3;RB1.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod centrum;Min N;-209,355;-0,002;-7,295;0,000;50,062;-0,005;;1:3;RB1.3;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;RB mod centrum;Max Ty';-132,758;0,167;-3,976;-0,015;37,207;0,084;;8:3;RB8.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Min Ty';-167,915;-0,075;-5,998;0,006;65,867;-0,089;;24:3;RB24.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Max Tz';151,576;-0,001;5,593;-0,016;-21,375;0,185;;8:3;RB8.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod centrum;Min Tz';-209,355;-0,002;-7,295;0,000;50,062;-0,005;;1:3;RB1.3;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;RB mod centrum;Max Mt;-151,598;0,015;-4,986;0,027;15,519;-0,598;;19:3;RB19.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Min Mt;154,627;-0,024;5,061;-0,017;-48,301;0,259;;9:3;RB9.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod centrum;Max My';-145,312;-0,044;-6,052;0,002;76,629;-0,050;;1:3;RB1.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Min My';175,614;-0,005;4,856;-0,003;-75,832;0,071;;13:3;RB13.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod centrum;Max Mz';154,627;-0,024;5,061;-0,017;-48,301;0,259;;9:3;RB9.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;RB mod centrum;Min Mz';-151,598;0,015;-4,986;0,027;15,519;-0,598;;19:3;RB19.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;RB mod centrum;Max V = √(Ty² + Tz²);-209,355;-0,002;-7,295;0,000;50,062;-0,005;7,295;1:3;RB1.3;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;RB mod centrum;Max M = √(My² + Mz²);-145,312;-0,044;-6,052;0,002;76,629;-0,050;76,629;1:3;RB1.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;UDV3 mod uret;Max N;169,726;1,383;-7,390;0,002;0,000;0,000;;8:3;UDV3.8;start;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 mod uret;Min N;-117,042;-1,387;7,099;-0,001;0,000;0,000;;5:3;UDV3.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;UDV3 mod uret;Max Ty';169,323;1,678;-9,507;0,000;0,000;0,000;;13:3;UDV3.13;start;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 mod uret;Min Ty';-114,702;-1,618;7,087;0,000;0,000;0,000;;8:3;UDV3.8;start;4 STR Sne, jævn
-RB ved udvekslingsring 3;UDV3 mod uret;Max Tz';-116,720;-1,086;7,120;0,000;0,000;0,000;;24:3;UDV3.24;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3;UDV3 mod uret;Min Tz';169,323;1,678;-9,507;0,000;0,000;0,000;;13:3;UDV3.13;start;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 mod uret;Max Mt;-62,746;-1,106;3,856;0,006;0,000;0,000;;1:3;UDV3.1;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;UDV3 mod uret;Min Mt;-62,756;-1,109;3,861;-0,006;0,000;0,000;;24:3;UDV3.24;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;UDV3 mod uret;Max My';-25,261;-0,467;2,037;0,000;0,000;0,000;;1:3;UDV3.1;start;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 mod uret;Min My';-25,261;-0,467;2,037;0,000;0,000;0,000;;1:3;UDV3.1;start;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 mod uret;Max Mz';-25,261;-0,467;2,037;0,000;0,000;0,000;;1:3;UDV3.1;start;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 mod uret;Min Mz';-25,261;-0,467;2,037;0,000;0,000;0,000;;1:3;UDV3.1;start;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 mod uret;Max V = √(Ty² + Tz²);169,323;1,678;-9,507;0,000;0,000;0,000;9,654;13:3;UDV3.13;start;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 mod uret;Max M = √(My² + Mz²);-25,261;-0,467;2,037;0,000;0,000;0,000;0,000;1:3;UDV3.1;start;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 med uret;Max N;169,686;-1,383;7,384;0,002;0,000;0,000;;9:3;UDV3.8;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 med uret;Min N;-117,841;1,381;-5,472;-0,006;0,000;0,000;;8:3;UDV3.7;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;UDV3 med uret;Max Ty';-114,703;1,626;-7,087;0,000;0,000;0,000;;8:3;UDV3.7;slut;4 STR Sne, jævn
-RB ved udvekslingsring 3;UDV3 med uret;Min Ty';122,331;-1,675;5,951;-0,001;0,000;0,000;;1:3;UDV3.24;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 med uret;Max Tz';169,322;-1,668;9,409;-0,001;0,000;0,000;;13:3;UDV3.12;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 med uret;Min Tz';-116,701;1,086;-7,117;0,000;0,000;0,000;;1:3;UDV3.24;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3;UDV3 med uret;Max Mt;-62,752;1,106;-3,861;0,006;0,000;0,000;;2:3;UDV3.1;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;UDV3 med uret;Min Mt;-62,749;1,109;-3,855;-0,006;0,000;0,000;;1:3;UDV3.24;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 3;UDV3 med uret;Max My';-25,263;0,477;-2,037;0,000;0,000;0,000;;1:3;UDV3.24;slut;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 med uret;Min My';-25,263;0,477;-2,037;0,000;0,000;0,000;;1:3;UDV3.24;slut;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 med uret;Max Mz';-25,263;0,477;-2,037;0,000;0,000;0,000;;1:3;UDV3.24;slut;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 med uret;Min Mz';-25,263;0,477;-2,037;0,000;0,000;0,000;;1:3;UDV3.24;slut;1 STR 6.10a
-RB ved udvekslingsring 3;UDV3 med uret;Max V = √(Ty² + Tz²);169,322;-1,668;9,409;-0,001;0,000;0,000;9,556;13:3;UDV3.12;slut;6 STR Vind 0°
-RB ved udvekslingsring 3;UDV3 med uret;Max M = √(My² + Mz²);-25,263;0,477;-2,037;0,000;0,000;0,000;0,000;1:3;UDV3.24;slut;1 STR 6.10a
-RB ved udvekslingsring 4;RB mod svøbet;Max N;214,241;0,021;5,226;0,006;-44,023;0,068;;13:4;RB13.5;start;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod svøbet;Min N;-244,224;0,278;2,704;0,047;11,476;0,896;;7:4;RB7.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max Ty';-234,433;0,285;0,638;0,047;9,371;0,917;;8:4;RB8.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Min Ty';-213,861;-0,250;-1,216;-0,057;24,106;-0,806;;20:4;RB20.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max Tz';-184,161;-0,191;8,690;-0,039;-16,573;-0,616;;16:4;RB16.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Min Tz';-172,461;-0,058;-7,419;-0,013;44,093;-0,188;;1:4;RB1.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max Mt;-244,224;0,278;2,704;0,047;11,476;0,896;;7:4;RB7.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Min Mt;-167,453;-0,241;2,052;-0,057;4,816;-0,777;;19:4;RB19.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max My';-172,461;-0,058;-7,419;-0,013;44,093;-0,188;;1:4;RB1.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Min My';213,046;-0,028;5,353;-0,004;-44,433;-0,092;;14:4;RB14.5;start;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod svøbet;Max Mz';-234,433;0,285;0,638;0,047;9,371;0,917;;8:4;RB8.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Min Mz';-213,861;-0,250;-1,216;-0,057;24,106;-0,806;;20:4;RB20.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max V = √(Ty² + Tz²);-184,161;-0,191;8,690;-0,039;-16,573;-0,616;8,692;16:4;RB16.5;start;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod svøbet;Max M = √(My² + Mz²);213,046;-0,028;5,353;-0,004;-44,433;-0,092;44,433;14:4;RB14.5;start;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod centrum;Max N;214,977;0,002;18,182;0,001;-44,021;0,068;;13:4;RB13.4;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod centrum;Min N;-248,138;-0,238;-11,166;-0,008;11,476;0,897;;7:4;RB7.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max Ty';-223,804;0,167;-19,272;0,002;42,089;-0,668;;23:4;RB23.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Min Ty';-238,397;-0,269;-12,585;-0,010;9,368;0,918;;8:4;RB8.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max Tz';213,781;0,024;18,234;0,001;-44,430;-0,092;;14:4;RB14.4;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod centrum;Min Tz';-223,804;0,167;-19,272;0,002;42,089;-0,668;;23:4;RB23.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max Mt;180,421;0,118;5,444;0,005;0,624;-0,439;;23:4;RB23.4;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod centrum;Min Mt;-238,397;-0,269;-12,585;-0,010;9,368;0,918;;8:4;RB8.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max My';-175,452;0,045;-16,953;-0,001;44,090;-0,189;;1:4;RB1.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Min My';213,781;0,024;18,234;0,001;-44,430;-0,092;;14:4;RB14.4;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;RB mod centrum;Max Mz';-238,397;-0,269;-12,585;-0,010;9,368;0,918;;8:4;RB8.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Min Mz';-217,645;0,076;-13,192;-0,008;24,104;-0,808;;20:4;RB20.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max V = √(Ty² + Tz²);-223,804;0,167;-19,272;0,002;42,089;-0,668;19,273;23:4;RB23.4;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 4;RB mod centrum;Max M = √(My² + Mz²);213,781;0,024;18,234;0,001;-44,430;-0,092;44,430;14:4;RB14.4;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 mod uret;Max N;20,689;-0,063;0,018;0,001;0,000;0,000;;7:4;UDV4.13;start;4 STR Sne, jævn
-RB ved udvekslingsring 4;UDV4 mod uret;Min N;-8,690;-0,057;0,016;0,000;0,000;0,000;;1:4;UDV4.1;start;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 mod uret;Max Ty';-8,690;-0,057;0,016;0,000;0,000;0,000;;1:4;UDV4.1;start;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 mod uret;Min Ty';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Max Tz';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Min Tz';-8,690;-0,057;0,016;0,000;0,000;0,000;;1:4;UDV4.1;start;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 mod uret;Max Mt;12,709;-0,063;0,018;0,002;0,000;0,000;;1:4;UDV4.1;start;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 4;UDV4 mod uret;Min Mt;-7,181;-0,057;0,016;-0,002;0,000;0,000;;7:4;UDV4.13;start;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 mod uret;Max My';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Min My';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Max Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Min Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Max V = √(Ty² + Tz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,079;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 mod uret;Max M = √(My² + Mz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,000;1:4;UDV4.1;start;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Max N;20,689;0,063;-0,018;-0,001;0,000;0,000;;8:4;UDV4.14;slut;4 STR Sne, jævn
-RB ved udvekslingsring 4;UDV4 med uret;Min N;-8,689;0,057;-0,016;0,000;0,000;0,000;;2:4;UDV4.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 med uret;Max Ty';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Min Ty';-8,605;0,057;-0,016;0,000;0,000;0,000;;1:4;UDV4.48;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 med uret;Max Tz';-8,605;0,057;-0,016;0,000;0,000;0,000;;1:4;UDV4.48;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 med uret;Min Tz';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Max Mt;-6,637;0,057;-0,016;0,002;0,000;0,000;;9:4;UDV4.16;slut;6 STR Vind 0°
-RB ved udvekslingsring 4;UDV4 med uret;Min Mt;12,714;0,063;-0,018;-0,002;0,000;0,000;;1:4;UDV4.48;slut;3 STR Gangbro, nyttelast
-RB ved udvekslingsring 4;UDV4 med uret;Max My';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Min My';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Max Mz';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Min Mz';9,441;0,076;-0,022;0,000;0,000;0,000;;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Max V = √(Ty² + Tz²);9,441;0,076;-0,022;0,000;0,000;0,000;0,079;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved udvekslingsring 4;UDV4 med uret;Max M = √(My² + Mz²);9,441;0,076;-0,022;0,000;0,000;0,000;0,000;1:4;UDV4.48;slut;1 STR 6.10a
-RB ved svøbet;RB mod centrum;Max N;213,046;0,022;30,071;0,006;0,000;0,000;;13:S;RB13.5;slut;6 STR Vind 0°
-RB ved svøbet;RB mod centrum;Min N;-235,761;0,285;-8,912;0,047;0,000;0,000;;8:S;RB8.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Max Ty';-235,761;0,285;-8,912;0,047;0,000;0,000;;8:S;RB8.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Min Ty';-217,681;-0,250;-18,586;-0,057;0,000;0,000;;20:S;RB20.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Max Tz';213,046;0,022;30,071;0,006;0,000;0,000;;13:S;RB13.5;slut;6 STR Vind 0°
-RB ved svøbet;RB mod centrum;Min Tz';-176,281;-0,058;-24,789;-0,013;0,000;0,000;;1:S;RB1.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Max Mt;-235,761;0,285;-8,912;0,047;0,000;0,000;;8:S;RB8.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Min Mt;-168,780;-0,241;-7,498;-0,057;0,000;0,000;;19:S;RB19.5;slut;5 STR Sne, ensidig
-RB ved svøbet;RB mod centrum;Max My';-75,533;-0,001;-4,651;0,000;0,000;0,000;;1:S;RB1.5;slut;1 STR 6.10a
-RB ved svøbet;RB mod centrum;Min My';-75,533;-0,001;-4,651;0,000;0,000;0,000;;1:S;RB1.5;slut;1 STR 6.10a
-RB ved svøbet;RB mod centrum;Max Mz';-75,533;-0,001;-4,651;0,000;0,000;0,000;;1:S;RB1.5;slut;1 STR 6.10a
-RB ved svøbet;RB mod centrum;Min Mz';-75,533;-0,001;-4,651;0,000;0,000;0,000;;1:S;RB1.5;slut;1 STR 6.10a
-RB ved svøbet;RB mod centrum;Max V = √(Ty² + Tz²);213,046;0,022;30,071;0,006;0,000;0,000;30,071;13:S;RB13.5;slut;6 STR Vind 0°
-RB ved svøbet;RB mod centrum;Max M = √(My² + Mz²);-75,533;-0,001;-4,651;0,000;0,000;0,000;0,000;1:S;RB1.5;slut;1 STR 6.10a
-RB ved svøbet;KANT mod uret;Max N;879,606;-54,438;0,842;0,000;0,022;-69,263;;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Min N;-809,079;53,474;0,769;0,000;-0,007;61,949;;24:S;KANT24.1;start;6 STR Vind 0°
-RB ved svøbet;KANT mod uret;Max Ty';-802,151;53,786;0,770;0,000;-0,010;62,794;;16:S;KANT16.1;start;6 STR Vind 0°
-RB ved svøbet;KANT mod uret;Min Ty';879,606;-54,438;0,842;0,000;0,022;-69,263;;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Max Tz';275,098;-17,138;1,021;0,000;0,000;-19,103;;1:S;KANT1.1;start;1 STR 6.10a
-RB ved svøbet;KANT mod uret;Min Tz';-466,683;33,537;0,758;0,000;0,019;32,272;;8:S;KANT8.1;start;6 STR Vind 0°
-RB ved svøbet;KANT mod uret;Max Mt;275,098;-17,138;1,021;0,000;0,000;-19,103;;1:S;KANT1.1;start;1 STR 6.10a
-RB ved svøbet;KANT mod uret;Min Mt;275,098;-17,138;1,021;0,000;0,000;-19,103;;1:S;KANT1.1;start;1 STR 6.10a
-RB ved svøbet;KANT mod uret;Max My';879,606;-54,438;0,842;0,000;0,022;-69,263;;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Min My';803,136;-50,613;0,864;0,000;-0,028;-57,570;;20:S;KANT20.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Max Mz';-802,151;53,786;0,770;0,000;-0,010;62,794;;16:S;KANT16.1;start;6 STR Vind 0°
-RB ved svøbet;KANT mod uret;Min Mz';879,606;-54,438;0,842;0,000;0,022;-69,263;;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Max V = √(Ty² + Tz²);879,606;-54,438;0,842;0,000;0,022;-69,263;54,445;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT mod uret;Max M = √(My² + Mz²);879,606;-54,438;0,842;0,000;0,022;-69,263;69,263;8:S;KANT8.1;start;5 STR Sne, ensidig
-RB ved svøbet;KANT med uret;Max N;870,355;53,259;-0,862;0,000;-0,023;-69,278;;8:S;KANT7.2;slut;5 STR Sne, ensidig
-RB ved svøbet;KANT med uret;Min N;-787,676;-51,517;-0,763;0,000;0,006;61,953;;24:S;KANT23.2;slut;6 STR Vind 0°
-RB ved svøbet;KANT med uret;Max Ty';847,649;53,574;-0,851;0,000;0,000;-59,818;;8:S;KANT7.2;slut;4 STR Sne, jævn
-RB ved svøbet;KANT med uret;Min Ty';-787,378;-52,542;-0,761;0,000;0,011;62,800;;16:S;KANT15.2;slut;6 STR Vind 0°
-RB ved svøbet;KANT med uret;Max Tz';-653,516;-44,514;-0,758;0,000;0,017;49,172;;19:S;KANT18.2;slut;6 STR Vind 0°
-RB ved svøbet;KANT med uret;Min Tz';277,405;17,354;-1,021;0,000;0,000;-19,103;;1:S;KANT24.2;slut;1 STR 6.10a
-RB ved svøbet;KANT med uret;Max Mt;277,405;17,354;-1,021;0,000;0,000;-19,103;;1:S;KANT24.2;slut;1 STR 6.10a
-RB ved svøbet;KANT med uret;Min Mt;277,405;17,354;-1,021;0,000;0,000;-19,103;;1:S;KANT24.2;slut;1 STR 6.10a
-RB ved svøbet;KANT med uret;Max My';585,907;37,180;-0,839;0,000;0,027;-42,715;;19:S;KANT18.2;slut;5 STR Sne, ensidig
-RB ved svøbet;KANT med uret;Min My';870,355;53,259;-0,862;0,000;-0,023;-69,278;;8:S;KANT7.2;slut;5 STR Sne, ensidig
-RB ved svøbet;KANT med uret;Max Mz';-787,378;-52,542;-0,761;0,000;0,011;62,800;;16:S;KANT15.2;slut;6 STR Vind 0°
-RB ved svøbet;KANT med uret;Min Mz';870,355;53,259;-0,862;0,000;-0,023;-69,278;;8:S;KANT7.2;slut;5 STR Sne, ensidig
-RB ved svøbet;KANT med uret;Max V = √(Ty² + Tz²);847,649;53,574;-0,851;0,000;0,000;-59,818;53,581;8:S;KANT7.2;slut;4 STR Sne, jævn
-RB ved svøbet;KANT med uret;Max M = √(My² + Mz²);870,355;53,259;-0,862;0,000;-0,023;-69,278;69,278;8:S;KANT7.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max N;158,376;-0,027;-18,210;0,001;-21,136;-0,063;;14:1;RB14.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min N;-203,381;-0,171;11,980;-0,048;-1,600;0,003;;7:1;RB7.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Ty';-165,216;0,187;15,149;0,047;22,987;0,062;;22:1;RB22.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Ty';-203,381;-0,171;11,980;-0,048;-1,600;0,003;;7:1;RB7.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Tz';-139,714;0,173;16,821;0,037;36,194;0,074;;23:1;RB23.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Tz';158,376;-0,027;-18,210;0,001;-21,136;-0,063;;14:1;RB14.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Mt;-165,216;0,187;15,149;0,047;22,987;0,062;;22:1;RB22.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Mt;-203,381;-0,171;11,980;-0,048;-1,600;0,003;;7:1;RB7.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max My';-139,714;0,173;16,821;0,037;36,194;0,074;;23:1;RB23.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min My';-162,960;0,079;4,998;0,013;-40,254;0,049;;14:1;RB14.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Mz';114,445;-0,042;-14,052;-0,028;2,042;0,103;;7:1;RB7.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Mz';141,281;-0,032;-16,575;0,007;-15,706;-0,107;;15:1;RB15.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max V = √(Ty² + Tz²);158,376;-0,027;-18,210;0,001;-21,136;-0,063;18,210;14:1;RB14.2;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max M = √(My² + Mz²);-162,960;0,079;4,998;0,013;-40,254;0,049;40,254;14:1;RB14.2;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max N;149,093;0,022;-6,776;0,006;-21,137;-0,063;;14:1;RB14.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min N;-193,026;0,035;-2,109;-0,048;-1,604;0,000;;7:1;RB7.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Ty';147,675;0,047;-5,113;0,015;-15,704;-0,107;;15:1;RB15.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Ty';-131,251;-0,061;7,000;0,032;36,197;0,077;;23:1;RB23.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Tz';-131,251;-0,061;7,000;0,032;36,197;0,077;;23:1;RB23.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Tz';149,093;0,022;-6,776;0,006;-21,137;-0,063;;14:1;RB14.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Mt;-156,523;-0,055;3,446;0,043;22,986;0,065;;22:1;RB22.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Mt;-193,026;0,035;-2,109;-0,048;-1,604;0,000;;7:1;RB7.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max My';-131,251;-0,061;7,000;0,032;36,197;0,077;;23:1;RB23.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min My';-153,163;-0,025;-6,617;0,010;-40,256;0,050;;14:1;RB14.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Mz';132,273;-0,028;-3,114;-0,035;2,039;0,101;;7:1;RB7.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Mz';147,675;0,047;-5,113;0,015;-15,704;-0,107;;15:1;RB15.1;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max V = √(Ty² + Tz²);-131,251;-0,061;7,000;0,032;36,197;0,077;7,000;23:1;RB23.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max M = √(My² + Mz²);-153,163;-0,025;-6,617;0,010;-40,256;0,050;40,256;14:1;RB14.1;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max N;54,221;-0,042;0,004;-0,002;0,000;0,000;;6:1;UDV1.6;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min N;-46,260;-0,047;0,005;0,000;0,000;0,000;;7:1;UDV1.7;start;4 STR Sne, jævn
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Ty';54,221;-0,042;0,004;-0,002;0,000;0,000;;6:1;UDV1.6;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Ty';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Tz';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Tz';54,221;-0,042;0,004;-0,002;0,000;0,000;;6:1;UDV1.6;start;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Mt;-36,800;-0,047;0,005;0,002;0,000;0,000;;7:1;UDV1.7;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Mt;-35,648;-0,047;0,005;-0,002;0,000;0,000;;6:1;UDV1.6;start;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max My';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min My';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Mz';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Mz';-13,598;-0,056;0,006;0,000;0,000;0,000;;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max V = √(Ty² + Tz²);-13,598;-0,056;0,006;0,000;0,000;0,000;0,056;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max M = √(My² + Mz²);-13,598;-0,056;0,006;0,000;0,000;0,000;0,000;6:1;UDV1.6;start;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max N;54,258;0,042;-0,004;0,000;0,000;0,000;;6:1;UDV1.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min N;-46,259;0,047;-0,005;0,000;0,000;0,000;;7:1;UDV1.6;slut;4 STR Sne, jævn
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Ty';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Ty';54,258;0,042;-0,004;0,000;0,000;0,000;;6:1;UDV1.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Tz';54,258;0,042;-0,004;0,000;0,000;0,000;;6:1;UDV1.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Tz';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Mt;-35,697;0,047;-0,005;0,002;0,000;0,000;;23:1;UDV1.22;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Mt;-35,648;0,047;-0,005;-0,002;0,000;0,000;;7:1;UDV1.6;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max My';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min My';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Mz';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Mz';-13,596;0,056;-0,006;0,000;0,000;0,000;;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max V = √(Ty² + Tz²);-13,596;0,056;-0,006;0,000;0,000;0,000;0,056;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max M = √(My² + Mz²);-13,596;0,056;-0,006;0,000;0,000;0,000;0,000;6:1;UDV1.5;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max N;31,112;0,000;0,000;0,000;0,000;0,000;;14:1;VG.16;slut;6 STR Vind 0°
-RB ved udvekslingsring 1 + 1 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 1 + 1 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:1;VG.10;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max N;175,073;0,012;-17,111;0,003;-56,952;0,019;;14:2;RB14.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min N;-215,879;0,119;12,419;-0,017;15,701;0,521;;7:2;RB7.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Ty';-215,879;0,119;12,419;-0,017;15,701;0,521;;7:2;RB7.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Ty';-152,077;-0,099;13,481;0,010;68,136;-0,452;;23:2;RB23.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Tz';-203,626;0,001;13,858;0,000;21,895;0,000;;15:2;RB15.3;start;4 STR Sne, jævn
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Tz';175,073;0,012;-17,111;0,003;-56,952;0,019;;14:2;RB14.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Mt;-177,514;-0,058;13,588;0,017;49,864;-0,506;;22:2;RB22.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Mt;-174,778;0,077;12,881;-0,018;42,760;0,446;;6:2;RB6.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max My';-152,077;-0,099;13,481;0,010;68,136;-0,452;;23:2;RB23.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min My';175,073;0,012;-17,111;0,003;-56,952;0,019;;14:2;RB14.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Mz';-215,879;0,119;12,419;-0,017;15,701;0,521;;7:2;RB7.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Mz';-177,514;-0,058;13,588;0,017;49,864;-0,506;;22:2;RB22.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max V = √(Ty² + Tz²);175,073;0,012;-17,111;0,003;-56,952;0,019;17,111;14:2;RB14.3;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max M = √(My² + Mz²);-152,077;-0,099;13,481;0,010;68,136;-0,452;68,137;23:2;RB23.3;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max N;157,983;-0,027;-4,714;0,001;-56,953;0,019;;14:2;RB14.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min N;-204,578;-0,171;-1,142;-0,048;15,701;0,519;;7:2;RB7.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Ty';-166,413;0,187;2,024;0,047;49,864;-0,504;;22:2;RB22.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Ty';-204,578;-0,171;-1,142;-0,048;15,701;0,519;;7:2;RB7.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Tz';-140,911;0,173;3,699;0,037;68,136;-0,451;;23:2;RB23.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Tz';157,983;-0,027;-4,714;0,001;-56,953;0,019;;14:2;RB14.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Mt;-166,413;0,187;2,024;0,047;49,864;-0,504;;22:2;RB22.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Mt;-204,578;-0,171;-1,142;-0,048;15,701;0,519;;7:2;RB7.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max My';-140,911;0,173;3,699;0,037;68,136;-0,451;;23:2;RB23.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min My';157,983;-0,027;-4,714;0,001;-56,953;0,019;;14:2;RB14.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Mz';-204,578;-0,171;-1,142;-0,048;15,701;0,519;;7:2;RB7.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Mz';-166,413;0,187;2,024;0,047;49,864;-0,504;;22:2;RB22.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max V = √(Ty² + Tz²);157,983;-0,027;-4,714;0,001;-56,953;0,019;4,714;14:2;RB14.2;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max M = √(My² + Mz²);-140,911;0,173;3,699;0,037;68,136;-0,451;68,137;23:2;RB23.2;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max N;68,955;-0,067;0,011;0,000;0,000;0,000;;14:2;UDV2.14;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min N;-56,939;-0,074;0,012;0,000;0,000;0,000;;6:2;UDV2.6;start;4 STR Sne, jævn
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Ty';61,134;-0,067;0,011;-0,001;0,000;0,000;;6:2;UDV2.6;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Ty';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Tz';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Tz';61,134;-0,067;0,011;-0,001;0,000;0,000;;6:2;UDV2.6;start;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Mt;-43,112;-0,074;0,012;0,001;0,000;0,000;;14:2;UDV2.14;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Mt;-44,867;-0,074;0,012;-0,001;0,000;0,000;;6:2;UDV2.6;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max My';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min My';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Mz';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Mz';-14,906;-0,089;0,014;0,000;0,000;0,000;;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max V = √(Ty² + Tz²);-14,906;-0,089;0,014;0,000;0,000;0,000;0,090;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max M = √(My² + Mz²);-14,906;-0,089;0,014;0,000;0,000;0,000;0,000;6:2;UDV2.6;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max N;68,955;0,067;-0,011;0,000;0,000;0,000;;15:2;UDV2.14;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min N;-56,940;0,074;-0,012;0,000;0,000;0,000;;6:2;UDV2.5;slut;4 STR Sne, jævn
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Ty';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Ty';61,097;0,067;-0,011;0,000;0,000;0,000;;6:2;UDV2.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Tz';61,097;0,067;-0,011;0,000;0,000;0,000;;6:2;UDV2.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Tz';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Mt;-43,112;0,074;-0,012;0,001;0,000;0,000;;15:2;UDV2.14;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Mt;-44,867;0,074;-0,012;-0,001;0,000;0,000;;7:2;UDV2.6;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max My';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min My';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Mz';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Mz';-14,907;0,089;-0,014;0,000;0,000;0,000;;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max V = √(Ty² + Tz²);-14,907;0,089;-0,014;0,000;0,000;0,000;0,090;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max M = √(My² + Mz²);-14,907;0,089;-0,014;0,000;0,000;0,000;0,000;6:2;UDV2.5;slut;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max N;108,049;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;5 STR Sne, ensidig
-RB ved udvekslingsring 2 + 2 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 2 + 2 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:2;VG.12;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max N;214,537;0,025;2,771;0,001;-76,403;-0,016;;14:3;RB14.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min N;-245,888;-0,238;1,480;-0,008;26,113;0,160;;7:3;RB7.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Ty';-221,554;0,167;-6,626;0,002;81,804;-0,151;;23:3;RB23.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Ty';-245,888;-0,238;1,480;-0,008;26,113;0,160;;7:3;RB7.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Tz';-185,737;0,041;5,540;-0,002;-21,897;-0,062;;14:3;RB14.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Tz';-221,554;0,167;-6,626;0,002;81,804;-0,151;;23:3;RB23.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Mt;181,177;0,119;-4,645;0,005;-0,258;-0,073;;23:3;RB23.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Mt;-245,888;-0,238;1,480;-0,008;26,113;0,160;;7:3;RB7.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max My';-221,554;0,167;-6,626;0,002;81,804;-0,151;;23:3;RB23.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min My';214,537;0,025;2,771;0,001;-76,403;-0,016;;14:3;RB14.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Mz';197,513;-0,128;-1,269;-0,002;-21,285;0,214;;6:3;RB6.4;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Mz';-198,748;0,132;-3,044;-0,002;63,851;-0,331;;22:3;RB22.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max V = √(Ty² + Tz²);-221,554;0,167;-6,626;0,002;81,804;-0,151;6,628;23:3;RB23.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max M = √(My² + Mz²);-221,554;0,167;-6,626;0,002;81,804;-0,151;81,804;23:3;RB23.4;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max N;174,344;0,010;4,831;0,003;-76,401;-0,016;;14:3;RB14.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min N;-218,302;0,119;-5,927;-0,017;26,121;0,159;;7:3;RB7.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Ty';-218,302;0,119;-5,927;-0,017;26,121;0,159;;7:3;RB7.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Ty';-154,500;-0,099;-4,866;0,010;81,798;-0,150;;23:3;RB23.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Tz';160,703;0,019;5,087;0,007;-64,967;-0,075;;15:3;RB15.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Tz';-218,302;0,119;-5,927;-0,017;26,121;0,159;;7:3;RB7.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Mt;-179,937;-0,058;-4,757;0,017;63,855;-0,331;;22:3;RB22.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Mt;-177,201;0,077;-5,468;-0,018;54,589;0,212;;6:3;RB6.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max My';-154,500;-0,099;-4,866;0,010;81,798;-0,150;;23:3;RB23.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min My';174,344;0,010;4,831;0,003;-76,401;-0,016;;14:3;RB14.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Mz';169,373;-0,001;3,737;-0,015;-21,287;0,214;;6:3;RB6.3;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Mz';-179,937;-0,058;-4,757;0,017;63,855;-0,331;;22:3;RB22.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max V = √(Ty² + Tz²);-218,302;0,119;-5,927;-0,017;26,121;0,159;5,928;7:3;RB7.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max M = √(My² + Mz²);-154,500;-0,099;-4,866;0,010;81,798;-0,150;81,798;23:3;RB23.3;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max N;169,351;1,598;-9,412;-0,001;0,000;0,000;;14:3;UDV3.14;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min N;-117,795;-1,381;5,471;-0,006;0,000;0,000;;7:3;UDV3.7;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Ty';129,160;1,623;-9,124;0,003;0,000;0,000;;15:3;UDV3.15;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Ty';-114,703;-1,626;7,087;0,000;0,000;0,000;;7:3;UDV3.7;start;4 STR Sne, jævn
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Tz';-116,924;-1,244;7,109;0,006;0,000;0,000;;23:3;UDV3.23;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Tz';169,351;1,598;-9,412;-0,001;0,000;0,000;;14:3;UDV3.14;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Mt;-116,924;-1,244;7,109;0,006;0,000;0,000;;23:3;UDV3.23;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Mt;-117,795;-1,381;5,471;-0,006;0,000;0,000;;7:3;UDV3.7;start;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max My';-25,263;-0,477;2,037;0,000;0,000;0,000;;6:3;UDV3.6;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min My';-25,263;-0,477;2,037;0,000;0,000;0,000;;6:3;UDV3.6;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Mz';-25,263;-0,477;2,037;0,000;0,000;0,000;;6:3;UDV3.6;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Mz';-25,263;-0,477;2,037;0,000;0,000;0,000;;6:3;UDV3.6;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max V = √(Ty² + Tz²);169,351;1,598;-9,412;-0,001;0,000;0,000;9,547;14:3;UDV3.14;start;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max M = √(My² + Mz²);-25,263;-0,477;2,037;0,000;0,000;0,000;0,000;6:3;UDV3.6;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max N;169,362;-1,598;9,414;-0,001;0,000;0,000;;15:3;UDV3.14;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min N;-117,397;1,318;-7,108;0,002;0,000;0,000;;7:3;UDV3.6;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Ty';-114,702;1,618;-7,087;0,000;0,000;0,000;;7:3;UDV3.6;slut;4 STR Sne, jævn
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Ty';169,323;-1,678;9,507;0,000;0,000;0,000;;14:3;UDV3.13;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Tz';169,323;-1,678;9,507;0,000;0,000;0,000;;14:3;UDV3.13;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Tz';-117,397;1,318;-7,108;0,002;0,000;0,000;;7:3;UDV3.6;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Mt;-83,491;1,370;-7,100;0,003;0,000;0,000;;22:3;UDV3.21;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Mt;122,292;-1,543;6,281;-0,002;0,000;0,000;;6:3;UDV3.5;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max My';-25,261;0,467;-2,037;0,000;0,000;0,000;;6:3;UDV3.5;slut;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min My';-25,261;0,467;-2,037;0,000;0,000;0,000;;6:3;UDV3.5;slut;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Mz';-25,261;0,467;-2,037;0,000;0,000;0,000;;6:3;UDV3.5;slut;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Mz';-25,261;0,467;-2,037;0,000;0,000;0,000;;6:3;UDV3.5;slut;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max V = √(Ty² + Tz²);169,323;-1,678;9,507;0,000;0,000;0,000;9,654;14:3;UDV3.13;slut;6 STR Vind 0°
-RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max M = √(My² + Mz²);-25,261;0,467;-2,037;0,000;0,000;0,000;0,000;6:3;UDV3.5;slut;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max N;108,049;0,000;0,000;0,000;0,000;0,000;;7:3;VG.12;slut;5 STR Sne, ensidig
-RB ved udvekslingsring 3 + 2 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:3;VG.9;start;1 STR 6.10a
-RB ved udvekslingsring 3 + 2 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:3;VG.9;start;1 STR 6.10a
-RB ved svøbet + 1 VG;RB mod centrum;Max N;211,851;-0,029;30,198;-0,004;0,000;0,000;;14:S;RB14.5;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;RB mod centrum;Min N;-248,045;0,278;-14,666;0,047;0,000;0,000;;7:S;RB7.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Max Ty';-248,045;0,278;-14,666;0,047;0,000;0,000;;7:S;RB7.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Min Ty';-201,441;-0,229;-22,035;-0,048;0,000;0,000;;22:S;RB22.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Max Tz';211,851;-0,029;30,198;-0,004;0,000;0,000;;14:S;RB14.5;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;RB mod centrum;Min Tz';-224,537;-0,207;-24,168;-0,039;0,000;0,000;;23:S;RB23.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Max Mt;-248,045;0,278;-14,666;0,047;0,000;0,000;;7:S;RB7.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Min Mt;-201,441;-0,229;-22,035;-0,048;0,000;0,000;;22:S;RB22.5;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;RB mod centrum;Max My';-75,533;0,001;-4,651;0,000;0,000;0,000;;6:S;RB6.5;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;RB mod centrum;Min My';-75,533;0,001;-4,651;0,000;0,000;0,000;;6:S;RB6.5;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;RB mod centrum;Max Mz';-75,533;0,001;-4,651;0,000;0,000;0,000;;6:S;RB6.5;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;RB mod centrum;Min Mz';-75,533;0,001;-4,651;0,000;0,000;0,000;;6:S;RB6.5;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;RB mod centrum;Max V = √(Ty² + Tz²);211,851;-0,029;30,198;-0,004;0,000;0,000;30,198;14:S;RB14.5;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;RB mod centrum;Max M = √(My² + Mz²);-75,533;0,001;-4,651;0,000;0,000;0,000;0,000;6:S;RB6.5;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT mod uret;Max N;847,688;-53,576;0,851;0,000;0,000;-59,821;;23:S;KANT23.1;start;4 STR Sne, jævn
-RB ved svøbet + 1 VG;KANT mod uret;Min N;-805,757;51,945;0,757;0,000;0,019;66,570;;7:S;KANT7.1;start;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT mod uret;Max Ty';-805,757;51,945;0,757;0,000;0,019;66,570;;7:S;KANT7.1;start;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT mod uret;Min Ty';847,688;-53,576;0,851;0,000;0,000;-59,821;;23:S;KANT23.1;start;4 STR Sne, jævn
-RB ved svøbet + 1 VG;KANT mod uret;Max Tz';277,402;-17,354;1,021;0,000;0,000;-19,102;;6:S;KANT6.1;start;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT mod uret;Min Tz';-805,757;51,945;0,757;0,000;0,019;66,570;;7:S;KANT7.1;start;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT mod uret;Max Mt;277,402;-17,354;1,021;0,000;0,000;-19,102;;6:S;KANT6.1;start;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT mod uret;Min Mt;277,402;-17,354;1,021;0,000;0,000;-19,102;;6:S;KANT6.1;start;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT mod uret;Max My';529,923;-35,727;0,840;0,000;0,023;-30,133;;7:S;KANT7.1;start;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT mod uret;Min My';726,384;-46,579;0,861;0,000;-0,023;-48,992;;22:S;KANT22.1;start;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT mod uret;Max Mz';-805,757;51,945;0,757;0,000;0,019;66,570;;7:S;KANT7.1;start;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT mod uret;Min Mz';792,640;-48,352;0,861;0,000;-0,019;-61,381;;23:S;KANT23.1;start;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT mod uret;Max V = √(Ty² + Tz²);847,688;-53,576;0,851;0,000;0,000;-59,821;53,583;23:S;KANT23.1;start;4 STR Sne, jævn
-RB ved svøbet + 1 VG;KANT mod uret;Max M = √(My² + Mz²);-805,757;51,945;0,757;0,000;0,019;66,570;66,570;7:S;KANT7.1;start;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Max N;845,559;53,380;-0,851;0,000;0,000;-59,821;;23:S;KANT22.2;slut;4 STR Sne, jævn
-RB ved svøbet + 1 VG;KANT med uret;Min N;-845,796;-55,579;-0,774;0,000;-0,018;66,558;;7:S;KANT6.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Max Ty';845,559;53,380;-0,851;0,000;0,000;-59,821;;23:S;KANT22.2;slut;4 STR Sne, jævn
-RB ved svøbet + 1 VG;KANT med uret;Min Ty';-845,796;-55,579;-0,774;0,000;-0,018;66,558;;7:S;KANT6.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Max Tz';-693,224;-46,505;-0,760;0,000;0,014;52,499;;22:S;KANT21.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Min Tz';275,097;17,138;-1,021;0,000;0,000;-19,102;;6:S;KANT5.2;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT med uret;Max Mt;275,097;17,138;-1,021;0,000;0,000;-19,102;;6:S;KANT5.2;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT med uret;Min Mt;275,097;17,138;-1,021;0,000;0,000;-19,102;;6:S;KANT5.2;slut;1 STR 6.10a
-RB ved svøbet + 1 VG;KANT med uret;Max My';708,507;45,007;-0,841;0,000;0,023;-48,978;;22:S;KANT21.2;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT med uret;Min My';501,654;32,858;-0,861;0,000;-0,022;-30,147;;7:S;KANT6.2;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT med uret;Max Mz';-845,796;-55,579;-0,774;0,000;-0,018;66,558;;7:S;KANT6.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Min Mz';833,182;52,122;-0,843;0,000;0,018;-61,369;;23:S;KANT22.2;slut;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;KANT med uret;Max V = √(Ty² + Tz²);-845,796;-55,579;-0,774;0,000;-0,018;66,558;55,584;7:S;KANT6.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;KANT med uret;Max M = √(My² + Mz²);-845,796;-55,579;-0,774;0,000;-0,018;66,558;66,558;7:S;KANT6.2;slut;6 STR Vind 0°
-RB ved svøbet + 1 VG;VG;Max N;55,229;0,000;0,000;0,000;0,000;0,000;;23:S;VG.1;start;5 STR Sne, ensidig
-RB ved svøbet + 1 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:S;VG.8;start;1 STR 6.10a
-RB ved svøbet + 1 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;6:S;VG.8;start;1 STR 6.10a
-SEK ved udvekslingsring 4;SEK mod svøbet;Max N;2,144;-0,009;-1,982;0,001;-22,633;-0,030;;24+:4;SEK24.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod svøbet;Min N;-4,937;0,000;1,977;0,000;24,521;0,000;;7+:4;SEK7.2;start;4 STR Sne, jævn
-SEK ved udvekslingsring 4;SEK mod svøbet;Max Ty';-3,124;0,045;1,012;-0,005;12,865;0,150;;8+:4;SEK8.2;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod svøbet;Min Ty';-3,744;-0,049;1,488;0,002;18,715;-0,164;;19+:4;SEK19.2;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod svøbet;Max Tz';-4,937;0,000;1,977;0,000;24,521;0,000;;7+:4;SEK7.2;start;4 STR Sne, jævn
-SEK ved udvekslingsring 4;SEK mod svøbet;Min Tz';1,849;0,000;-3,443;0,000;-36,147;0,000;;13+:4;SEK13.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod svøbet;Max Mt;1,616;0,032;-2,256;0,006;-25,434;0,108;;7+:4;SEK7.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod svøbet;Min Mt;-2,723;0,005;1,003;-0,007;12,896;0,017;;1+:4;SEK1.2;start;3 STR Gangbro, nyttelast
-SEK ved udvekslingsring 4;SEK mod svøbet;Max My';-3,856;-0,017;1,951;0,001;24,605;-0,058;;24+:4;SEK24.2;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod svøbet;Min My';1,849;0,000;-3,443;0,000;-36,147;0,000;;13+:4;SEK13.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod svøbet;Max Mz';-3,124;0,045;1,012;-0,005;12,865;0,150;;8+:4;SEK8.2;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod svøbet;Min Mz';-3,744;-0,049;1,488;0,002;18,715;-0,164;;19+:4;SEK19.2;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod svøbet;Max V = √(Ty² + Tz²);1,849;0,000;-3,443;0,000;-36,147;0,000;3,443;13+:4;SEK13.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod svøbet;Max M = √(My² + Mz²);1,849;0,000;-3,443;0,000;-36,147;0,000;36,147;13+:4;SEK13.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod centrum;Max N;2,268;0,010;-1,761;0,002;-22,634;-0,030;;24+:4;SEK24.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod centrum;Min N;-4,996;0,000;1,861;0,000;24,523;0,000;;7+:4;SEK7.1;slut;4 STR Sne, jævn
-SEK ved udvekslingsring 4;SEK mod centrum;Max Ty';-3,780;0,053;1,431;0,010;18,716;-0,163;;19+:4;SEK19.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Min Ty';-3,137;-0,049;0,986;-0,012;12,866;0,149;;8+:4;SEK8.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Max Tz';-3,914;0,019;1,888;0,004;24,607;-0,058;;24+:4;SEK24.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Min Tz';2,044;0,000;-3,234;0,000;-36,150;0,000;;13+:4;SEK13.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod centrum;Max Mt;-3,780;0,053;1,431;0,010;18,716;-0,163;;19+:4;SEK19.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Min Mt;-3,137;-0,049;0,986;-0,012;12,866;0,149;;8+:4;SEK8.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Max My';-3,914;0,019;1,888;0,004;24,607;-0,058;;24+:4;SEK24.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Min My';2,044;0,000;-3,234;0,000;-36,150;0,000;;13+:4;SEK13.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod centrum;Max Mz';-3,137;-0,049;0,986;-0,012;12,866;0,149;;8+:4;SEK8.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Min Mz';-3,780;0,053;1,431;0,010;18,716;-0,163;;19+:4;SEK19.1;slut;5 STR Sne, ensidig
-SEK ved udvekslingsring 4;SEK mod centrum;Max V = √(Ty² + Tz²);2,044;0,000;-3,234;0,000;-36,150;0,000;3,234;13+:4;SEK13.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;SEK mod centrum;Max M = √(My² + Mz²);2,044;0,000;-3,234;0,000;-36,150;0,000;36,150;13+:4;SEK13.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 mod uret;Max N;20,689;-0,063;0,018;-0,001;0,000;0,000;;7+:4;UDV4.14;start;4 STR Sne, jævn
-SEK ved udvekslingsring 4;UDV4 mod uret;Min N;-8,689;-0,057;0,016;0,000;0,000;0,000;;1+:4;UDV4.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 mod uret;Max Ty';-8,689;-0,057;0,016;0,000;0,000;0,000;;1+:4;UDV4.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 mod uret;Min Ty';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Max Tz';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Min Tz';-8,689;-0,057;0,016;0,000;0,000;0,000;;1+:4;UDV4.2;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 mod uret;Max Mt;-6,637;-0,057;0,016;0,002;0,000;0,000;;8+:4;UDV4.16;start;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 mod uret;Min Mt;12,714;-0,063;0,018;-0,002;0,000;0,000;;24+:4;UDV4.48;start;3 STR Gangbro, nyttelast
-SEK ved udvekslingsring 4;UDV4 mod uret;Max My';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Min My';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Max Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Min Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Max V = √(Ty² + Tz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,079;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 mod uret;Max M = √(My² + Mz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,000;1+:4;UDV4.2;start;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Max N;20,689;0,063;-0,018;0,001;0,000;0,000;;7+:4;UDV4.13;slut;4 STR Sne, jævn
-SEK ved udvekslingsring 4;UDV4 med uret;Min N;-8,690;0,057;-0,016;0,000;0,000;0,000;;1+:4;UDV4.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 med uret;Max Ty';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Min Ty';-8,690;0,057;-0,016;0,000;0,000;0,000;;1+:4;UDV4.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 med uret;Max Tz';-8,690;0,057;-0,016;0,000;0,000;0,000;;1+:4;UDV4.1;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 med uret;Min Tz';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Max Mt;12,709;0,063;-0,018;0,002;0,000;0,000;;1+:4;UDV4.1;slut;3 STR Gangbro, nyttelast
-SEK ved udvekslingsring 4;UDV4 med uret;Min Mt;-7,181;0,057;-0,016;-0,002;0,000;0,000;;7+:4;UDV4.13;slut;6 STR Vind 0°
-SEK ved udvekslingsring 4;UDV4 med uret;Max My';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Min My';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Max Mz';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Min Mz';9,437;0,076;-0,022;0,000;0,000;0,000;;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Max V = √(Ty² + Tz²);9,437;0,076;-0,022;0,000;0,000;0,000;0,079;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved udvekslingsring 4;UDV4 med uret;Max M = √(My² + Mz²);9,437;0,076;-0,022;0,000;0,000;0,000;0,000;1+:4;UDV4.1;slut;1 STR 6.10a
-SEK ved svøbet;SEK mod centrum;Max N;1,350;-0,009;11,034;0,001;0,000;0,000;;24+:S;SEK24.2;slut;6 STR Vind 0°
-SEK ved svøbet;SEK mod centrum;Min N;-7,871;0,000;-12,159;0,000;0,000;0,000;;7+:S;SEK7.2;slut;4 STR Sne, jævn
-SEK ved svøbet;SEK mod centrum;Max Ty';-4,006;0,045;-6,437;-0,005;0,000;0,000;;8+:S;SEK8.2;slut;5 STR Sne, ensidig
-SEK ved svøbet;SEK mod centrum;Min Ty';-5,652;-0,049;-9,305;0,002;0,000;0,000;;19+:S;SEK19.2;slut;5 STR Sne, ensidig
-SEK ved svøbet;SEK mod centrum;Max Tz';1,055;0,000;17,840;0,000;0,000;0,000;;13+:S;SEK13.2;slut;6 STR Vind 0°
-SEK ved svøbet;SEK mod centrum;Min Tz';-6,790;-0,017;-12,185;0,001;0,000;0,000;;24+:S;SEK24.2;slut;5 STR Sne, ensidig
-SEK ved svøbet;SEK mod centrum;Max Mt;0,822;0,032;12,430;0,006;0,000;0,000;;7+:S;SEK7.2;slut;6 STR Vind 0°
-SEK ved svøbet;SEK mod centrum;Min Mt;-3,605;0,005;-6,446;-0,007;0,000;0,000;;1+:S;SEK1.2;slut;3 STR Gangbro, nyttelast
-SEK ved svøbet;SEK mod centrum;Max My';-2,813;0,000;-3,071;0,000;0,000;0,000;;1+:S;SEK1.2;slut;1 STR 6.10a
-SEK ved svøbet;SEK mod centrum;Min My';-2,813;0,000;-3,071;0,000;0,000;0,000;;1+:S;SEK1.2;slut;1 STR 6.10a
-SEK ved svøbet;SEK mod centrum;Max Mz';-2,813;0,000;-3,071;0,000;0,000;0,000;;1+:S;SEK1.2;slut;1 STR 6.10a
-SEK ved svøbet;SEK mod centrum;Min Mz';-2,813;0,000;-3,071;0,000;0,000;0,000;;1+:S;SEK1.2;slut;1 STR 6.10a
-SEK ved svøbet;SEK mod centrum;Max V = √(Ty² + Tz²);1,055;0,000;17,840;0,000;0,000;0,000;17,840;13+:S;SEK13.2;slut;6 STR Vind 0°
-SEK ved svøbet;SEK mod centrum;Max M = √(My² + Mz²);-2,813;0,000;-3,071;0,000;0,000;0,000;0,000;1+:S;SEK1.2;slut;1 STR 6.10a
-SEK ved svøbet;KANT mod uret;Max N;870,355;53,259;0,840;0,000;0,002;49,642;;7+:S;KANT7.2;start;5 STR Sne, ensidig
-SEK ved svøbet;KANT mod uret;Min N;-845,796;-55,579;0,758;0,000;-0,001;-57,543;;6+:S;KANT6.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Max Ty';847,649;53,574;0,851;0,000;0,000;59,806;;7+:S;KANT7.2;start;4 STR Sne, jævn
-SEK ved svøbet;KANT mod uret;Min Ty';-845,796;-55,579;0,758;0,000;-0,001;-57,543;;6+:S;KANT6.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Max Tz';275,918;17,185;1,021;0,000;0,000;19,163;;1+:S;KANT1.2;start;1 STR 6.10a
-SEK ved svøbet;KANT mod uret;Min Tz';-501,135;-36,579;0,756;0,000;0,003;-49,415;;7+:S;KANT7.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Max Mt;275,918;17,185;1,021;0,000;0,000;19,163;;1+:S;KANT1.2;start;1 STR 6.10a
-SEK ved svøbet;KANT mod uret;Min Mt;275,918;17,185;1,021;0,000;0,000;19,163;;1+:S;KANT1.2;start;1 STR 6.10a
-SEK ved svøbet;KANT mod uret;Max My';-501,135;-36,579;0,756;0,000;0,003;-49,415;;7+:S;KANT7.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Min My';479,526;33,292;0,853;0,000;-0,003;47,028;;1+:S;KANT1.2;start;3 STR Gangbro, nyttelast
-SEK ved svøbet;KANT mod uret;Max Mz';847,643;53,574;0,851;0,000;0,000;59,807;;23+:S;KANT23.2;start;4 STR Sne, jævn
-SEK ved svøbet;KANT mod uret;Min Mz';-845,796;-55,579;0,758;0,000;-0,001;-57,543;;6+:S;KANT6.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Max V = √(Ty² + Tz²);-845,796;-55,579;0,758;0,000;-0,001;-57,543;55,584;6+:S;KANT6.2;start;6 STR Vind 0°
-SEK ved svøbet;KANT mod uret;Max M = √(My² + Mz²);847,643;53,574;0,851;0,000;0,000;59,807;59,807;23+:S;KANT23.2;start;4 STR Sne, jævn
-SEK ved svøbet;KANT med uret;Max N;879,606;-54,438;-0,860;0,000;0,002;52,290;;8+:S;KANT8.1;slut;5 STR Sne, ensidig
-SEK ved svøbet;KANT med uret;Min N;-809,079;53,474;-0,763;0,000;0,000;-57,450;;24+:S;KANT24.1;slut;6 STR Vind 0°
-SEK ved svøbet;KANT med uret;Max Ty';-802,151;53,786;-0,762;0,000;-0,001;-57,304;;16+:S;KANT16.1;slut;6 STR Vind 0°
-SEK ved svøbet;KANT med uret;Min Ty';879,606;-54,438;-0,860;0,000;0,002;52,290;;8+:S;KANT8.1;slut;5 STR Sne, ensidig
-SEK ved svøbet;KANT med uret;Max Tz';-649,565;43,983;-0,758;0,000;0,000;-49,047;;19+:S;KANT19.1;slut;6 STR Vind 0°
-SEK ved svøbet;KANT med uret;Min Tz';275,098;-17,138;-1,021;0,000;0,000;19,163;;1+:S;KANT1.1;slut;1 STR 6.10a
-SEK ved svøbet;KANT med uret;Max Mt;275,098;-17,138;-1,021;0,000;0,000;19,163;;1+:S;KANT1.1;slut;1 STR 6.10a
-SEK ved svøbet;KANT med uret;Min Mt;275,098;-17,138;-1,021;0,000;0,000;19,163;;1+:S;KANT1.1;slut;1 STR 6.10a
-SEK ved svøbet;KANT med uret;Max My';832,831;-51,166;-0,849;0,000;0,003;47,030;;1+:S;KANT1.1;slut;3 STR Gangbro, nyttelast
-SEK ved svøbet;KANT med uret;Min My';-805,757;51,945;-0,776;0,000;-0,003;-49,417;;7+:S;KANT7.1;slut;6 STR Vind 0°
-SEK ved svøbet;KANT med uret;Max Mz';847,688;-53,576;-0,851;0,000;0,000;59,807;;23+:S;KANT23.1;slut;4 STR Sne, jævn
-SEK ved svøbet;KANT med uret;Min Mz';-693,165;47,692;-0,773;0,000;0,001;-57,543;;6+:S;KANT6.1;slut;6 STR Vind 0°
-SEK ved svøbet;KANT med uret;Max V = √(Ty² + Tz²);879,606;-54,438;-0,860;0,000;0,002;52,290;54,445;8+:S;KANT8.1;slut;5 STR Sne, ensidig
-SEK ved svøbet;KANT med uret;Max M = √(My² + Mz²);847,688;-53,576;-0,851;0,000;0,000;59,807;59,807;23+:S;KANT23.1;slut;4 STR Sne, jævn
-SEK ved udvekslingsring 3;SEK mod svøbet;Max N;2,827;0,010;-12,541;0,002;0,000;0,000;;24+:3;SEK24.1;start;6 STR Vind 0°
-SEK ved udvekslingsring 3;SEK mod svøbet;Min N;-2,945;0,000;13,672;0,000;0,000;0,000;;7+:3;SEK7.1;start;4 STR Sne, jævn
-SEK ved udvekslingsring 3;SEK mod svøbet;Max Ty';-2,443;0,053;10,430;0,010;0,000;0,000;;19+:3;SEK19.1;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 3;SEK mod svøbet;Min Ty';-2,515;-0,049;7,174;-0,012;0,000;0,000;;8+:3;SEK8.1;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 3;SEK mod svøbet;Max Tz';-1,863;0,019;13,700;0,004;0,000;0,000;;24+:3;SEK24.1;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 3;SEK mod svøbet;Min Tz';2,604;0,000;-19,652;0,000;0,000;0,000;;13+:3;SEK13.1;start;6 STR Vind 0°
-SEK ved udvekslingsring 3;SEK mod svøbet;Max Mt;-2,443;0,053;10,430;0,010;0,000;0,000;;19+:3;SEK19.1;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 3;SEK mod svøbet;Min Mt;-2,515;-0,049;7,174;-0,012;0,000;0,000;;8+:3;SEK8.1;start;5 STR Sne, ensidig
-SEK ved udvekslingsring 3;SEK mod svøbet;Max My';-0,986;0,000;3,383;0,000;0,000;0,000;;1+:3;SEK1.1;start;1 STR 6.10a
-SEK ved udvekslingsring 3;SEK mod svøbet;Min My';-0,986;0,000;3,383;0,000;0,000;0,000;;1+:3;SEK1.1;start;1 STR 6.10a
-SEK ved udvekslingsring 3;SEK mod svøbet;Max Mz';-0,986;0,000;3,383;0,000;0,000;0,000;;1+:3;SEK1.1;start;1 STR 6.10a
-SEK ved udvekslingsring 3;SEK mod svøbet;Min Mz';-0,986;0,000;3,383;0,000;0,000;0,000;;1+:3;SEK1.1;start;1 STR 6.10a
-SEK ved udvekslingsring 3;SEK mod svøbet;Max V = √(Ty² + Tz²);2,604;0,000;-19,652;0,000;0,000;0,000;19,652;13+:3;SEK13.1;start;6 STR Vind 0°
-SEK ved udvekslingsring 3;SEK mod svøbet;Max M = √(My² + Mz²);-0,986;0,000;3,383;0,000;0,000;0,000;0,000;1+:3;SEK1.1;start;1 STR 6.10a
+RB ved ringbjælken;RB mod svøbet;Max N;152,462;-0,007;-3,593;0,004;31,473;-0,030;;KR.1;RB1.1;start;6 STR Vind 0°
+RB ved ringbjælken;RB mod svøbet;Min N;-192,623;0,035;7,089;-0,048;-14,613;0,141;;KR.7;RB7.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Max Ty';147,842;0,048;-11,750;0,015;21,583;0,084;;KR.15;RB15.1;start;6 STR Vind 0°
+RB ved ringbjælken;RB mod svøbet;Min Ty';-130,848;-0,061;16,204;0,032;-13,325;-0,166;;KR.23;RB23.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Max Tz';-190,383;-0,001;18,070;0,001;-15,089;-0,007;;KR.1;RB1.1;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RB mod svøbet;Min Tz';149,259;0,022;-13,461;0,006;22,921;0,027;;KR.14;RB14.1;start;6 STR Vind 0°
+RB ved ringbjælken;RB mod svøbet;Max Mt;-128,515;-0,016;6,734;0,057;-19,001;-0,037;;KR.19;RB19.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Min Mt;-111,241;0,032;10,456;-0,049;-22,625;0,122;;KR.8;RB8.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Max My';148,059;-0,012;-4,736;0,012;32,416;-0,057;;KR.24;RB24.1;start;6 STR Vind 0°
+RB ved ringbjælken;RB mod svøbet;Min My';-135,023;-0,036;1,574;0,022;-28,048;-0,087;;KR.15;RB15.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Max Mz';-144,602;0,046;13,144;-0,036;-12,899;0,186;;KR.5;RB5.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Min Mz';-130,848;-0,061;16,204;0,032;-13,325;-0,166;;KR.23;RB23.1;start;5 STR Sne, ensidig
+RB ved ringbjælken;RB mod svøbet;Max V = √(Ty² + Tz²);-190,383;-0,001;18,070;0,001;-15,089;-0,007;18,070;KR.1;RB1.1;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RB mod svøbet;Max M = √(My² + Mz²);148,059;-0,012;-4,736;0,012;32,416;-0,057;32,416;KR.24;RB24.1;start;6 STR Vind 0°
+RB ved ringbjælken;RING mod uret;Max N;558,620;-8,540;18,300;-0,931;-100,826;-15,462;;KR.8;RING.8;start;6 STR Vind 0°
+RB ved ringbjælken;RING mod uret;Min N;-668,607;0,007;-0,338;0,000;91,474;0,499;;KR.3;RING.3;start;4 STR Sne, jævn
+RB ved ringbjælken;RING mod uret;Max Ty';-530,924;50,658;-32,297;0,663;73,953;0,259;;KR.19;RING.19;start;5 STR Sne, ensidig
+RB ved ringbjælken;RING mod uret;Min Ty';-382,665;-48,703;3,309;-2,366;39,886;-24,937;;KR.1;RING.1;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING mod uret;Max Tz';-538,329;-16,764;33,755;-1,713;73,609;-1,066;;KR.8;RING.8;start;5 STR Sne, ensidig
+RB ved ringbjælken;RING mod uret;Min Tz';-530,924;50,658;-32,297;0,663;73,953;0,259;;KR.19;RING.19;start;5 STR Sne, ensidig
+RB ved ringbjælken;RING mod uret;Max Mt;-381,965;43,396;-4,081;2,352;40,881;-13,602;;KR.24;RING.24;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING mod uret;Min Mt;-382,665;-48,703;3,309;-2,366;39,886;-24,937;;KR.1;RING.1;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING mod uret;Max My';-533,857;-7,850;-1,020;-0,032;103,011;-3,914;;KR.13;RING.13;start;5 STR Sne, ensidig
+RB ved ringbjælken;RING mod uret;Min My';531,083;5,992;4,793;0,024;-121,841;13,638;;KR.2;RING.2;start;6 STR Vind 0°
+RB ved ringbjælken;RING mod uret;Max Mz';531,083;5,992;4,793;0,024;-121,841;13,638;;KR.2;RING.2;start;6 STR Vind 0°
+RB ved ringbjælken;RING mod uret;Min Mz';-382,665;-48,703;3,309;-2,366;39,886;-24,937;;KR.1;RING.1;start;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING mod uret;Max V = √(Ty² + Tz²);-530,924;50,658;-32,297;0,663;73,953;0,259;60,078;KR.19;RING.19;start;5 STR Sne, ensidig
+RB ved ringbjælken;RING mod uret;Max M = √(My² + Mz²);531,083;5,992;4,793;0,024;-121,841;13,638;122,602;KR.2;RING.2;start;6 STR Vind 0°
+RB ved ringbjælken;RING med uret;Max N;558,620;-8,540;18,311;-0,931;-96,047;-13,233;;KR.9;RING.8;slut;6 STR Vind 0°
+RB ved ringbjælken;RING med uret;Min N;-668,607;0,007;0,332;0,000;91,473;0,497;;KR.4;RING.3;slut;4 STR Sne, jævn
+RB ved ringbjælken;RING med uret;Max Ty';-530,924;50,658;-31,627;0,663;65,610;-12,965;;KR.20;RING.19;slut;5 STR Sne, ensidig
+RB ved ringbjælken;RING med uret;Min Ty';-382,665;-48,703;3,824;-2,366;40,817;-12,223;;KR.2;RING.1;slut;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING med uret;Max Tz';-538,329;-16,764;34,428;-1,713;82,509;3,311;;KR.9;RING.8;slut;5 STR Sne, ensidig
+RB ved ringbjælken;RING med uret;Min Tz';-530,924;50,658;-31,627;0,663;65,610;-12,965;;KR.20;RING.19;slut;5 STR Sne, ensidig
+RB ved ringbjælken;RING med uret;Max Mt;-381,965;43,396;-3,565;2,352;39,883;-24,930;;KR.1;RING.24;slut;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING med uret;Min Mt;-382,665;-48,703;3,824;-2,366;40,817;-12,223;;KR.2;RING.1;slut;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING med uret;Max My';-533,321;3,851;8,722;0,073;103,020;-3,913;;KR.13;RING.12;slut;5 STR Sne, ensidig
+RB ved ringbjælken;RING med uret;Min My';531,186;-6,774;-0,338;-0,023;-121,836;13,630;;KR.2;RING.1;slut;6 STR Vind 0°
+RB ved ringbjælken;RING med uret;Max Mz';531,186;-6,774;-0,338;-0,023;-121,836;13,630;;KR.2;RING.1;slut;6 STR Vind 0°
+RB ved ringbjælken;RING med uret;Min Mz';-381,965;43,396;-3,565;2,352;39,883;-24,930;;KR.1;RING.24;slut;3 STR Gangbro, nyttelast
+RB ved ringbjælken;RING med uret;Max V = √(Ty² + Tz²);-530,924;50,658;-31,627;0,663;65,610;-12,965;59,720;KR.20;RING.19;slut;5 STR Sne, ensidig
+RB ved ringbjælken;RING med uret;Max M = √(My² + Mz²);531,186;-6,774;-0,338;-0,023;-121,836;13,630;122,596;KR.2;RING.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Max N;166,137;0,031;-10,069;0,004;25,455;-0,001;;K1.1;RB1.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Min N;-197,538;0,002;14,449;0,001;23,814;-0,003;;K1.1;RB1.2;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;RB mod svøbet;Max Ty';-181,947;0,193;14,017;0,059;8,039;0,032;;K1.20;RB20.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Min Ty';-120,652;-0,196;11,676;-0,050;6,833;-0,003;;K1.8;RB8.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Max Tz';-130,403;0,078;15,886;0,012;37,476;0,052;;K1.1;RB1.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Min Tz';159,650;-0,024;-18,108;-0,006;-20,946;-0,020;;K1.13;RB13.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Max Mt;-138,017;0,190;9,259;0,059;-4,468;0,024;;K1.19;RB19.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Min Mt;-120,652;-0,196;11,676;-0,050;6,833;-0,003;;K1.8;RB8.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Max My';-130,403;0,078;15,886;0,012;37,476;0,052;;K1.1;RB1.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Min My';-161,193;0,024;5,140;-0,001;-40,003;0,040;;K1.13;RB13.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod svøbet;Max Mz';124,948;-0,003;-10,764;-0,026;5,180;0,153;;K1.8;RB8.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Min Mz';157,314;0,038;-16,089;0,024;-10,848;-0,076;;K1.17;RB17.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Max V = √(Ty² + Tz²);159,650;-0,024;-18,108;-0,006;-20,946;-0,020;18,108;K1.13;RB13.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod svøbet;Max M = √(My² + Mz²);-161,193;0,024;5,140;-0,001;-40,003;0,040;40,003;K1.13;RB13.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Max N;152,295;-0,007;2,146;0,004;25,456;0,000;;K1.1;RB1.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Min N;-191,271;-0,001;0,612;0,001;23,821;-0,003;;K1.1;RB1.1;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;RB mod centrum;Max Ty';145,843;0,047;-4,602;0,029;-10,847;-0,074;;K1.17;RB17.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Min Ty';124,478;-0,052;-0,865;-0,036;5,184;0,151;;K1.8;RB8.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Max Tz';-121,998;-0,031;6,580;0,009;37,478;0,053;;K1.1;RB1.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Min Tz';150,348;-0,002;-6,585;-0,005;-20,946;-0,020;;K1.13;RB13.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Max Mt;-128,809;-0,016;-0,607;0,057;-4,469;0,028;;K1.19;RB19.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Min Mt;-111,535;0,032;3,123;-0,049;6,838;-0,007;;K1.8;RB8.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Max My';-121,998;-0,031;6,580;0,009;37,478;0,053;;K1.1;RB1.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Min My';-151,392;-0,010;-6,355;-0,004;-40,003;0,040;;K1.13;RB13.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;RB mod centrum;Max Mz';124,478;-0,052;-0,865;-0,036;5,184;0,151;;K1.8;RB8.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Min Mz';145,843;0,047;-4,602;0,029;-10,847;-0,074;;K1.17;RB17.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Max V = √(Ty² + Tz²);150,348;-0,002;-6,585;-0,005;-20,946;-0,020;6,585;K1.13;RB13.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;RB mod centrum;Max M = √(My² + Mz²);-151,392;-0,010;-6,355;-0,004;-40,003;0,040;40,003;K1.13;RB13.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1;UDV1 mod uret;Max N;54,354;-0,042;0,004;0,000;0,000;0,000;;K1.2;UDV1.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 mod uret;Min N;-46,259;-0,047;0,005;0,000;0,000;0,000;;K1.8;UDV1.8;start;4 STR Sne, jævn
+RB ved udvekslingsring 1;UDV1 mod uret;Max Ty';54,343;-0,042;0,004;0,000;0,000;0,000;;K1.1;UDV1.1;start;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 mod uret;Min Ty';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Max Tz';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Min Tz';54,343;-0,042;0,004;0,000;0,000;0,000;;K1.1;UDV1.1;start;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 mod uret;Max Mt;-26,050;-0,047;0,005;0,004;0,000;0,000;;K1.24;UDV1.24;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;UDV1 mod uret;Min Mt;-26,047;-0,047;0,005;-0,004;0,000;0,000;;K1.1;UDV1.1;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;UDV1 mod uret;Max My';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Min My';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Max Mz';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Min Mz';-13,596;-0,056;0,006;0,000;0,000;0,000;;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Max V = √(Ty² + Tz²);-13,596;-0,056;0,006;0,000;0,000;0,000;0,056;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 mod uret;Max M = √(My² + Mz²);-13,596;-0,056;0,006;0,000;0,000;0,000;0,000;K1.1;UDV1.1;start;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Max N;54,354;0,042;-0,004;0,000;0,000;0,000;;K1.3;UDV1.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 med uret;Min N;-46,260;0,047;-0,005;0,000;0,000;0,000;;K1.8;UDV1.7;slut;4 STR Sne, jævn
+RB ved udvekslingsring 1;UDV1 med uret;Max Ty';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Min Ty';54,304;0,042;-0,004;0,001;0,000;0,000;;K1.1;UDV1.24;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 med uret;Max Tz';54,304;0,042;-0,004;0,001;0,000;0,000;;K1.1;UDV1.24;slut;6 STR Vind 0°
+RB ved udvekslingsring 1;UDV1 med uret;Min Tz';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Max Mt;-26,050;0,047;-0,005;0,004;0,000;0,000;;K1.1;UDV1.24;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;UDV1 med uret;Min Mt;-26,047;0,047;-0,005;-0,004;0,000;0,000;;K1.2;UDV1.1;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 1;UDV1 med uret;Max My';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Min My';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Max Mz';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Min Mz';-13,598;0,056;-0,006;0,000;0,000;0,000;;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Max V = √(Ty² + Tz²);-13,598;0,056;-0,006;0,000;0,000;0,000;0,056;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 1;UDV1 med uret;Max M = √(My² + Mz²);-13,598;0,056;-0,006;0,000;0,000;0,000;0,000;K1.1;UDV1.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;RB mod svøbet;Max N;181,144;-0,052;-12,151;-0,001;10,000;-0,094;;K2.1;RB1.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod svøbet;Min N;-206,873;-0,002;11,360;0,000;43,604;-0,010;;K2.1;RB1.3;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 2;RB mod svøbet;Max Ty';-131,141;0,167;10,104;-0,015;27,469;0,593;;K2.8;RB8.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Min Ty';-165,492;-0,075;12,350;0,006;55,657;-0,319;;K2.24;RB24.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Max Tz';-203,627;-0,001;13,858;0,000;21,895;0,000;;K2.24;RB24.3;start;4 STR Sne, jævn
+RB ved udvekslingsring 2;RB mod svøbet;Min Tz';176,344;-0,007;-17,085;-0,003;-56,463;0,054;;K2.13;RB13.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod svøbet;Max Mt;-149,981;0,015;9,093;0,027;8,869;-0,553;;K2.19;RB19.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Min Mt;155,356;-0,039;-13,778;-0,017;-34,384;0,161;;K2.9;RB9.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod svøbet;Max My';-142,889;-0,044;12,293;0,002;66,593;-0,183;;K2.1;RB1.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Min My';176,344;-0,007;-17,085;-0,003;-56,463;0,054;;K2.13;RB13.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod svøbet;Max Mz';-131,141;0,167;10,104;-0,015;27,469;0,593;;K2.8;RB8.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Min Mz';-194,171;0,005;13,432;0,026;31,495;-0,554;;K2.20;RB20.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod svøbet;Max V = √(Ty² + Tz²);176,344;-0,007;-17,085;-0,003;-56,463;0,054;17,085;K2.13;RB13.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod svøbet;Max M = √(My² + Mz²);-142,889;-0,044;12,293;0,002;66,593;-0,183;66,593;K2.1;RB1.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Max N;165,744;0,031;0,461;0,004;10,000;-0,094;;K2.1;RB1.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod centrum;Min N;-199,118;0,002;-1,658;0,001;43,605;-0,010;;K2.1;RB1.2;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 2;RB mod centrum;Max Ty';-183,145;0,193;0,893;0,059;31,496;-0,552;;K2.20;RB20.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Min Ty';-121,469;-0,196;1,523;-0,050;27,470;0,591;;K2.8;RB8.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Max Tz';-131,601;0,078;2,764;0,012;66,594;-0,183;;K2.1;RB1.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Min Tz';132,071;0,027;-5,024;0,018;-53,296;-0,158;;K2.16;RB16.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod centrum;Max Mt;-138,834;0,190;-0,891;0,059;8,868;-0,550;;K2.19;RB19.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Min Mt;-121,469;-0,196;1,523;-0,050;27,470;0,591;;K2.8;RB8.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Max My';-131,601;0,078;2,764;0,012;66,594;-0,183;;K2.1;RB1.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Min My';159,257;-0,024;-4,614;-0,006;-56,463;0,054;;K2.13;RB13.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod centrum;Max Mz';-121,469;-0,196;1,523;-0,050;27,470;0,591;;K2.8;RB8.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Min Mz';-183,145;0,193;0,893;0,059;31,496;-0,552;;K2.20;RB20.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;RB mod centrum;Max V = √(Ty² + Tz²);132,071;0,027;-5,024;0,018;-53,296;-0,158;5,024;K2.16;RB16.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;RB mod centrum;Max M = √(My² + Mz²);-131,601;0,078;2,764;0,012;66,594;-0,183;66,594;K2.1;RB1.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2;UDV2 mod uret;Max N;68,978;-0,067;0,011;-0,001;0,000;0,000;;K2.8;UDV2.8;start;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 mod uret;Min N;-56,941;-0,074;0,012;0,000;0,000;0,000;;K2.3;UDV2.3;start;4 STR Sne, jævn
+RB ved udvekslingsring 2;UDV2 mod uret;Max Ty';61,161;-0,067;0,011;0,000;0,000;0,000;;K2.1;UDV2.1;start;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 mod uret;Min Ty';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Max Tz';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Min Tz';61,161;-0,067;0,011;0,000;0,000;0,000;;K2.1;UDV2.1;start;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 mod uret;Max Mt;-43,530;-0,074;0,012;0,001;0,000;0,000;;K2.16;UDV2.16;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2;UDV2 mod uret;Min Mt;-31,073;-0,074;0,012;-0,001;0,000;0,000;;K2.1;UDV2.1;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 2;UDV2 mod uret;Max My';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Min My';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Max Mz';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Min Mz';-14,907;-0,089;0,014;0,000;0,000;0,000;;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Max V = √(Ty² + Tz²);-14,907;-0,089;0,014;0,000;0,000;0,000;0,090;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 mod uret;Max M = √(My² + Mz²);-14,907;-0,089;0,014;0,000;0,000;0,000;0,000;K2.1;UDV2.1;start;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Max N;68,978;0,067;-0,011;-0,001;0,000;0,000;;K2.9;UDV2.8;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 med uret;Min N;-56,941;0,074;-0,012;0,000;0,000;0,000;;K2.4;UDV2.3;slut;4 STR Sne, jævn
+RB ved udvekslingsring 2;UDV2 med uret;Max Ty';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Min Ty';61,244;0,067;-0,011;0,000;0,000;0,000;;K2.1;UDV2.24;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 med uret;Max Tz';61,244;0,067;-0,011;0,000;0,000;0,000;;K2.1;UDV2.24;slut;6 STR Vind 0°
+RB ved udvekslingsring 2;UDV2 med uret;Min Tz';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Max Mt;-31,069;0,074;-0,012;0,001;0,000;0,000;;K2.1;UDV2.24;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 2;UDV2 med uret;Min Mt;-31,073;0,074;-0,012;-0,001;0,000;0,000;;K2.2;UDV2.1;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 2;UDV2 med uret;Max My';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Min My';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Max Mz';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Min Mz';-14,906;0,089;-0,014;0,000;0,000;0,000;;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Max V = √(Ty² + Tz²);-14,906;0,089;-0,014;0,000;0,000;0,000;0,090;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 2;UDV2 med uret;Max M = √(My² + Mz²);-14,906;0,089;-0,014;0,000;0,000;0,000;0,000;K2.1;UDV2.24;slut;1 STR 6.10a
+RB ved udvekslingsring 3;RB mod svøbet;Max N;215,733;0,000;2,719;0,001;-75,831;0,071;;K3.13;RB13.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod svøbet;Min N;-237,557;-0,269;-5,532;-0,010;37,219;0,085;;K3.8;RB8.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max Ty';-188,179;0,122;5,681;-0,001;-23,412;-0,240;;K3.16;RB16.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Min Ty';-237,557;-0,269;-5,532;-0,010;37,219;0,085;;K3.8;RB8.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max Tz';-188,179;0,122;5,681;-0,001;-23,412;-0,240;;K3.16;RB16.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Min Tz';-237,557;-0,269;-5,532;-0,010;37,219;0,085;;K3.8;RB8.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max Mt;191,668;0,106;-2,488;0,004;-10,871;0,038;;K3.24;RB24.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod svøbet;Min Mt;-237,557;-0,269;-5,532;-0,010;37,219;0,085;;K3.8;RB8.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max My';-173,202;0,045;-4,307;-0,001;76,630;-0,050;;K3.1;RB1.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Min My';215,733;0,000;2,719;0,001;-75,831;0,071;;K3.13;RB13.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod svøbet;Max Mz';195,145;-0,116;0,661;-0,001;-48,304;0,259;;K3.9;RB9.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod svøbet;Min Mz';-170,793;0,059;0,010;-0,009;15,520;-0,599;;K3.19;RB19.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max V = √(Ty² + Tz²);-188,179;0,122;5,681;-0,001;-23,412;-0,240;5,682;K3.16;RB16.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod svøbet;Max M = √(My² + Mz²);-173,202;0,045;-4,307;-0,001;76,630;-0,050;76,630;K3.1;RB1.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Max N;180,414;-0,053;3,509;-0,001;-3,704;0,065;;K3.1;RB1.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod centrum;Min N;-209,355;-0,002;-7,295;0,000;50,062;-0,005;;K3.1;RB1.3;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;RB mod centrum;Max Ty';-132,758;0,167;-3,976;-0,015;37,207;0,084;;K3.8;RB8.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Min Ty';-167,915;-0,075;-5,998;0,006;65,867;-0,089;;K3.24;RB24.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Max Tz';151,576;-0,001;5,593;-0,016;-21,375;0,185;;K3.8;RB8.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod centrum;Min Tz';-209,355;-0,002;-7,295;0,000;50,062;-0,005;;K3.1;RB1.3;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;RB mod centrum;Max Mt;-151,598;0,015;-4,986;0,027;15,519;-0,598;;K3.19;RB19.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Min Mt;154,627;-0,024;5,061;-0,017;-48,301;0,259;;K3.9;RB9.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod centrum;Max My';-145,312;-0,044;-6,052;0,002;76,629;-0,050;;K3.1;RB1.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Min My';175,614;-0,005;4,856;-0,003;-75,832;0,071;;K3.13;RB13.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod centrum;Max Mz';154,627;-0,024;5,061;-0,017;-48,301;0,259;;K3.9;RB9.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;RB mod centrum;Min Mz';-151,598;0,015;-4,986;0,027;15,519;-0,598;;K3.19;RB19.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;RB mod centrum;Max V = √(Ty² + Tz²);-209,355;-0,002;-7,295;0,000;50,062;-0,005;7,295;K3.1;RB1.3;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;RB mod centrum;Max M = √(My² + Mz²);-145,312;-0,044;-6,052;0,002;76,629;-0,050;76,629;K3.1;RB1.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;UDV3 mod uret;Max N;169,726;1,383;-7,390;0,002;0,000;0,000;;K3.8;UDV3.8;start;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 mod uret;Min N;-117,042;-1,387;7,099;-0,001;0,000;0,000;;K3.5;UDV3.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;UDV3 mod uret;Max Ty';169,323;1,678;-9,507;0,000;0,000;0,000;;K3.13;UDV3.13;start;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 mod uret;Min Ty';-114,702;-1,618;7,087;0,000;0,000;0,000;;K3.8;UDV3.8;start;4 STR Sne, jævn
+RB ved udvekslingsring 3;UDV3 mod uret;Max Tz';-116,720;-1,086;7,120;0,000;0,000;0,000;;K3.24;UDV3.24;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3;UDV3 mod uret;Min Tz';169,323;1,678;-9,507;0,000;0,000;0,000;;K3.13;UDV3.13;start;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 mod uret;Max Mt;-62,746;-1,106;3,856;0,006;0,000;0,000;;K3.1;UDV3.1;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;UDV3 mod uret;Min Mt;-62,756;-1,109;3,861;-0,006;0,000;0,000;;K3.24;UDV3.24;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;UDV3 mod uret;Max My';-25,261;-0,467;2,037;0,000;0,000;0,000;;K3.1;UDV3.1;start;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 mod uret;Min My';-25,261;-0,467;2,037;0,000;0,000;0,000;;K3.1;UDV3.1;start;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 mod uret;Max Mz';-25,261;-0,467;2,037;0,000;0,000;0,000;;K3.1;UDV3.1;start;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 mod uret;Min Mz';-25,261;-0,467;2,037;0,000;0,000;0,000;;K3.1;UDV3.1;start;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 mod uret;Max V = √(Ty² + Tz²);169,323;1,678;-9,507;0,000;0,000;0,000;9,654;K3.13;UDV3.13;start;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 mod uret;Max M = √(My² + Mz²);-25,261;-0,467;2,037;0,000;0,000;0,000;0,000;K3.1;UDV3.1;start;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 med uret;Max N;169,686;-1,383;7,384;0,002;0,000;0,000;;K3.9;UDV3.8;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 med uret;Min N;-117,841;1,381;-5,472;-0,006;0,000;0,000;;K3.8;UDV3.7;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;UDV3 med uret;Max Ty';-114,703;1,626;-7,087;0,000;0,000;0,000;;K3.8;UDV3.7;slut;4 STR Sne, jævn
+RB ved udvekslingsring 3;UDV3 med uret;Min Ty';122,331;-1,675;5,951;-0,001;0,000;0,000;;K3.1;UDV3.24;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 med uret;Max Tz';169,322;-1,668;9,409;-0,001;0,000;0,000;;K3.13;UDV3.12;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 med uret;Min Tz';-116,701;1,086;-7,117;0,000;0,000;0,000;;K3.1;UDV3.24;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3;UDV3 med uret;Max Mt;-62,752;1,106;-3,861;0,006;0,000;0,000;;K3.2;UDV3.1;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;UDV3 med uret;Min Mt;-62,749;1,109;-3,855;-0,006;0,000;0,000;;K3.1;UDV3.24;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 3;UDV3 med uret;Max My';-25,263;0,477;-2,037;0,000;0,000;0,000;;K3.1;UDV3.24;slut;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 med uret;Min My';-25,263;0,477;-2,037;0,000;0,000;0,000;;K3.1;UDV3.24;slut;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 med uret;Max Mz';-25,263;0,477;-2,037;0,000;0,000;0,000;;K3.1;UDV3.24;slut;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 med uret;Min Mz';-25,263;0,477;-2,037;0,000;0,000;0,000;;K3.1;UDV3.24;slut;1 STR 6.10a
+RB ved udvekslingsring 3;UDV3 med uret;Max V = √(Ty² + Tz²);169,322;-1,668;9,409;-0,001;0,000;0,000;9,556;K3.13;UDV3.12;slut;6 STR Vind 0°
+RB ved udvekslingsring 3;UDV3 med uret;Max M = √(My² + Mz²);-25,263;0,477;-2,037;0,000;0,000;0,000;0,000;K3.1;UDV3.24;slut;1 STR 6.10a
+RB ved udvekslingsring 4;RB mod svøbet;Max N;214,241;0,021;5,226;0,006;-44,023;0,068;;K4.13;RB13.5;start;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod svøbet;Min N;-244,224;0,278;2,704;0,047;11,476;0,896;;K4.7;RB7.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max Ty';-234,433;0,285;0,638;0,047;9,371;0,917;;K4.8;RB8.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Min Ty';-213,861;-0,250;-1,216;-0,057;24,106;-0,806;;K4.20;RB20.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max Tz';-184,161;-0,191;8,690;-0,039;-16,573;-0,616;;K4.16;RB16.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Min Tz';-172,461;-0,058;-7,419;-0,013;44,093;-0,188;;K4.1;RB1.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max Mt;-244,224;0,278;2,704;0,047;11,476;0,896;;K4.7;RB7.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Min Mt;-167,453;-0,241;2,052;-0,057;4,816;-0,777;;K4.19;RB19.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max My';-172,461;-0,058;-7,419;-0,013;44,093;-0,188;;K4.1;RB1.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Min My';213,046;-0,028;5,353;-0,004;-44,433;-0,092;;K4.14;RB14.5;start;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod svøbet;Max Mz';-234,433;0,285;0,638;0,047;9,371;0,917;;K4.8;RB8.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Min Mz';-213,861;-0,250;-1,216;-0,057;24,106;-0,806;;K4.20;RB20.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max V = √(Ty² + Tz²);-184,161;-0,191;8,690;-0,039;-16,573;-0,616;8,692;K4.16;RB16.5;start;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod svøbet;Max M = √(My² + Mz²);213,046;-0,028;5,353;-0,004;-44,433;-0,092;44,433;K4.14;RB14.5;start;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod centrum;Max N;214,977;0,002;18,182;0,001;-44,021;0,068;;K4.13;RB13.4;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod centrum;Min N;-248,138;-0,238;-11,166;-0,008;11,476;0,897;;K4.7;RB7.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max Ty';-223,804;0,167;-19,272;0,002;42,089;-0,668;;K4.23;RB23.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Min Ty';-238,397;-0,269;-12,585;-0,010;9,368;0,918;;K4.8;RB8.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max Tz';213,781;0,024;18,234;0,001;-44,430;-0,092;;K4.14;RB14.4;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod centrum;Min Tz';-223,804;0,167;-19,272;0,002;42,089;-0,668;;K4.23;RB23.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max Mt;180,421;0,118;5,444;0,005;0,624;-0,439;;K4.23;RB23.4;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod centrum;Min Mt;-238,397;-0,269;-12,585;-0,010;9,368;0,918;;K4.8;RB8.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max My';-175,452;0,045;-16,953;-0,001;44,090;-0,189;;K4.1;RB1.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Min My';213,781;0,024;18,234;0,001;-44,430;-0,092;;K4.14;RB14.4;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;RB mod centrum;Max Mz';-238,397;-0,269;-12,585;-0,010;9,368;0,918;;K4.8;RB8.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Min Mz';-217,645;0,076;-13,192;-0,008;24,104;-0,808;;K4.20;RB20.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max V = √(Ty² + Tz²);-223,804;0,167;-19,272;0,002;42,089;-0,668;19,273;K4.23;RB23.4;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 4;RB mod centrum;Max M = √(My² + Mz²);213,781;0,024;18,234;0,001;-44,430;-0,092;44,430;K4.14;RB14.4;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 mod uret;Max N;20,689;-0,063;0,018;0,001;0,000;0,000;;K4.7;UDV4.13;start;4 STR Sne, jævn
+RB ved udvekslingsring 4;UDV4 mod uret;Min N;-8,690;-0,057;0,016;0,000;0,000;0,000;;K4.1;UDV4.1;start;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 mod uret;Max Ty';-8,690;-0,057;0,016;0,000;0,000;0,000;;K4.1;UDV4.1;start;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 mod uret;Min Ty';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Max Tz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Min Tz';-8,690;-0,057;0,016;0,000;0,000;0,000;;K4.1;UDV4.1;start;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 mod uret;Max Mt;12,709;-0,063;0,018;0,002;0,000;0,000;;K4.1;UDV4.1;start;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 4;UDV4 mod uret;Min Mt;-7,181;-0,057;0,016;-0,002;0,000;0,000;;K4.7;UDV4.13;start;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 mod uret;Max My';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Min My';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Max Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Min Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Max V = √(Ty² + Tz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,079;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 mod uret;Max M = √(My² + Mz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,000;K4.1;UDV4.1;start;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Max N;20,689;0,063;-0,018;-0,001;0,000;0,000;;K4.8;UDV4.14;slut;4 STR Sne, jævn
+RB ved udvekslingsring 4;UDV4 med uret;Min N;-8,689;0,057;-0,016;0,000;0,000;0,000;;K4.2;UDV4.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 med uret;Max Ty';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Min Ty';-8,605;0,057;-0,016;0,000;0,000;0,000;;K4.1;UDV4.48;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 med uret;Max Tz';-8,605;0,057;-0,016;0,000;0,000;0,000;;K4.1;UDV4.48;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 med uret;Min Tz';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Max Mt;-6,637;0,057;-0,016;0,002;0,000;0,000;;K4.9;UDV4.16;slut;6 STR Vind 0°
+RB ved udvekslingsring 4;UDV4 med uret;Min Mt;12,714;0,063;-0,018;-0,002;0,000;0,000;;K4.1;UDV4.48;slut;3 STR Gangbro, nyttelast
+RB ved udvekslingsring 4;UDV4 med uret;Max My';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Min My';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Max Mz';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Min Mz';9,441;0,076;-0,022;0,000;0,000;0,000;;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Max V = √(Ty² + Tz²);9,441;0,076;-0,022;0,000;0,000;0,000;0,079;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved udvekslingsring 4;UDV4 med uret;Max M = √(My² + Mz²);9,441;0,076;-0,022;0,000;0,000;0,000;0,000;K4.1;UDV4.48;slut;1 STR 6.10a
+RB ved svøbet;RB mod centrum;Max N;213,046;0,022;30,071;0,006;0,000;0,000;;KS.13;RB13.5;slut;6 STR Vind 0°
+RB ved svøbet;RB mod centrum;Min N;-235,761;0,285;-8,912;0,047;0,000;0,000;;KS.8;RB8.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Max Ty';-235,761;0,285;-8,912;0,047;0,000;0,000;;KS.8;RB8.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Min Ty';-217,681;-0,250;-18,586;-0,057;0,000;0,000;;KS.20;RB20.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Max Tz';213,046;0,022;30,071;0,006;0,000;0,000;;KS.13;RB13.5;slut;6 STR Vind 0°
+RB ved svøbet;RB mod centrum;Min Tz';-176,281;-0,058;-24,789;-0,013;0,000;0,000;;KS.1;RB1.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Max Mt;-235,761;0,285;-8,912;0,047;0,000;0,000;;KS.8;RB8.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Min Mt;-168,780;-0,241;-7,498;-0,057;0,000;0,000;;KS.19;RB19.5;slut;5 STR Sne, ensidig
+RB ved svøbet;RB mod centrum;Max My';-75,533;-0,001;-4,651;0,000;0,000;0,000;;KS.1;RB1.5;slut;1 STR 6.10a
+RB ved svøbet;RB mod centrum;Min My';-75,533;-0,001;-4,651;0,000;0,000;0,000;;KS.1;RB1.5;slut;1 STR 6.10a
+RB ved svøbet;RB mod centrum;Max Mz';-75,533;-0,001;-4,651;0,000;0,000;0,000;;KS.1;RB1.5;slut;1 STR 6.10a
+RB ved svøbet;RB mod centrum;Min Mz';-75,533;-0,001;-4,651;0,000;0,000;0,000;;KS.1;RB1.5;slut;1 STR 6.10a
+RB ved svøbet;RB mod centrum;Max V = √(Ty² + Tz²);213,046;0,022;30,071;0,006;0,000;0,000;30,071;KS.13;RB13.5;slut;6 STR Vind 0°
+RB ved svøbet;RB mod centrum;Max M = √(My² + Mz²);-75,533;-0,001;-4,651;0,000;0,000;0,000;0,000;KS.1;RB1.5;slut;1 STR 6.10a
+RB ved svøbet;KANT mod uret;Max N;879,606;-54,438;0,842;0,000;0,022;-69,263;;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Min N;-809,079;53,474;0,769;0,000;-0,007;61,949;;KS.24;KANT24.1;start;6 STR Vind 0°
+RB ved svøbet;KANT mod uret;Max Ty';-802,151;53,786;0,770;0,000;-0,010;62,794;;KS.16;KANT16.1;start;6 STR Vind 0°
+RB ved svøbet;KANT mod uret;Min Ty';879,606;-54,438;0,842;0,000;0,022;-69,263;;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Max Tz';275,098;-17,138;1,021;0,000;0,000;-19,103;;KS.1;KANT1.1;start;1 STR 6.10a
+RB ved svøbet;KANT mod uret;Min Tz';-466,683;33,537;0,758;0,000;0,019;32,272;;KS.8;KANT8.1;start;6 STR Vind 0°
+RB ved svøbet;KANT mod uret;Max Mt;275,098;-17,138;1,021;0,000;0,000;-19,103;;KS.1;KANT1.1;start;1 STR 6.10a
+RB ved svøbet;KANT mod uret;Min Mt;275,098;-17,138;1,021;0,000;0,000;-19,103;;KS.1;KANT1.1;start;1 STR 6.10a
+RB ved svøbet;KANT mod uret;Max My';879,606;-54,438;0,842;0,000;0,022;-69,263;;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Min My';803,136;-50,613;0,864;0,000;-0,028;-57,570;;KS.20;KANT20.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Max Mz';-802,151;53,786;0,770;0,000;-0,010;62,794;;KS.16;KANT16.1;start;6 STR Vind 0°
+RB ved svøbet;KANT mod uret;Min Mz';879,606;-54,438;0,842;0,000;0,022;-69,263;;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Max V = √(Ty² + Tz²);879,606;-54,438;0,842;0,000;0,022;-69,263;54,445;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT mod uret;Max M = √(My² + Mz²);879,606;-54,438;0,842;0,000;0,022;-69,263;69,263;KS.8;KANT8.1;start;5 STR Sne, ensidig
+RB ved svøbet;KANT med uret;Max N;870,355;53,259;-0,862;0,000;-0,023;-69,278;;KS.8;KANT7.2;slut;5 STR Sne, ensidig
+RB ved svøbet;KANT med uret;Min N;-787,676;-51,517;-0,763;0,000;0,006;61,953;;KS.24;KANT23.2;slut;6 STR Vind 0°
+RB ved svøbet;KANT med uret;Max Ty';847,649;53,574;-0,851;0,000;0,000;-59,818;;KS.8;KANT7.2;slut;4 STR Sne, jævn
+RB ved svøbet;KANT med uret;Min Ty';-787,378;-52,542;-0,761;0,000;0,011;62,800;;KS.16;KANT15.2;slut;6 STR Vind 0°
+RB ved svøbet;KANT med uret;Max Tz';-653,516;-44,514;-0,758;0,000;0,017;49,172;;KS.19;KANT18.2;slut;6 STR Vind 0°
+RB ved svøbet;KANT med uret;Min Tz';277,405;17,354;-1,021;0,000;0,000;-19,103;;KS.1;KANT24.2;slut;1 STR 6.10a
+RB ved svøbet;KANT med uret;Max Mt;277,405;17,354;-1,021;0,000;0,000;-19,103;;KS.1;KANT24.2;slut;1 STR 6.10a
+RB ved svøbet;KANT med uret;Min Mt;277,405;17,354;-1,021;0,000;0,000;-19,103;;KS.1;KANT24.2;slut;1 STR 6.10a
+RB ved svøbet;KANT med uret;Max My';585,907;37,180;-0,839;0,000;0,027;-42,715;;KS.19;KANT18.2;slut;5 STR Sne, ensidig
+RB ved svøbet;KANT med uret;Min My';870,355;53,259;-0,862;0,000;-0,023;-69,278;;KS.8;KANT7.2;slut;5 STR Sne, ensidig
+RB ved svøbet;KANT med uret;Max Mz';-787,378;-52,542;-0,761;0,000;0,011;62,800;;KS.16;KANT15.2;slut;6 STR Vind 0°
+RB ved svøbet;KANT med uret;Min Mz';870,355;53,259;-0,862;0,000;-0,023;-69,278;;KS.8;KANT7.2;slut;5 STR Sne, ensidig
+RB ved svøbet;KANT med uret;Max V = √(Ty² + Tz²);847,649;53,574;-0,851;0,000;0,000;-59,818;53,581;KS.8;KANT7.2;slut;4 STR Sne, jævn
+RB ved svøbet;KANT med uret;Max M = √(My² + Mz²);870,355;53,259;-0,862;0,000;-0,023;-69,278;69,278;KS.8;KANT7.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max N;158,376;-0,027;-18,210;0,001;-21,136;-0,063;;K1.14;RB14.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min N;-203,381;-0,171;11,980;-0,048;-1,600;0,003;;K1.7;RB7.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Ty';-165,216;0,187;15,149;0,047;22,987;0,062;;K1.22;RB22.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Ty';-203,381;-0,171;11,980;-0,048;-1,600;0,003;;K1.7;RB7.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Tz';-139,714;0,173;16,821;0,037;36,194;0,074;;K1.23;RB23.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Tz';158,376;-0,027;-18,210;0,001;-21,136;-0,063;;K1.14;RB14.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Mt;-165,216;0,187;15,149;0,047;22,987;0,062;;K1.22;RB22.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Mt;-203,381;-0,171;11,980;-0,048;-1,600;0,003;;K1.7;RB7.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max My';-139,714;0,173;16,821;0,037;36,194;0,074;;K1.23;RB23.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min My';-162,960;0,079;4,998;0,013;-40,254;0,049;;K1.14;RB14.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max Mz';114,445;-0,042;-14,052;-0,028;2,042;0,103;;K1.7;RB7.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Min Mz';141,281;-0,032;-16,575;0,007;-15,706;-0,107;;K1.15;RB15.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max V = √(Ty² + Tz²);158,376;-0,027;-18,210;0,001;-21,136;-0,063;18,210;K1.14;RB14.2;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod svøbet;Max M = √(My² + Mz²);-162,960;0,079;4,998;0,013;-40,254;0,049;40,254;K1.14;RB14.2;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max N;149,093;0,022;-6,776;0,006;-21,137;-0,063;;K1.14;RB14.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min N;-193,026;0,035;-2,109;-0,048;-1,604;0,000;;K1.7;RB7.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Ty';147,675;0,047;-5,113;0,015;-15,704;-0,107;;K1.15;RB15.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Ty';-131,251;-0,061;7,000;0,032;36,197;0,077;;K1.23;RB23.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Tz';-131,251;-0,061;7,000;0,032;36,197;0,077;;K1.23;RB23.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Tz';149,093;0,022;-6,776;0,006;-21,137;-0,063;;K1.14;RB14.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Mt;-156,523;-0,055;3,446;0,043;22,986;0,065;;K1.22;RB22.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Mt;-193,026;0,035;-2,109;-0,048;-1,604;0,000;;K1.7;RB7.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max My';-131,251;-0,061;7,000;0,032;36,197;0,077;;K1.23;RB23.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min My';-153,163;-0,025;-6,617;0,010;-40,256;0,050;;K1.14;RB14.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max Mz';132,273;-0,028;-3,114;-0,035;2,039;0,101;;K1.7;RB7.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Min Mz';147,675;0,047;-5,113;0,015;-15,704;-0,107;;K1.15;RB15.1;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max V = √(Ty² + Tz²);-131,251;-0,061;7,000;0,032;36,197;0,077;7,000;K1.23;RB23.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;RB mod centrum;Max M = √(My² + Mz²);-153,163;-0,025;-6,617;0,010;-40,256;0,050;40,256;K1.14;RB14.1;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max N;54,221;-0,042;0,004;-0,002;0,000;0,000;;K1.6;UDV1.6;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min N;-46,260;-0,047;0,005;0,000;0,000;0,000;;K1.7;UDV1.7;start;4 STR Sne, jævn
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Ty';54,221;-0,042;0,004;-0,002;0,000;0,000;;K1.6;UDV1.6;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Ty';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Tz';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Tz';54,221;-0,042;0,004;-0,002;0,000;0,000;;K1.6;UDV1.6;start;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Mt;-36,800;-0,047;0,005;0,002;0,000;0,000;;K1.7;UDV1.7;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Mt;-35,648;-0,047;0,005;-0,002;0,000;0,000;;K1.6;UDV1.6;start;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max My';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min My';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max Mz';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Min Mz';-13,598;-0,056;0,006;0,000;0,000;0,000;;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max V = √(Ty² + Tz²);-13,598;-0,056;0,006;0,000;0,000;0,000;0,056;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 mod uret;Max M = √(My² + Mz²);-13,598;-0,056;0,006;0,000;0,000;0,000;0,000;K1.6;UDV1.6;start;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max N;54,258;0,042;-0,004;0,000;0,000;0,000;;K1.6;UDV1.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min N;-46,259;0,047;-0,005;0,000;0,000;0,000;;K1.7;UDV1.6;slut;4 STR Sne, jævn
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Ty';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Ty';54,258;0,042;-0,004;0,000;0,000;0,000;;K1.6;UDV1.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Tz';54,258;0,042;-0,004;0,000;0,000;0,000;;K1.6;UDV1.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Tz';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Mt;-35,697;0,047;-0,005;0,002;0,000;0,000;;K1.23;UDV1.22;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Mt;-35,648;0,047;-0,005;-0,002;0,000;0,000;;K1.7;UDV1.6;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max My';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min My';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max Mz';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Min Mz';-13,596;0,056;-0,006;0,000;0,000;0,000;;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max V = √(Ty² + Tz²);-13,596;0,056;-0,006;0,000;0,000;0,000;0,056;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;UDV1 med uret;Max M = √(My² + Mz²);-13,596;0,056;-0,006;0,000;0,000;0,000;0,000;K1.6;UDV1.5;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max N;31,112;0,000;0,000;0,000;0,000;0,000;;K1.14;VG.16;slut;6 STR Vind 0°
+RB ved udvekslingsring 1 + 1 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 1 + 1 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K1.6;VG.10;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max N;175,073;0,012;-17,111;0,003;-56,952;0,019;;K2.14;RB14.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min N;-215,879;0,119;12,419;-0,017;15,701;0,521;;K2.7;RB7.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Ty';-215,879;0,119;12,419;-0,017;15,701;0,521;;K2.7;RB7.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Ty';-152,077;-0,099;13,481;0,010;68,136;-0,452;;K2.23;RB23.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Tz';-203,626;0,001;13,858;0,000;21,895;0,000;;K2.15;RB15.3;start;4 STR Sne, jævn
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Tz';175,073;0,012;-17,111;0,003;-56,952;0,019;;K2.14;RB14.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Mt;-177,514;-0,058;13,588;0,017;49,864;-0,506;;K2.22;RB22.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Mt;-174,778;0,077;12,881;-0,018;42,760;0,446;;K2.6;RB6.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max My';-152,077;-0,099;13,481;0,010;68,136;-0,452;;K2.23;RB23.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min My';175,073;0,012;-17,111;0,003;-56,952;0,019;;K2.14;RB14.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max Mz';-215,879;0,119;12,419;-0,017;15,701;0,521;;K2.7;RB7.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Min Mz';-177,514;-0,058;13,588;0,017;49,864;-0,506;;K2.22;RB22.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max V = √(Ty² + Tz²);175,073;0,012;-17,111;0,003;-56,952;0,019;17,111;K2.14;RB14.3;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod svøbet;Max M = √(My² + Mz²);-152,077;-0,099;13,481;0,010;68,136;-0,452;68,137;K2.23;RB23.3;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max N;157,983;-0,027;-4,714;0,001;-56,953;0,019;;K2.14;RB14.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min N;-204,578;-0,171;-1,142;-0,048;15,701;0,519;;K2.7;RB7.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Ty';-166,413;0,187;2,024;0,047;49,864;-0,504;;K2.22;RB22.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Ty';-204,578;-0,171;-1,142;-0,048;15,701;0,519;;K2.7;RB7.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Tz';-140,911;0,173;3,699;0,037;68,136;-0,451;;K2.23;RB23.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Tz';157,983;-0,027;-4,714;0,001;-56,953;0,019;;K2.14;RB14.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Mt;-166,413;0,187;2,024;0,047;49,864;-0,504;;K2.22;RB22.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Mt;-204,578;-0,171;-1,142;-0,048;15,701;0,519;;K2.7;RB7.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max My';-140,911;0,173;3,699;0,037;68,136;-0,451;;K2.23;RB23.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min My';157,983;-0,027;-4,714;0,001;-56,953;0,019;;K2.14;RB14.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max Mz';-204,578;-0,171;-1,142;-0,048;15,701;0,519;;K2.7;RB7.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Min Mz';-166,413;0,187;2,024;0,047;49,864;-0,504;;K2.22;RB22.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max V = √(Ty² + Tz²);157,983;-0,027;-4,714;0,001;-56,953;0,019;4,714;K2.14;RB14.2;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;RB mod centrum;Max M = √(My² + Mz²);-140,911;0,173;3,699;0,037;68,136;-0,451;68,137;K2.23;RB23.2;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max N;68,955;-0,067;0,011;0,000;0,000;0,000;;K2.14;UDV2.14;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min N;-56,939;-0,074;0,012;0,000;0,000;0,000;;K2.6;UDV2.6;start;4 STR Sne, jævn
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Ty';61,134;-0,067;0,011;-0,001;0,000;0,000;;K2.6;UDV2.6;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Ty';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Tz';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Tz';61,134;-0,067;0,011;-0,001;0,000;0,000;;K2.6;UDV2.6;start;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Mt;-43,112;-0,074;0,012;0,001;0,000;0,000;;K2.14;UDV2.14;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Mt;-44,867;-0,074;0,012;-0,001;0,000;0,000;;K2.6;UDV2.6;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max My';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min My';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max Mz';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Min Mz';-14,906;-0,089;0,014;0,000;0,000;0,000;;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max V = √(Ty² + Tz²);-14,906;-0,089;0,014;0,000;0,000;0,000;0,090;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 mod uret;Max M = √(My² + Mz²);-14,906;-0,089;0,014;0,000;0,000;0,000;0,000;K2.6;UDV2.6;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max N;68,955;0,067;-0,011;0,000;0,000;0,000;;K2.15;UDV2.14;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min N;-56,940;0,074;-0,012;0,000;0,000;0,000;;K2.6;UDV2.5;slut;4 STR Sne, jævn
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Ty';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Ty';61,097;0,067;-0,011;0,000;0,000;0,000;;K2.6;UDV2.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Tz';61,097;0,067;-0,011;0,000;0,000;0,000;;K2.6;UDV2.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Tz';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Mt;-43,112;0,074;-0,012;0,001;0,000;0,000;;K2.15;UDV2.14;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Mt;-44,867;0,074;-0,012;-0,001;0,000;0,000;;K2.7;UDV2.6;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max My';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min My';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max Mz';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Min Mz';-14,907;0,089;-0,014;0,000;0,000;0,000;;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max V = √(Ty² + Tz²);-14,907;0,089;-0,014;0,000;0,000;0,000;0,090;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;UDV2 med uret;Max M = √(My² + Mz²);-14,907;0,089;-0,014;0,000;0,000;0,000;0,000;K2.6;UDV2.5;slut;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max N;108,049;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;5 STR Sne, ensidig
+RB ved udvekslingsring 2 + 2 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 2 + 2 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K2.6;VG.12;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max N;214,537;0,025;2,771;0,001;-76,403;-0,016;;K3.14;RB14.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min N;-245,888;-0,238;1,480;-0,008;26,113;0,160;;K3.7;RB7.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Ty';-221,554;0,167;-6,626;0,002;81,804;-0,151;;K3.23;RB23.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Ty';-245,888;-0,238;1,480;-0,008;26,113;0,160;;K3.7;RB7.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Tz';-185,737;0,041;5,540;-0,002;-21,897;-0,062;;K3.14;RB14.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Tz';-221,554;0,167;-6,626;0,002;81,804;-0,151;;K3.23;RB23.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Mt;181,177;0,119;-4,645;0,005;-0,258;-0,073;;K3.23;RB23.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Mt;-245,888;-0,238;1,480;-0,008;26,113;0,160;;K3.7;RB7.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max My';-221,554;0,167;-6,626;0,002;81,804;-0,151;;K3.23;RB23.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min My';214,537;0,025;2,771;0,001;-76,403;-0,016;;K3.14;RB14.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max Mz';197,513;-0,128;-1,269;-0,002;-21,285;0,214;;K3.6;RB6.4;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Min Mz';-198,748;0,132;-3,044;-0,002;63,851;-0,331;;K3.22;RB22.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max V = √(Ty² + Tz²);-221,554;0,167;-6,626;0,002;81,804;-0,151;6,628;K3.23;RB23.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod svøbet;Max M = √(My² + Mz²);-221,554;0,167;-6,626;0,002;81,804;-0,151;81,804;K3.23;RB23.4;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max N;174,344;0,010;4,831;0,003;-76,401;-0,016;;K3.14;RB14.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min N;-218,302;0,119;-5,927;-0,017;26,121;0,159;;K3.7;RB7.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Ty';-218,302;0,119;-5,927;-0,017;26,121;0,159;;K3.7;RB7.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Ty';-154,500;-0,099;-4,866;0,010;81,798;-0,150;;K3.23;RB23.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Tz';160,703;0,019;5,087;0,007;-64,967;-0,075;;K3.15;RB15.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Tz';-218,302;0,119;-5,927;-0,017;26,121;0,159;;K3.7;RB7.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Mt;-179,937;-0,058;-4,757;0,017;63,855;-0,331;;K3.22;RB22.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Mt;-177,201;0,077;-5,468;-0,018;54,589;0,212;;K3.6;RB6.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max My';-154,500;-0,099;-4,866;0,010;81,798;-0,150;;K3.23;RB23.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min My';174,344;0,010;4,831;0,003;-76,401;-0,016;;K3.14;RB14.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max Mz';169,373;-0,001;3,737;-0,015;-21,287;0,214;;K3.6;RB6.3;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Min Mz';-179,937;-0,058;-4,757;0,017;63,855;-0,331;;K3.22;RB22.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max V = √(Ty² + Tz²);-218,302;0,119;-5,927;-0,017;26,121;0,159;5,928;K3.7;RB7.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;RB mod centrum;Max M = √(My² + Mz²);-154,500;-0,099;-4,866;0,010;81,798;-0,150;81,798;K3.23;RB23.3;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max N;169,351;1,598;-9,412;-0,001;0,000;0,000;;K3.14;UDV3.14;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min N;-117,795;-1,381;5,471;-0,006;0,000;0,000;;K3.7;UDV3.7;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Ty';129,160;1,623;-9,124;0,003;0,000;0,000;;K3.15;UDV3.15;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Ty';-114,703;-1,626;7,087;0,000;0,000;0,000;;K3.7;UDV3.7;start;4 STR Sne, jævn
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Tz';-116,924;-1,244;7,109;0,006;0,000;0,000;;K3.23;UDV3.23;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Tz';169,351;1,598;-9,412;-0,001;0,000;0,000;;K3.14;UDV3.14;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Mt;-116,924;-1,244;7,109;0,006;0,000;0,000;;K3.23;UDV3.23;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Mt;-117,795;-1,381;5,471;-0,006;0,000;0,000;;K3.7;UDV3.7;start;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max My';-25,263;-0,477;2,037;0,000;0,000;0,000;;K3.6;UDV3.6;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min My';-25,263;-0,477;2,037;0,000;0,000;0,000;;K3.6;UDV3.6;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max Mz';-25,263;-0,477;2,037;0,000;0,000;0,000;;K3.6;UDV3.6;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Min Mz';-25,263;-0,477;2,037;0,000;0,000;0,000;;K3.6;UDV3.6;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max V = √(Ty² + Tz²);169,351;1,598;-9,412;-0,001;0,000;0,000;9,547;K3.14;UDV3.14;start;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 mod uret;Max M = √(My² + Mz²);-25,263;-0,477;2,037;0,000;0,000;0,000;0,000;K3.6;UDV3.6;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max N;169,362;-1,598;9,414;-0,001;0,000;0,000;;K3.15;UDV3.14;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min N;-117,397;1,318;-7,108;0,002;0,000;0,000;;K3.7;UDV3.6;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Ty';-114,702;1,618;-7,087;0,000;0,000;0,000;;K3.7;UDV3.6;slut;4 STR Sne, jævn
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Ty';169,323;-1,678;9,507;0,000;0,000;0,000;;K3.14;UDV3.13;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Tz';169,323;-1,678;9,507;0,000;0,000;0,000;;K3.14;UDV3.13;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Tz';-117,397;1,318;-7,108;0,002;0,000;0,000;;K3.7;UDV3.6;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Mt;-83,491;1,370;-7,100;0,003;0,000;0,000;;K3.22;UDV3.21;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Mt;122,292;-1,543;6,281;-0,002;0,000;0,000;;K3.6;UDV3.5;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max My';-25,261;0,467;-2,037;0,000;0,000;0,000;;K3.6;UDV3.5;slut;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min My';-25,261;0,467;-2,037;0,000;0,000;0,000;;K3.6;UDV3.5;slut;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max Mz';-25,261;0,467;-2,037;0,000;0,000;0,000;;K3.6;UDV3.5;slut;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Min Mz';-25,261;0,467;-2,037;0,000;0,000;0,000;;K3.6;UDV3.5;slut;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max V = √(Ty² + Tz²);169,323;-1,678;9,507;0,000;0,000;0,000;9,654;K3.14;UDV3.13;slut;6 STR Vind 0°
+RB ved udvekslingsring 3 + 2 VG;UDV3 med uret;Max M = √(My² + Mz²);-25,261;0,467;-2,037;0,000;0,000;0,000;0,000;K3.6;UDV3.5;slut;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max N;108,049;0,000;0,000;0,000;0,000;0,000;;K3.7;VG.12;slut;5 STR Sne, ensidig
+RB ved udvekslingsring 3 + 2 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K3.6;VG.9;start;1 STR 6.10a
+RB ved udvekslingsring 3 + 2 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;K3.6;VG.9;start;1 STR 6.10a
+RB ved svøbet + 1 VG;RB mod centrum;Max N;211,851;-0,029;30,198;-0,004;0,000;0,000;;KS.14;RB14.5;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;RB mod centrum;Min N;-248,045;0,278;-14,666;0,047;0,000;0,000;;KS.7;RB7.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Max Ty';-248,045;0,278;-14,666;0,047;0,000;0,000;;KS.7;RB7.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Min Ty';-201,441;-0,229;-22,035;-0,048;0,000;0,000;;KS.22;RB22.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Max Tz';211,851;-0,029;30,198;-0,004;0,000;0,000;;KS.14;RB14.5;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;RB mod centrum;Min Tz';-224,537;-0,207;-24,168;-0,039;0,000;0,000;;KS.23;RB23.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Max Mt;-248,045;0,278;-14,666;0,047;0,000;0,000;;KS.7;RB7.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Min Mt;-201,441;-0,229;-22,035;-0,048;0,000;0,000;;KS.22;RB22.5;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;RB mod centrum;Max My';-75,533;0,001;-4,651;0,000;0,000;0,000;;KS.6;RB6.5;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;RB mod centrum;Min My';-75,533;0,001;-4,651;0,000;0,000;0,000;;KS.6;RB6.5;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;RB mod centrum;Max Mz';-75,533;0,001;-4,651;0,000;0,000;0,000;;KS.6;RB6.5;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;RB mod centrum;Min Mz';-75,533;0,001;-4,651;0,000;0,000;0,000;;KS.6;RB6.5;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;RB mod centrum;Max V = √(Ty² + Tz²);211,851;-0,029;30,198;-0,004;0,000;0,000;30,198;KS.14;RB14.5;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;RB mod centrum;Max M = √(My² + Mz²);-75,533;0,001;-4,651;0,000;0,000;0,000;0,000;KS.6;RB6.5;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT mod uret;Max N;847,688;-53,576;0,851;0,000;0,000;-59,821;;KS.23;KANT23.1;start;4 STR Sne, jævn
+RB ved svøbet + 1 VG;KANT mod uret;Min N;-805,757;51,945;0,757;0,000;0,019;66,570;;KS.7;KANT7.1;start;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT mod uret;Max Ty';-805,757;51,945;0,757;0,000;0,019;66,570;;KS.7;KANT7.1;start;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT mod uret;Min Ty';847,688;-53,576;0,851;0,000;0,000;-59,821;;KS.23;KANT23.1;start;4 STR Sne, jævn
+RB ved svøbet + 1 VG;KANT mod uret;Max Tz';277,402;-17,354;1,021;0,000;0,000;-19,102;;KS.6;KANT6.1;start;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT mod uret;Min Tz';-805,757;51,945;0,757;0,000;0,019;66,570;;KS.7;KANT7.1;start;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT mod uret;Max Mt;277,402;-17,354;1,021;0,000;0,000;-19,102;;KS.6;KANT6.1;start;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT mod uret;Min Mt;277,402;-17,354;1,021;0,000;0,000;-19,102;;KS.6;KANT6.1;start;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT mod uret;Max My';529,923;-35,727;0,840;0,000;0,023;-30,133;;KS.7;KANT7.1;start;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT mod uret;Min My';726,384;-46,579;0,861;0,000;-0,023;-48,992;;KS.22;KANT22.1;start;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT mod uret;Max Mz';-805,757;51,945;0,757;0,000;0,019;66,570;;KS.7;KANT7.1;start;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT mod uret;Min Mz';792,640;-48,352;0,861;0,000;-0,019;-61,381;;KS.23;KANT23.1;start;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT mod uret;Max V = √(Ty² + Tz²);847,688;-53,576;0,851;0,000;0,000;-59,821;53,583;KS.23;KANT23.1;start;4 STR Sne, jævn
+RB ved svøbet + 1 VG;KANT mod uret;Max M = √(My² + Mz²);-805,757;51,945;0,757;0,000;0,019;66,570;66,570;KS.7;KANT7.1;start;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Max N;845,559;53,380;-0,851;0,000;0,000;-59,821;;KS.23;KANT22.2;slut;4 STR Sne, jævn
+RB ved svøbet + 1 VG;KANT med uret;Min N;-845,796;-55,579;-0,774;0,000;-0,018;66,558;;KS.7;KANT6.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Max Ty';845,559;53,380;-0,851;0,000;0,000;-59,821;;KS.23;KANT22.2;slut;4 STR Sne, jævn
+RB ved svøbet + 1 VG;KANT med uret;Min Ty';-845,796;-55,579;-0,774;0,000;-0,018;66,558;;KS.7;KANT6.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Max Tz';-693,224;-46,505;-0,760;0,000;0,014;52,499;;KS.22;KANT21.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Min Tz';275,097;17,138;-1,021;0,000;0,000;-19,102;;KS.6;KANT5.2;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT med uret;Max Mt;275,097;17,138;-1,021;0,000;0,000;-19,102;;KS.6;KANT5.2;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT med uret;Min Mt;275,097;17,138;-1,021;0,000;0,000;-19,102;;KS.6;KANT5.2;slut;1 STR 6.10a
+RB ved svøbet + 1 VG;KANT med uret;Max My';708,507;45,007;-0,841;0,000;0,023;-48,978;;KS.22;KANT21.2;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT med uret;Min My';501,654;32,858;-0,861;0,000;-0,022;-30,147;;KS.7;KANT6.2;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT med uret;Max Mz';-845,796;-55,579;-0,774;0,000;-0,018;66,558;;KS.7;KANT6.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Min Mz';833,182;52,122;-0,843;0,000;0,018;-61,369;;KS.23;KANT22.2;slut;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;KANT med uret;Max V = √(Ty² + Tz²);-845,796;-55,579;-0,774;0,000;-0,018;66,558;55,584;KS.7;KANT6.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;KANT med uret;Max M = √(My² + Mz²);-845,796;-55,579;-0,774;0,000;-0,018;66,558;66,558;KS.7;KANT6.2;slut;6 STR Vind 0°
+RB ved svøbet + 1 VG;VG;Max N;55,229;0,000;0,000;0,000;0,000;0,000;;KS.23;VG.1;start;5 STR Sne, ensidig
+RB ved svøbet + 1 VG;VG;Min N;0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max Ty';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Min Ty';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max Tz';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Min Tz';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max Mt;0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Min Mt;0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max My';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Min My';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max Mz';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Min Mz';0,000;0,000;0,000;0,000;0,000;0,000;;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max V = √(Ty² + Tz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;KS.6;VG.8;start;1 STR 6.10a
+RB ved svøbet + 1 VG;VG;Max M = √(My² + Mz²);0,000;0,000;0,000;0,000;0,000;0,000;0,000;KS.6;VG.8;start;1 STR 6.10a
+SEK ved udvekslingsring 4;SEK mod svøbet;Max N;2,144;-0,009;-1,982;0,001;-22,633;-0,030;;K4M.24;SEK24.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod svøbet;Min N;-4,937;0,000;1,977;0,000;24,521;0,000;;K4M.7;SEK7.2;start;4 STR Sne, jævn
+SEK ved udvekslingsring 4;SEK mod svøbet;Max Ty';-3,124;0,045;1,012;-0,005;12,865;0,150;;K4M.8;SEK8.2;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod svøbet;Min Ty';-3,744;-0,049;1,488;0,002;18,715;-0,164;;K4M.19;SEK19.2;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod svøbet;Max Tz';-4,937;0,000;1,977;0,000;24,521;0,000;;K4M.7;SEK7.2;start;4 STR Sne, jævn
+SEK ved udvekslingsring 4;SEK mod svøbet;Min Tz';1,849;0,000;-3,443;0,000;-36,147;0,000;;K4M.13;SEK13.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod svøbet;Max Mt;1,616;0,032;-2,256;0,006;-25,434;0,108;;K4M.7;SEK7.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod svøbet;Min Mt;-2,723;0,005;1,003;-0,007;12,896;0,017;;K4M.1;SEK1.2;start;3 STR Gangbro, nyttelast
+SEK ved udvekslingsring 4;SEK mod svøbet;Max My';-3,856;-0,017;1,951;0,001;24,605;-0,058;;K4M.24;SEK24.2;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod svøbet;Min My';1,849;0,000;-3,443;0,000;-36,147;0,000;;K4M.13;SEK13.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod svøbet;Max Mz';-3,124;0,045;1,012;-0,005;12,865;0,150;;K4M.8;SEK8.2;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod svøbet;Min Mz';-3,744;-0,049;1,488;0,002;18,715;-0,164;;K4M.19;SEK19.2;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod svøbet;Max V = √(Ty² + Tz²);1,849;0,000;-3,443;0,000;-36,147;0,000;3,443;K4M.13;SEK13.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod svøbet;Max M = √(My² + Mz²);1,849;0,000;-3,443;0,000;-36,147;0,000;36,147;K4M.13;SEK13.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod centrum;Max N;2,268;0,010;-1,761;0,002;-22,634;-0,030;;K4M.24;SEK24.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod centrum;Min N;-4,996;0,000;1,861;0,000;24,523;0,000;;K4M.7;SEK7.1;slut;4 STR Sne, jævn
+SEK ved udvekslingsring 4;SEK mod centrum;Max Ty';-3,780;0,053;1,431;0,010;18,716;-0,163;;K4M.19;SEK19.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Min Ty';-3,137;-0,049;0,986;-0,012;12,866;0,149;;K4M.8;SEK8.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Max Tz';-3,914;0,019;1,888;0,004;24,607;-0,058;;K4M.24;SEK24.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Min Tz';2,044;0,000;-3,234;0,000;-36,150;0,000;;K4M.13;SEK13.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod centrum;Max Mt;-3,780;0,053;1,431;0,010;18,716;-0,163;;K4M.19;SEK19.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Min Mt;-3,137;-0,049;0,986;-0,012;12,866;0,149;;K4M.8;SEK8.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Max My';-3,914;0,019;1,888;0,004;24,607;-0,058;;K4M.24;SEK24.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Min My';2,044;0,000;-3,234;0,000;-36,150;0,000;;K4M.13;SEK13.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod centrum;Max Mz';-3,137;-0,049;0,986;-0,012;12,866;0,149;;K4M.8;SEK8.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Min Mz';-3,780;0,053;1,431;0,010;18,716;-0,163;;K4M.19;SEK19.1;slut;5 STR Sne, ensidig
+SEK ved udvekslingsring 4;SEK mod centrum;Max V = √(Ty² + Tz²);2,044;0,000;-3,234;0,000;-36,150;0,000;3,234;K4M.13;SEK13.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;SEK mod centrum;Max M = √(My² + Mz²);2,044;0,000;-3,234;0,000;-36,150;0,000;36,150;K4M.13;SEK13.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 mod uret;Max N;20,689;-0,063;0,018;-0,001;0,000;0,000;;K4M.7;UDV4.14;start;4 STR Sne, jævn
+SEK ved udvekslingsring 4;UDV4 mod uret;Min N;-8,689;-0,057;0,016;0,000;0,000;0,000;;K4M.1;UDV4.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 mod uret;Max Ty';-8,689;-0,057;0,016;0,000;0,000;0,000;;K4M.1;UDV4.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 mod uret;Min Ty';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Max Tz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Min Tz';-8,689;-0,057;0,016;0,000;0,000;0,000;;K4M.1;UDV4.2;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 mod uret;Max Mt;-6,637;-0,057;0,016;0,002;0,000;0,000;;K4M.8;UDV4.16;start;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 mod uret;Min Mt;12,714;-0,063;0,018;-0,002;0,000;0,000;;K4M.24;UDV4.48;start;3 STR Gangbro, nyttelast
+SEK ved udvekslingsring 4;UDV4 mod uret;Max My';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Min My';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Max Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Min Mz';9,437;-0,076;0,022;0,000;0,000;0,000;;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Max V = √(Ty² + Tz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,079;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 mod uret;Max M = √(My² + Mz²);9,437;-0,076;0,022;0,000;0,000;0,000;0,000;K4M.1;UDV4.2;start;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Max N;20,689;0,063;-0,018;0,001;0,000;0,000;;K4M.7;UDV4.13;slut;4 STR Sne, jævn
+SEK ved udvekslingsring 4;UDV4 med uret;Min N;-8,690;0,057;-0,016;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 med uret;Max Ty';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Min Ty';-8,690;0,057;-0,016;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 med uret;Max Tz';-8,690;0,057;-0,016;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 med uret;Min Tz';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Max Mt;12,709;0,063;-0,018;0,002;0,000;0,000;;K4M.1;UDV4.1;slut;3 STR Gangbro, nyttelast
+SEK ved udvekslingsring 4;UDV4 med uret;Min Mt;-7,181;0,057;-0,016;-0,002;0,000;0,000;;K4M.7;UDV4.13;slut;6 STR Vind 0°
+SEK ved udvekslingsring 4;UDV4 med uret;Max My';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Min My';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Max Mz';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Min Mz';9,437;0,076;-0,022;0,000;0,000;0,000;;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Max V = √(Ty² + Tz²);9,437;0,076;-0,022;0,000;0,000;0,000;0,079;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved udvekslingsring 4;UDV4 med uret;Max M = √(My² + Mz²);9,437;0,076;-0,022;0,000;0,000;0,000;0,000;K4M.1;UDV4.1;slut;1 STR 6.10a
+SEK ved svøbet;SEK mod centrum;Max N;1,350;-0,009;11,034;0,001;0,000;0,000;;KSM.24;SEK24.2;slut;6 STR Vind 0°
+SEK ved svøbet;SEK mod centrum;Min N;-7,871;0,000;-12,159;0,000;0,000;0,000;;KSM.7;SEK7.2;slut;4 STR Sne, jævn
+SEK ved svøbet;SEK mod centrum;Max Ty';-4,006;0,045;-6,437;-0,005;0,000;0,000;;KSM.8;SEK8.2;slut;5 STR Sne, ensidig
+SEK ved svøbet;SEK mod centrum;Min Ty';-5,652;-0,049;-9,305;0,002;0,000;0,000;;KSM.19;SEK19.2;slut;5 STR Sne, ensidig
+SEK ved svøbet;SEK mod centrum;Max Tz';1,055;0,000;17,840;0,000;0,000;0,000;;KSM.13;SEK13.2;slut;6 STR Vind 0°
+SEK ved svøbet;SEK mod centrum;Min Tz';-6,790;-0,017;-12,185;0,001;0,000;0,000;;KSM.24;SEK24.2;slut;5 STR Sne, ensidig
+SEK ved svøbet;SEK mod centrum;Max Mt;0,822;0,032;12,430;0,006;0,000;0,000;;KSM.7;SEK7.2;slut;6 STR Vind 0°
+SEK ved svøbet;SEK mod centrum;Min Mt;-3,605;0,005;-6,446;-0,007;0,000;0,000;;KSM.1;SEK1.2;slut;3 STR Gangbro, nyttelast
+SEK ved svøbet;SEK mod centrum;Max My';-2,813;0,000;-3,071;0,000;0,000;0,000;;KSM.1;SEK1.2;slut;1 STR 6.10a
+SEK ved svøbet;SEK mod centrum;Min My';-2,813;0,000;-3,071;0,000;0,000;0,000;;KSM.1;SEK1.2;slut;1 STR 6.10a
+SEK ved svøbet;SEK mod centrum;Max Mz';-2,813;0,000;-3,071;0,000;0,000;0,000;;KSM.1;SEK1.2;slut;1 STR 6.10a
+SEK ved svøbet;SEK mod centrum;Min Mz';-2,813;0,000;-3,071;0,000;0,000;0,000;;KSM.1;SEK1.2;slut;1 STR 6.10a
+SEK ved svøbet;SEK mod centrum;Max V = √(Ty² + Tz²);1,055;0,000;17,840;0,000;0,000;0,000;17,840;KSM.13;SEK13.2;slut;6 STR Vind 0°
+SEK ved svøbet;SEK mod centrum;Max M = √(My² + Mz²);-2,813;0,000;-3,071;0,000;0,000;0,000;0,000;KSM.1;SEK1.2;slut;1 STR 6.10a
+SEK ved svøbet;KANT mod uret;Max N;870,355;53,259;0,840;0,000;0,002;49,642;;KSM.7;KANT7.2;start;5 STR Sne, ensidig
+SEK ved svøbet;KANT mod uret;Min N;-845,796;-55,579;0,758;0,000;-0,001;-57,543;;KSM.6;KANT6.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Max Ty';847,649;53,574;0,851;0,000;0,000;59,806;;KSM.7;KANT7.2;start;4 STR Sne, jævn
+SEK ved svøbet;KANT mod uret;Min Ty';-845,796;-55,579;0,758;0,000;-0,001;-57,543;;KSM.6;KANT6.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Max Tz';275,918;17,185;1,021;0,000;0,000;19,163;;KSM.1;KANT1.2;start;1 STR 6.10a
+SEK ved svøbet;KANT mod uret;Min Tz';-501,135;-36,579;0,756;0,000;0,003;-49,415;;KSM.7;KANT7.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Max Mt;275,918;17,185;1,021;0,000;0,000;19,163;;KSM.1;KANT1.2;start;1 STR 6.10a
+SEK ved svøbet;KANT mod uret;Min Mt;275,918;17,185;1,021;0,000;0,000;19,163;;KSM.1;KANT1.2;start;1 STR 6.10a
+SEK ved svøbet;KANT mod uret;Max My';-501,135;-36,579;0,756;0,000;0,003;-49,415;;KSM.7;KANT7.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Min My';479,526;33,292;0,853;0,000;-0,003;47,028;;KSM.1;KANT1.2;start;3 STR Gangbro, nyttelast
+SEK ved svøbet;KANT mod uret;Max Mz';847,643;53,574;0,851;0,000;0,000;59,807;;KSM.23;KANT23.2;start;4 STR Sne, jævn
+SEK ved svøbet;KANT mod uret;Min Mz';-845,796;-55,579;0,758;0,000;-0,001;-57,543;;KSM.6;KANT6.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Max V = √(Ty² + Tz²);-845,796;-55,579;0,758;0,000;-0,001;-57,543;55,584;KSM.6;KANT6.2;start;6 STR Vind 0°
+SEK ved svøbet;KANT mod uret;Max M = √(My² + Mz²);847,643;53,574;0,851;0,000;0,000;59,807;59,807;KSM.23;KANT23.2;start;4 STR Sne, jævn
+SEK ved svøbet;KANT med uret;Max N;879,606;-54,438;-0,860;0,000;0,002;52,290;;KSM.8;KANT8.1;slut;5 STR Sne, ensidig
+SEK ved svøbet;KANT med uret;Min N;-809,079;53,474;-0,763;0,000;0,000;-57,450;;KSM.24;KANT24.1;slut;6 STR Vind 0°
+SEK ved svøbet;KANT med uret;Max Ty';-802,151;53,786;-0,762;0,000;-0,001;-57,304;;KSM.16;KANT16.1;slut;6 STR Vind 0°
+SEK ved svøbet;KANT med uret;Min Ty';879,606;-54,438;-0,860;0,000;0,002;52,290;;KSM.8;KANT8.1;slut;5 STR Sne, ensidig
+SEK ved svøbet;KANT med uret;Max Tz';-649,565;43,983;-0,758;0,000;0,000;-49,047;;KSM.19;KANT19.1;slut;6 STR Vind 0°
+SEK ved svøbet;KANT med uret;Min Tz';275,098;-17,138;-1,021;0,000;0,000;19,163;;KSM.1;KANT1.1;slut;1 STR 6.10a
+SEK ved svøbet;KANT med uret;Max Mt;275,098;-17,138;-1,021;0,000;0,000;19,163;;KSM.1;KANT1.1;slut;1 STR 6.10a
+SEK ved svøbet;KANT med uret;Min Mt;275,098;-17,138;-1,021;0,000;0,000;19,163;;KSM.1;KANT1.1;slut;1 STR 6.10a
+SEK ved svøbet;KANT med uret;Max My';832,831;-51,166;-0,849;0,000;0,003;47,030;;KSM.1;KANT1.1;slut;3 STR Gangbro, nyttelast
+SEK ved svøbet;KANT med uret;Min My';-805,757;51,945;-0,776;0,000;-0,003;-49,417;;KSM.7;KANT7.1;slut;6 STR Vind 0°
+SEK ved svøbet;KANT med uret;Max Mz';847,688;-53,576;-0,851;0,000;0,000;59,807;;KSM.23;KANT23.1;slut;4 STR Sne, jævn
+SEK ved svøbet;KANT med uret;Min Mz';-693,165;47,692;-0,773;0,000;0,001;-57,543;;KSM.6;KANT6.1;slut;6 STR Vind 0°
+SEK ved svøbet;KANT med uret;Max V = √(Ty² + Tz²);879,606;-54,438;-0,860;0,000;0,002;52,290;54,445;KSM.8;KANT8.1;slut;5 STR Sne, ensidig
+SEK ved svøbet;KANT med uret;Max M = √(My² + Mz²);847,688;-53,576;-0,851;0,000;0,000;59,807;59,807;KSM.23;KANT23.1;slut;4 STR Sne, jævn
+SEK ved udvekslingsring 3;SEK mod svøbet;Max N;2,827;0,010;-12,541;0,002;0,000;0,000;;K3M.24;SEK24.1;start;6 STR Vind 0°
+SEK ved udvekslingsring 3;SEK mod svøbet;Min N;-2,945;0,000;13,672;0,000;0,000;0,000;;K3M.7;SEK7.1;start;4 STR Sne, jævn
+SEK ved udvekslingsring 3;SEK mod svøbet;Max Ty';-2,443;0,053;10,430;0,010;0,000;0,000;;K3M.19;SEK19.1;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 3;SEK mod svøbet;Min Ty';-2,515;-0,049;7,174;-0,012;0,000;0,000;;K3M.8;SEK8.1;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 3;SEK mod svøbet;Max Tz';-1,863;0,019;13,700;0,004;0,000;0,000;;K3M.24;SEK24.1;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 3;SEK mod svøbet;Min Tz';2,604;0,000;-19,652;0,000;0,000;0,000;;K3M.13;SEK13.1;start;6 STR Vind 0°
+SEK ved udvekslingsring 3;SEK mod svøbet;Max Mt;-2,443;0,053;10,430;0,010;0,000;0,000;;K3M.19;SEK19.1;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 3;SEK mod svøbet;Min Mt;-2,515;-0,049;7,174;-0,012;0,000;0,000;;K3M.8;SEK8.1;start;5 STR Sne, ensidig
+SEK ved udvekslingsring 3;SEK mod svøbet;Max My';-0,986;0,000;3,383;0,000;0,000;0,000;;K3M.1;SEK1.1;start;1 STR 6.10a
+SEK ved udvekslingsring 3;SEK mod svøbet;Min My';-0,986;0,000;3,383;0,000;0,000;0,000;;K3M.1;SEK1.1;start;1 STR 6.10a
+SEK ved udvekslingsring 3;SEK mod svøbet;Max Mz';-0,986;0,000;3,383;0,000;0,000;0,000;;K3M.1;SEK1.1;start;1 STR 6.10a
+SEK ved udvekslingsring 3;SEK mod svøbet;Min Mz';-0,986;0,000;3,383;0,000;0,000;0,000;;K3M.1;SEK1.1;start;1 STR 6.10a
+SEK ved udvekslingsring 3;SEK mod svøbet;Max V = √(Ty² + Tz²);2,604;0,000;-19,652;0,000;0,000;0,000;19,652;K3M.13;SEK13.1;start;6 STR Vind 0°
+SEK ved udvekslingsring 3;SEK mod svøbet;Max M = √(My² + Mz²);-0,986;0,000;3,383;0,000;0,000;0,000;0,000;K3M.1;SEK1.1;start;1 STR 6.10a

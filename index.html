@@ -1104,11 +1104,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
       <section class="group" aria-labelledby="g-conn-sel">
         <h2 id="g-conn-sel">Vælg knuder</h2>
-        <p class="hint">Klik på knuderne i planen for at vælge dem eller fravælge dem, eller vælg en hel knudetype her. Knuderne hedder som i vindgitteret: 3:2 er RB.3 ved udvekslingsring 2, R er ringbjælken og S svøbet, og 3+:2 ligger midt i faget efter RB.3.</p>
+        <p class="hint">Klik på knuderne i planen for at vælge dem eller fravælge dem, eller vælg en hel knudetype her. Knuderne er navngivet efter radialbjælken: K2.3 er RB.3 ved udvekslingsring 2, KR.3 ved ringbjælken og KS.3 ved svøbet, og et M (fx KSM.3) betyder midt i faget efter RB.3.</p>
         <div class="conntypes" id="connTypes"></div>
         <div class="tools">
           <button type="button" class="btn small" id="connNone">Fravælg alle</button>
         </div>
+        <label class="check"><input type="checkbox" id="resultPoints" data-key="resultPoints"> <span>Skriv knuderne i StruXML-filen som resultatpunkter, så navnene (KS.11 …) også står i FEM-Design</span></label>
         <div class="field">
           <span class="lbl">Knudenavne i planen</span>
           <div class="seg" role="radiogroup" aria-label="Knudenavne i planen">
@@ -1284,6 +1285,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     bracingRepeat: 3,          // mønstret gentages så mange gange rundt om taget (1 = ingen gentagelse)
     profBrace: 'LE|70*7',      // vindgitteret skrives som gitterstænger (truss members): kun normalkraft, altid charnier
     braceTensionOnly: false,   // kun træk: trykkapacitet 0 (sprød), ens for alle beregninger – virker i NLE-kombinationer
+    resultPoints: false,       // knuderne skrives som navngivne resultatpunkter (KS.11 …), så samlingerne kan findes i FEM-Design
 
     // --- laster (lægges som fladelaster på lastfordelingsfladerne) ---
     loadsOn: true,             // generér lasttilfælde og laster
@@ -1630,7 +1632,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'windOn',
-      'pressOn', 'tempOn', 'walkOn', 'braceTensionOnly']
+      'pressOn', 'tempOn', 'walkOn', 'braceTensionOnly', 'resultPoints']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
     ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
@@ -1854,6 +1856,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // L = R (ringbjælke), 1…m (udvekslingsring) eller S (svøb); L+ = midt mellem L og næste ring udad
     var m = radii.length, baseCount = members.length;
     var braceErrors = [], bracePoints = [], braceLines = splitBracing(p.bracing), lineRefs = [];
+    // navn i FEM-Design efter samme mønster som stængerne (bogstaver.nummer): KR.11 ved ringbjælken, K2.11 ved
+    // udvekslingsring 2, KS.11 ved svøbet; M = midt i faget efter RB.11, L = midt mellem ringen og den næste udad
+    function fdName(o) {
+      return 'K' + (o.j === 0 ? 'R' : (o.j === m + 1 ? 'S' : String(o.j))) + (o.rMid ? 'M' : '') + (o.lMid ? 'L' : '') + '.' + o.r;
+    }
     function refKey(o) {
       return o.r + (o.rMid ? '+' : '') + ':' + (o.j === 0 ? 'R' : (o.j === m + 1 ? 'S' : String(o.j))) + (o.lMid ? '+' : '');
     }
@@ -1954,13 +1961,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     for (var bi = 0; bi < n; bi++) {
       for (var bj = 0; bj <= m + 1; bj++) {
         var o0 = { r: bi + 1, rMid: false, j: bj, lMid: false };
-        bracePoints.push({ ref: refKey(o0), pos: refPos(o0), mid: false });
-        if (bj <= m) { var o1 = { r: bi + 1, rMid: false, j: bj, lMid: true }; bracePoints.push({ ref: refKey(o1), pos: refPos(o1), mid: true }); }
+        bracePoints.push({ ref: refKey(o0), fd: fdName(o0), pos: refPos(o0), mid: false });
+        if (bj <= m) { var o1 = { r: bi + 1, rMid: false, j: bj, lMid: true }; bracePoints.push({ ref: refKey(o1), fd: fdName(o1), pos: refPos(o1), mid: true }); }
         if (bj <= m || p.edgeRing || p.secOn) {
           var o2 = { r: bi + 1, rMid: true, j: bj, lMid: false };
-          bracePoints.push({ ref: refKey(o2), pos: refPos(o2), mid: !(p.secOn && bj >= jSec) });
+          bracePoints.push({ ref: refKey(o2), fd: fdName(o2), pos: refPos(o2), mid: !(p.secOn && bj >= jSec) });
         }
-        if (p.secOn && bj >= jSec && bj <= m) { var o3 = { r: bi + 1, rMid: true, j: bj, lMid: true }; bracePoints.push({ ref: refKey(o3), pos: refPos(o3), mid: true }); }
+        if (p.secOn && bj >= jSec && bj <= m) { var o3 = { r: bi + 1, rMid: true, j: bj, lMid: true }; bracePoints.push({ ref: refKey(o3), fd: fdName(o3), pos: refPos(o3), mid: true }); }
       }
     }
 
@@ -2924,6 +2931,28 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I3 + '</cover>');
       });
       L.push(I2 + '</advanced-fem>');
+    }
+    // knuderne som navngivne resultatpunkter på en af de stænger, der ender i knuden (helst en bjælke)
+    if (p.resultPoints) {
+      var rp = [], tolR = 1e-6 * Math.max(1, geom.info.R);
+      geom.bracePoints.forEach(function (sp) {
+        var host = null;
+        geom.members.forEach(function (m) {
+          if (!m.partGuid || (host && !host.truss)) return;
+          if (norm(vsub(m.start, sp.pos)) < tolR || norm(vsub(m.end, sp.pos)) < tolR) host = m;
+        });
+        if (host) rp.push({ name: sp.fd, pos: sp.pos, base: host.partGuid });
+      });
+      if (rp.length) {
+        L.push(I2 + '<result_points>');
+        rp.forEach(function (r) {
+          L.push(I3 + '<result_point guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + r.name + '" base_entity="' + r.base + '">');
+          L.push(I4 + pt('position', r.pos));
+          L.push(I4 + '<font script="default"/>');
+          L.push(I3 + '</result_point>');
+        });
+        L.push(I2 + '</result_points>');
+      }
     }
     L.push(I1 + '</entities>');
 
@@ -4436,6 +4465,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     nodes.forEach(function (nd, i) {
       var bp = (geom.bracePoints || []).filter(function (sp) { return dist(sp.pos, nd.pos) < tol; })[0];
       nd.id = bp ? bp.ref : 'K' + (i + 1);
+      nd.name = bp && bp.fd ? bp.fd : nd.id;   // navnet, som det også står i FEM-Design (resultatpunkt)
       nd.ends.forEach(function (e) { e.role = roleOf(e.m, e.end); e.rank = roleRank(e.m, e.end); });
       nd.ends.sort(function (a, b) { return a.rank - b.rank || (a.m.name < b.m.name ? -1 : 1); });
       var groups = nd.ends.map(function (e) { return e.m.group; }).concat(nd.through.map(function (m) { return m.group; }));
@@ -4477,7 +4507,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!sel[nd.id]) return;
       var t = byType[nd.type];
       if (!t) { t = byType[nd.type] = { type: nd.type, nodes: [], roles: [], roleIdx: {}, missing: [], through: [] }; out.push(t); }
-      t.nodes.push(nd.id);
+      t.nodes.push(nd.name);
       nd.through.forEach(function (m) { if (t.through.indexOf(m.name) < 0) t.through.push(m.name); });
       nd.ends.forEach(function (e) {
         var r = t.roleIdx[e.role];
@@ -4489,7 +4519,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var f = arr[c];
           if (!f) return;
           ro.n++;
-          var hit = { f: f, node: nd.id, bar: e.m.name, end: e.end, combo: cn };
+          var hit = { f: f, node: nd.name, bar: e.m.name, end: e.end, combo: cn };
           for (var k = 0; k < 6; k++) {
             if (!ro.max[k] || f[k] > ro.max[k].f[k]) ro.max[k] = hit;
             if (!ro.min[k] || f[k] < ro.min[k].f[k]) ro.min[k] = hit;
@@ -4544,7 +4574,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (!d) return;
         combos.forEach(function (cn, c) {
           var f = (e.end === 's' ? d.s : d.e)[c];
-          if (f) rows.push([nd.id, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f.map(csvNum)));
+          if (f) rows.push([nd.name, nd.type, e.role, e.m.name, endText(e.end), cn].concat(f.map(csvNum)));
         });
       });
     });
@@ -5173,7 +5203,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         conn.N.nodes.forEach(function (nd) {
           if (conn.labels === 'sel' && !cs[nd.id]) return;
           var q = P(nd.pos), r = Math.hypot(nd.pos[0], nd.pos[1]), ux = r > 1e-9 ? nd.pos[0] / r : 0, uy = r > 1e-9 ? -nd.pos[1] / r : -1;
-          out.push(textEl(cs[nd.id] ? 'strong' : '', q[0] + ux * 8 * k, q[1] + uy * 8 * k + 3.5 * k, nd.id, 10 * k, ux > 0.3 ? 'start' : (ux < -0.3 ? 'end' : 'middle')));
+          out.push(textEl(cs[nd.id] ? 'strong' : '', q[0] + ux * 8 * k, q[1] + uy * 8 * k + 3.5 * k, nd.name, 10 * k, ux > 0.3 ? 'start' : (ux < -0.3 ? 'end' : 'middle')));
         });
         out.push('</g>');
       }
@@ -5324,7 +5354,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       conn.N.nodes.forEach(function (nd) {
         if (!cs3[nd.id]) return;
         var q3 = P(nd.pos);
-        out.push('<circle class="on" cx="' + q3[0].toFixed(1) + '" cy="' + q3[1].toFixed(1) + '" r="' + (4.6 * k).toFixed(1) + '"><title>' + esc(nd.id + ' · ' + nd.type) + '</title></circle>');
+        out.push('<circle class="on" cx="' + q3[0].toFixed(1) + '" cy="' + q3[1].toFixed(1) + '" r="' + (4.6 * k).toFixed(1) + '"><title>' + esc(nd.name + ' · ' + nd.type) + '</title></circle>');
       });
       out.push('</g>');
     }
@@ -6402,6 +6432,10 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
 
   // ---------- samlinger: snitkræfter fra FEM-Design i valgte knuder ----------
   function connMode() { return formTab === 'conn' && view === 'plan' && !!geom && !geom.errors.length; }
+  function connName(id) {
+    var nd = conn.N ? conn.N.nodes.filter(function (n) { return n.id === id; })[0] : null;
+    return nd ? nd.name : id;
+  }
   function connSelSet() { var o = {}; conn.sel.forEach(function (id) { o[id] = true; }); return o; }
   function storeConn() {
     try { window.localStorage.setItem(CONN_KEY, JSON.stringify({ F: conn.F, file: conn.file, sel: conn.sel })); } catch (e) { /* kun i hukommelsen */ }
@@ -6452,7 +6486,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     }).join('') : '';
     $('connTypes').querySelectorAll('input[data-some]').forEach(function (el) { el.indeterminate = true; });
     $('connNone').disabled = !conn.sel.length;
-    $('connSelInfo').textContent = conn.sel.length ? conn.sel.length + (conn.sel.length === 1 ? ' knude valgt: ' : ' knuder valgt: ') + shortList(conn.sel, 12) : 'Ingen knuder valgt.';
+    $('connSelInfo').textContent = conn.sel.length ? conn.sel.length + (conn.sel.length === 1 ? ' knude valgt: ' : ' knuder valgt: ') + shortList(conn.sel.map(connName), 12) : 'Ingen knuder valgt.';
     renderConnResults();
   }
   function renderConnResults() {
@@ -6550,7 +6584,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (!nd) { gl.innerHTML = ''; return; }
     var c = toPlan(nd.pos);
     gl.innerHTML = '<circle class="hover" cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + (8 * k).toFixed(2) + '"/>' +
-      textEl('svg-label strong', c[0] + 11 * k, c[1] - 9 * k, nd.id + ' · ' + nd.type, 12 * k, 'start');
+      textEl('svg-label strong', c[0] + 11 * k, c[1] - 9 * k, nd.name + ' · ' + nd.type, 12 * k, 'start');
   }
   drawing.addEventListener('pointerdown', function (e) {
     if (!connMode() || (e.pointerType === 'mouse' && e.button !== 0)) return;
