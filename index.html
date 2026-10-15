@@ -284,6 +284,8 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .drawing.pickmode { cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; }
 .d-cnode circle { fill: var(--sheet); stroke: var(--ink-2); stroke-width: 1.2; }
 .d-cnode circle.on { fill: var(--primer); stroke: var(--primer); }
+.d-cnlbl text { fill: var(--ink-2); font-family: var(--f-data); paint-order: stroke; stroke: var(--sheet); stroke-width: 3px; stroke-linejoin: round; }
+.d-cnlbl text.strong { fill: var(--ink); font-weight: 600; }
 .conntypes { display: grid; gap: 6px; }
 .conntypes .hint { white-space: nowrap; }
 .conn-t td.hit { font-weight: 700; color: var(--primer); }
@@ -1106,6 +1108,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <div class="conntypes" id="connTypes"></div>
         <div class="tools">
           <button type="button" class="btn small" id="connNone">Fravælg alle</button>
+        </div>
+        <div class="field">
+          <span class="lbl">Knudenavne i planen</span>
+          <div class="seg" role="radiogroup" aria-label="Knudenavne i planen">
+            <label><input type="radio" name="connLabels" value="none"><span>Ingen</span></label>
+            <label><input type="radio" name="connLabels" value="sel"><span>Valgte</span></label>
+            <label><input type="radio" name="connLabels" value="all"><span>Alle</span></label>
+          </div>
         </div>
         <p class="calc" id="connSelInfo"></p>
       </section>
@@ -4653,7 +4663,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var planXf = null;
   // samlinger: indlæste kræfter (F), valgte knuder, knuder i modellen (N), kobling til stængerne (M)
   var TC = window.TankConn, CONN_KEY = STORE_KEY + '-conn';
-  var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null };
+  var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null, labels: 'sel' };
   // zoom pr. visning: s = forstørrelse (1 = hele tegningen), cx/cy = udsnittets midte i viewBox-enheder
   var ZMAX = 25;
   var zoomState = { plan: { s: 1, cx: null, cy: null }, section: { s: 1, cx: null, cy: null }, '3d': { s: 1, cx: null, cy: null } };
@@ -5156,7 +5166,18 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         var q = P(nd.pos), on = cs[nd.id];
         out.push('<circle' + (on ? ' class="on"' : '') + ' cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + ((on ? 4.6 : 3.2) * k).toFixed(2) + '"/>');
       });
-      out.push('</g><g class="d-live" id="connLive"></g>');
+      out.push('</g>');
+      // knudenavne (3:2, 11:S …) skrevet udad fra centrum, så de ikke ligger oven på radialbjælken
+      if (conn.labels !== 'none') {
+        out.push('<g class="d-cnlbl">');
+        conn.N.nodes.forEach(function (nd) {
+          if (conn.labels === 'sel' && !cs[nd.id]) return;
+          var q = P(nd.pos), r = Math.hypot(nd.pos[0], nd.pos[1]), ux = r > 1e-9 ? nd.pos[0] / r : 0, uy = r > 1e-9 ? -nd.pos[1] / r : -1;
+          out.push(textEl(cs[nd.id] ? 'strong' : '', q[0] + ux * 8 * k, q[1] + uy * 8 * k + 3.5 * k, nd.id, 10 * k, ux > 0.3 ? 'start' : (ux < -0.3 ? 'end' : 'middle')));
+        });
+        out.push('</g>');
+      }
+      out.push('<g class="d-live" id="connLive"></g>');
     }
     // akser og målestok nederst i det viste udsnit
     var by = win.y0 + win.h - 36 * k, ax = win.x0 + 30 * k, al = 34 * k;
@@ -6473,6 +6494,16 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   });
   $('connForget').addEventListener('click', function () { conn.F = null; conn.file = ''; connChanged(); });
   $('connNone').addEventListener('click', function () { conn.sel = []; connChanged(); });
+  try { var cl = window.localStorage.getItem(CONN_KEY + '-labels'); if (cl === 'none' || cl === 'sel' || cl === 'all') conn.labels = cl; } catch (e) { /* ok */ }
+  document.querySelectorAll('input[name="connLabels"]').forEach(function (el) {
+    el.checked = el.value === conn.labels;
+    el.addEventListener('change', function () {
+      if (!this.checked) return;
+      conn.labels = this.value;
+      try { window.localStorage.setItem(CONN_KEY + '-labels', conn.labels); } catch (e) { /* ok */ }
+      renderDrawing();
+    });
+  });
   $('connTypes').addEventListener('change', function (e) {
     var i = e.target && e.target.dataset ? Number(e.target.dataset.type) : NaN;
     if (!conn.N || !conn.N.types[i]) return;
