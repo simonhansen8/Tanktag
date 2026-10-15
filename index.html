@@ -838,13 +838,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <span class="lbl">Lastopstillinger</span>
             <label class="check"><input type="checkbox" id="snowUniform" data-key="snowUniform"> <span id="snowUniformLbl">Jævnt fordelt: μ<sub>1</sub> på hele taget</span></label>
             <label class="check"><input type="checkbox" id="snowAsym" data-key="snowAsym"> <span id="snowAsymLbl">Ensidig: reduceret på luvsiden og μ<sub>1</sub> på læsiden</span></label>
+            <label class="check" id="snowHalfField"><input type="checkbox" id="snowHalf" data-key="snowHalf"> <span>Halvt tag: μ<sub>1</sub> = 0,8 på læsiden og μ på luvsiden</span></label>
             <div class="subopt" id="snowAsymMuField">
               <label class="lbl nocase" for="snowAsymMu">Formfaktor μ på luvsiden</label>
               <input class="num" type="text" inputmode="decimal" id="snowAsymMu" data-key="snowAsymMu" placeholder="½μ₁">
             </div>
           </div>
           <p class="calc" id="snowCalc"></p>
-          <p class="hint">DS/EN 1991-1-3 med DK NA: s<sub>k</sub> = 1,0 kN/m², C<sub>e</sub> = C<sub>top</sub> · C<sub>s</sub> (C<sub>top</sub> 0,8 vindomsust, 1,0 normal, 1,25 læ). C<sub>s</sub> = 1,0, når svøbets højde er mindst D/2. Kegle og fladt tag regnes som saddeltag med hver flades egen hældning (fig. 5.3); ved ensidig sne giver et tomt felt ½μ<sub>1</sub> på luvsiden, og en anden formfaktor bestemmer selv, hvor meget sne der ligger på den side. Kuppeltaget regnes som krumt tag (5.3.5, fig. 5.6): jævn sne μ = 0,8, og ensidig sne to trekanter med ½μ<sub>3</sub> og μ<sub>3</sub> = 0,2 + 10 h/b ≤ 2,0 i hvert snit gennem toppen – luv-trekanten på den ene side af skillelinjen og læ-trekanten på den anden. Hver flade får middelværdien af μ over fladen.</p>
+          <p class="hint">DS/EN 1991-1-3 med DK NA: s<sub>k</sub> = 1,0 kN/m², C<sub>e</sub> = C<sub>top</sub> · C<sub>s</sub> (C<sub>top</sub> 0,8 vindomsust, 1,0 normal, 1,25 læ). C<sub>s</sub> = 1,0, når svøbets højde er mindst D/2. Kegle og fladt tag regnes som saddeltag med hver flades egen hældning (fig. 5.3); ved ensidig sne giver et tomt felt ½μ<sub>1</sub> på luvsiden, og en anden formfaktor bestemmer selv, hvor meget sne der ligger på den side. Kuppeltaget regnes som krumt tag (5.3.5, fig. 5.6): jævn sne μ = 0,8, og ensidig sne to trekanter med ½μ<sub>3</sub> og μ<sub>3</sub> = 0,2 + 10 h/b ≤ 2,0 i hvert snit gennem toppen – luv-trekanten på den ene side af skillelinjen og læ-trekanten på den anden. Hver flade får middelværdien af μ over fladen. Halvt tag giver desuden μ<sub>1</sub> = 0,8 på læsiden og μ på luvsiden (tomt felt = 0).</p>
         </fieldset>
       </section>
 
@@ -1321,7 +1322,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     snowCe: 1.0,               // C_e = C_top · C_s
     snowCt: 1.0,               // C_t
     snowUniform: true,         // μ1 på hele taget
-    snowAsym: true,            // reduceret på luvsiden og μ1 på læsiden
+    snowAsym: true,            // reduceret på luvsiden og μ1 på læsiden (kuppel: fig. 5.6 (ii))
+    snowHalf: true,            // kuppel: μ1 på læsiden og μ fra snowAsymMu på luvsiden ('' = 0)
     snowAsymMu: '',            // formfaktor μ på luvsiden ved ensidig sne på kegle og fladt tag ('' = ½μ1 efter fig. 5.3)
     asymDir: 0,                // [°] retning mod læsiden / den belastede halvdel
     windOn: true,              // vindlast, DS/EN 1991-1-4 med DK NA
@@ -1370,7 +1372,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // navne på lasttilfælde, der ikke findes lige nu (til beskeder)
   var CASE_NAMES = { dead: 'Egenlast', live: 'Nyttelast', liveHalf: 'Nyttelast, halv', livePoint: 'Nyttelast, punkt',
     walkDead: 'Gangbro, egenlast', walkLive: 'Gangbro, nyttelast',
-    snowUniform: 'Sne, jævn', snowAsym: 'Sne, ensidig', pressOver: 'Overtryk',
+    snowUniform: 'Sne, jævn', snowAsym: 'Sne, ensidig', snowHalf: 'Sne, halvt tag', pressOver: 'Overtryk',
     pressVac: 'Undertryk', temp: 'Temperatur' };
   // "A", "B" og "C" – navne på lasttilfælde indeholder selv kommaer
   function quoteList(a) {
@@ -1658,7 +1660,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
       'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB']
       .forEach(function (k) { q[k] = toNum(q[k]); });
-    ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'windOn',
+    ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
       'pressOn', 'tempOn', 'walkOn', 'braceTensionOnly', 'resultPoints']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
     ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu'].forEach(function (k) {
@@ -2278,12 +2280,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       chk(p.snowSk >= 0 && p.snowSk <= 20, 'Snelasten s_k skal ligge mellem 0 og 20 kN/m².');
       chk(p.snowCe > 0 && p.snowCe <= 3, 'C_e skal ligge mellem 0 og 3.');
       chk(p.snowCt > 0 && p.snowCt <= 3, 'C_t skal ligge mellem 0 og 3.');
-      if (p.snowAsym && p.roofType !== 'dome' && p.snowAsymMu.trim() !== '') {
+      if ((p.roofType === 'dome' ? p.snowHalf : p.snowAsym) && p.snowAsymMu.trim() !== '') {
         asymMu = toNum(p.snowAsymMu.trim());
         chk(asymMu >= 0 && asymMu <= 2, 'Formfaktoren μ på luvsiden ved ensidig sne skal være et tal mellem 0 og 2 – eller lad feltet stå tomt for ½μ1.');
       }
     }
-    if ((p.snowOn && p.snowAsym) || (p.liveOn && p.liveHalf && p.liveQ > 0)) {
+    if ((p.snowOn && (p.snowAsym || (p.snowHalf && p.roofType === 'dome'))) || (p.liveOn && p.liveHalf && p.liveQ > 0)) {
       chk(isFinite(p.asymDir), 'Ugyldig retning for de ensidige laster.');
     }
     var dirs = [];
@@ -2460,6 +2462,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         res.snow.dome = { mu3: mu3, h: hDome, b: 2 * R, ls: 2 * rLs, betaEdge: Math.asin(Math.min(1, R / Rsph)) * 180 / Math.PI, t: tOf };
         if (p.snowUniform) snowCase('snowUniform', 'Sne, jævn', function (pp) { return pp.slope <= 60 + 1e-9 ? 0.8 : 0; });
         if (p.snowAsym) snowCase('snowAsym', 'Sne, ensidig', function (pp) { return meanOver(pp, muAsym); });
+        // halvt tag som tidligere: μ1 på læsiden af skillelinjen og μ på luvsiden (tomt felt = 0); flader på linjen deles efter areal
+        if (p.snowHalf) {
+          var muW = asymMu === null ? 0 : asymMu, half = { muW: muW, ApLee: 0, ApWind: 0, mu08: panels.every(function (pp) { return pp.slope <= 30 + 1e-9; }) };
+          snowCase('snowHalf', 'Sne, halvt tag', function (pp) {
+            var f = meanOver(pp, function (x, y) { return x * dHat[0] + y * dHat[1] >= -1e-9 ? 1 : 0; });
+            half.ApLee += f * pp.areaProj; half.ApWind += (1 - f) * pp.areaProj;
+            return f * mu1(pp.slope) + (1 - f) * muW;
+          });
+          res.snow.dome.half = half;
+        }
       } else {
       if (p.snowUniform) snowCase('snowUniform', 'Sne, jævn', function (pp) { return mu1(pp.slope); });
       if (p.snowAsym) {
@@ -4124,6 +4136,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         line: [[0, 0], [0.25, 0.5 * m3], [0.5, 0], [0.75, m3], [1, 0]] });
       mMax = Math.max(mMax, m3);
     }
+    if (K.snowHalf && sd.half) {
+      var hf = sd.half;
+      cases.push({ c: K.snowHalf, text: 'Halvt tag: μ<sub>1</sub> = 0,8 (tabel 5.2) på læsiden af skillelinjen gennem centrum vinkelret på θ = ' + trim(p.asymDir, 2) +
+        '° og μ = ' + coef(hf.muW) + ' på luvsiden' + (hf.muW === 0 ? '' : ' (angivet)') + '. Flader, der krydser skillelinjen, får hver sides μ efter deres areal på den side.',
+        expect: !hf.mu08 ? undefined : '0,8 · ' + num(s0, 3) + ' · ' + num(hf.ApLee, 2) + (hf.muW > 0 ? ' + ' + coef(hf.muW) + ' · ' + num(s0, 3) + ' · ' + num(hf.ApWind, 2) : '') +
+          ' = ' + num((0.8 * hf.ApLee + hf.muW * hf.ApWind) * s0, 2) + ' kN' });
+    }
     cases.forEach(function (cs) {
       if (cs.line) {
         lines.push({ pts: cs.line, dash: cs.dash });
@@ -4163,6 +4182,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             rows: rows, total: ['I alt', String(L.panels.length), '', num(d.Ap, 2), num(tot, 2)] }
         });
         B.push({ p: resultantLine(c) });
+      } else if (cs.c.key === 'snowHalf') {
+        B.push({ p: resultantLine(c, cs.expect) });
       } else {
         L.panels.forEach(function (pp, i) { tot += c.mu[i] * s0 * pp.areaProj; });
         B.push({ p: resultantLine(c, '0,8 · ' + num(s0, 3) + ' · ' + num(d.Ap, 2) + ' = ' + num(tot, 2) + ' kN') });
@@ -4240,7 +4261,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       B.push({ table: { head: ['Lasttilfælde', 'Last', 'Lodret, kN', 'Kontrol, kN'], num: [false, false, true, true], rows: wrows, keep: true } });
     }
 
-    if (p.snowOn && L.snow && L.snow.dome && (K.snowUniform || K.snowAsym)) {
+    if (p.snowOn && L.snow && L.snow.dome && (K.snowUniform || K.snowAsym || K.snowHalf)) {
       h('Snelast');
       domeSnow(B, d, o);
     } else if (p.snowOn && L.snow && (K.snowUniform || K.snowAsym)) {
@@ -5358,9 +5379,14 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('windFields').disabled = !(on && p.windOn);
     $('pressFields').disabled = !(on && p.pressOn);
     $('tempFields').disabled = !(on && p.tempOn);
-    $('asymDir').disabled = !(on && ((p.snowOn && p.snowAsym) || (p.liveOn && p.liveHalf)));
-    $('snowAsymMu').disabled = !(on && p.snowOn && p.snowAsym);
-    $('snowAsymMuField').hidden = p.roofType === 'dome';
+    var dome = p.roofType === 'dome';
+    $('asymDir').disabled = !(on && ((p.snowOn && (p.snowAsym || (dome && p.snowHalf))) || (p.liveOn && p.liveHalf)));
+    $('snowAsymMu').disabled = !(on && p.snowOn && (dome ? p.snowHalf : p.snowAsym));
+    $('snowAsymMu').placeholder = dome ? '0' : '½μ₁';
+    $('snowHalfField').hidden = !dome;
+    // på kuplen hører feltet til halvt tag og står under det, ellers under ensidig
+    if (dome) $('snowHalfField').after($('snowAsymMuField'));
+    else $('snowAsym').closest('label').after($('snowAsymMuField'));
     $('snowUniformLbl').innerHTML = p.roofType === 'dome' ? 'Jævnt fordelt: μ = 0,8 på hele taget (fig. 5.6 (i))' : 'Jævnt fordelt: μ<sub>1</sub> på hele taget';
     $('snowAsymLbl').innerHTML = p.roofType === 'dome' ? 'Ensidig: ½μ<sub>3</sub> på luvsiden og μ<sub>3</sub> på læsiden (fig. 5.6 (ii))' : 'Ensidig: reduceret på luvsiden og μ<sub>1</sub> på læsiden';
     $('windCalcFields').hidden = p.windQpMode === 'direct';
@@ -5438,6 +5464,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
           'Krumt tag: h = ' + nf(sd.h, 2) + ' m, b = ' + nf(sd.b, 2) + ' m → μ3 = 0,2 + 10 h/b = ' + nf(sd.mu3, 3) +
           '<br>Jævn: μ = 0,8 → ' + nf(0.8 * L.snow.s0, 3) + ' kN/m²';
         if (p.snowAsym) snow += '<br>Ensidig: ½μ3 = ' + nf(0.5 * sd.mu3, 3) + ' på luvsiden, μ3 = ' + nf(sd.mu3, 3) + ' på læsiden → op til ' + nf(sd.mu3 * L.snow.s0, 3) + ' kN/m²';
+        if (sd.half) snow += '<br>Halvt tag: μ1 = ' + rng(m1a, m1b, 2) + ' på læsiden → ' + rng(m1a * L.snow.s0, m1b * L.snow.s0, 3) + ' kN/m², μ = ' + nf(sd.half.muW, 2) + ' på luvsiden → ' + nf(sd.half.muW * L.snow.s0, 3) + ' kN/m²';
       } else {
       snow = 's = μ1 · C_e · C_t · s_k, C_e · C_t · s_k = ' + nf(L.snow.s0, 3) + ' kN/m²<br>' +
         'Hældning ' + nf(aMin, 1) + (aMax - aMin > 0.05 ? '–' + nf(aMax, 1) : '') + '° → μ1 = ' + rng(m1a, m1b, 2);
@@ -5682,7 +5709,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         '<circle cx="' + qp0[0].toFixed(1) + '" cy="' + qp0[1].toFixed(1) + '" r="' + (2.5 * k).toFixed(1) + '" class="dot"/></g>');
       out.push(textEl('svg-label strong', qp0[0], qp0[1] - 12 * k, 'Q = ' + nf(lc.loads[0].val, 2) + ' kN', fs, 'middle'));
     }
-    var arrowDeg = lc ? (lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|liveHalf)$/.test(lc.key) ? g.params.asymDir : null)) : null;
+    var arrowDeg = lc ? (lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|snowHalf|liveHalf)$/.test(lc.key) ? g.params.asymDir : null)) : null;
     if (arrowDeg !== null && isFinite(arrowDeg)) {
       var ar = arrowDeg * Math.PI / 180, ux2 = Math.cos(ar), uy2 = -Math.sin(ar);
       var L0 = rPix * 0.55, a0 = [c - ux2 * L0, c - uy2 * L0], a1 = [c + ux2 * L0, c + uy2 * L0], hw = 9 * k, hl = 16 * k;
@@ -6003,7 +6030,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       label(best.tip, best.tail, 'u = ' + nf(motions[0].val * 1000, 1) + ' mm');
     }
     // vindretning eller læside: vandret pil i højde med svøbets fod, som i planen
-    var arrowDeg = lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|liveHalf)$/.test(lc.key) ? g.params.asymDir : null);
+    var arrowDeg = lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|snowHalf|liveHalf)$/.test(lc.key) ? g.params.asymDir : null);
     var dirSvg = '';
     if (arrowDeg !== null && isFinite(arrowDeg)) {
       var ar = arrowDeg * Math.PI / 180, ux = Math.cos(ar), uy = Math.sin(ar), L0 = 0.55 * R;

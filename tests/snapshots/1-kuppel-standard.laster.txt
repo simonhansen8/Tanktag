@@ -13,6 +13,7 @@ Gangbro, egenlast	Permanent	5	16,40	0,00
 Gangbro, nyttelast	Korttids	5	25,71	0,00
 Sne, jævn	Korttids	217	730,24	0,00
 Sne, ensidig	Korttids	217	362,41	0,00
+Sne, halvt tag	Korttids	112	365,12	0,00
 Vind 0°	Øjeblikkelig	217	−854,91	46,56
 Overtryk	Korttids	217	−136,92	0,00
 Undertryk	Korttids	217	228,20	0,00
@@ -75,6 +76,10 @@ Placering, andel af l_s	Flader	μ	A_proj, m²	s · A_proj, kN
 I alt	217		912,80	362,41
 
 Lodret resultant i filen: 362,41 kN nedad.
+
+Sne, halvt tag. Halvt tag: μ_1 = 0,8 (tabel 5.2) på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° og μ = 0,0 på luvsiden. Flader, der krydser skillelinjen, får hver sides μ efter deres areal på den side.
+
+Lodret resultant i filen: 365,12 kN nedad (kontrol: 0,8 · 1,000 · 456,39 = 365,12 kN).
 
 6. Vindlast
 ===========
@@ -425,7 +430,7 @@ Bjælkerne får ΔT ens over højden. Svøbets udvidelse ved hver understøtning
 ====================
 Kombinationerne står i StruXML-filen med disse faktorer. Den lodrette resultant er summen af lasttilfældenes resultanter gange faktorerne.
 
-33 kombinationer
+37 kombinationer
 Kombination	Type	Lasttilfælde med faktor	Lodret, kN
 STR 6.10a	Brud, almindelig	1,2 · Egenlast + 1,2 · Gangbro, egenlast	462,07
 STR Nyttelast, punkt	Brud, almindelig	1 · Egenlast + 1,5 · Nyttelast, punkt + 1 · Gangbro, egenlast + 1,5 · Undertryk	729,61
@@ -436,6 +441,8 @@ STR Sne, jævn	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · 
 STR Sne, jævn + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, jævn + 1,5 · Undertryk + 0,9 · Temperatur	1.822,72
 STR Sne, ensidig	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk	1.270,97
 STR Sne, ensidig + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, ensidig + 1,5 · Undertryk + 0,9 · Temperatur	1.270,97
+STR Sne, halvt tag	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, halvt tag + 1,5 · Undertryk	1.275,04
+STR Sne, halvt tag + temperatur	Brud, almindelig	1 · Egenlast + 1 · Gangbro, egenlast + 1,5 · Sne, halvt tag + 1,5 · Undertryk + 0,9 · Temperatur	1.275,04
 STR Vind 0°	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 1,5 · Vind 0° + 1,5 · Overtryk	−1.141,19
 STR Vind 0° + temperatur	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 1,5 · Vind 0° + 1,5 · Overtryk + 0,9 · Temperatur	−1.141,19
 STR Overtryk	Brud, almindelig	0,9 · Egenlast + 0,9 · Gangbro, egenlast + 0,45 · Vind 0° + 1,5 · Overtryk	−243,53
@@ -452,6 +459,8 @@ SLS kar. Sne, jævn	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, ege
 SLS kar. Sne, jævn + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, jævn + 1 · Undertryk + 0,6 · Temperatur	1.343,50
 SLS kar. Sne, ensidig	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk	975,67
 SLS kar. Sne, ensidig + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, ensidig + 1 · Undertryk + 0,6 · Temperatur	975,67
+SLS kar. Sne, halvt tag	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, halvt tag + 1 · Undertryk	978,38
+SLS kar. Sne, halvt tag + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Sne, halvt tag + 1 · Undertryk + 0,6 · Temperatur	978,38
 SLS kar. Vind 0°	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Vind 0° + 1 · Overtryk	−606,77
 SLS kar. Vind 0° + temperatur	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 1 · Vind 0° + 1 · Overtryk + 0,6 · Temperatur	−606,77
 SLS kar. Overtryk	Anvendelse, karakteristisk	1 · Egenlast + 1 · Gangbro, egenlast + 0,3 · Vind 0° + 1 · Overtryk	−8,33

@@ -365,3 +365,23 @@ test('sne på kuppeltag følger 5.3.5: μ3 = 0,2 + 10 h/b og trekanterne i fig. 
   const lee = L.panels.reduce((a, pp, i) => a + ((pp.centroid[0] * Math.cos(ad) + pp.centroid[1] * Math.sin(ad) > 0) ? byKey.snowAsym.mu[i] * pp.areaProj : 0), 0);
   assert.ok(lee > 0.6 * -byKey.snowAsym.F[2] / L.snow.s0, 'mest på læsiden');
 });
+
+test('halvt tag på kuppel: μ1 = 0,8 på læsiden og μ på luvsiden (tomt felt = 0)', () => {
+  const run = (o) => {
+    const p = TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { asymDir: 20 }, o));
+    const L = TR.computeLoads(TR.computeGeometry(p));
+    assert.deepEqual(L.errors, []);
+    const c = L.cases.find((x) => x.key === 'snowHalf');
+    const Ap = L.panels.reduce((a, pp) => a + pp.areaProj, 0);
+    return { L, c, share: c ? -c.F[2] / (L.snow.s0 * Ap) : 0 };
+  };
+  const nul = run({});
+  assert.equal(nul.c.name, 'Sne, halvt tag');
+  assert.ok(Math.abs(nul.share - 0.4) < 0.01, 'halvdelen af taget med 0,8');
+  assert.ok(Math.abs(nul.L.snow.dome.half.ApLee / (nul.L.snow.dome.half.ApLee + nul.L.snow.dome.half.ApWind) - 0.5) < 0.01);
+  assert.ok(Math.abs(run({ snowAsymMu: '0,2' }).share - 0.5) < 0.01);
+  // slås fra med feltet, og kegletaget har det ikke
+  assert.ok(!run({ snowHalf: false }).L.cases.some((x) => x.key === 'snowHalf'));
+  const kegle = TR.computeLoads(TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { roofType: 'cone' }))));
+  assert.ok(!kegle.cases.some((x) => x.key === 'snowHalf'));
+});

@@ -300,6 +300,20 @@
         ]
       },
       {
+        "key": "snowHalf",
+        "name": "Sne, halvt tag",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "surface": 112
+        },
+        "F": [
+          0,
+          0,
+          -365.115379
+        ]
+      },
+      {
         "key": "wind0",
         "name": "Vind 0°",
         "type": "static",
@@ -588,7 +602,13 @@
           0.955542,
           0.955542,
           0.5
-        ]
+        ],
+        "half": {
+          "muW": 0,
+          "ApLee": 456.394224,
+          "ApWind": 456.406452,
+          "mu08": true
+        }
       }
     },
     "wind": {
@@ -971,6 +991,41 @@
         ]
       },
       {
+        "name": "STR Sne, halvt tag",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowHalf": 1.5,
+          "pressVac": 1.5
+        },
+        "F": [
+          0,
+          0,
+          -1275.035692
+        ]
+      },
+      {
+        "name": "STR Sne, halvt tag + temperatur",
+        "type": "ultimate_ordinary",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowHalf": 1.5,
+          "pressVac": 1.5,
+          "temp": 0.9
+        },
+        "F": [
+          0,
+          0,
+          -1275.035692
+        ]
+      },
+      {
         "name": "STR Vind 0°",
         "type": "ultimate_ordinary",
         "ok": true,
@@ -1252,6 +1307,41 @@
         ]
       },
       {
+        "name": "SLS kar. Sne, halvt tag",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowHalf": 1,
+          "pressVac": 1
+        },
+        "F": [
+          0,
+          0,
+          -978.377919
+        ]
+      },
+      {
+        "name": "SLS kar. Sne, halvt tag + temperatur",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "dead": 1,
+          "walkDead": 1,
+          "snowHalf": 1,
+          "pressVac": 1,
+          "temp": 0.6
+        },
+        "F": [
+          0,
+          0,
+          -978.377919
+        ]
+      },
+      {
         "name": "SLS kar. Vind 0°",
         "type": "serviceability_characteristic",
         "ok": true,
@@ -1488,6 +1578,27 @@
       }
     },
     {
+      "name": "STR Sne, halvt tag",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowHalf": "1,5",
+        "pressVac": "1,5"
+      }
+    },
+    {
+      "name": "STR Sne, halvt tag + temperatur",
+      "type": "ultimate_ordinary",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowHalf": "1,5",
+        "pressVac": "1,5",
+        "temp": "0,9"
+      }
+    },
+    {
       "name": "STR Vind 0°",
       "type": "ultimate_ordinary",
       "f": {
@@ -1657,6 +1768,27 @@
       }
     },
     {
+      "name": "SLS kar. Sne, halvt tag",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowHalf": "1",
+        "pressVac": "1"
+      }
+    },
+    {
+      "name": "SLS kar. Sne, halvt tag + temperatur",
+      "type": "serviceability_characteristic",
+      "f": {
+        "dead": "1",
+        "walkDead": "1",
+        "snowHalf": "1",
+        "pressVac": "1",
+        "temp": "0,6"
+      }
+    },
+    {
       "name": "SLS kar. Vind 0°",
       "type": "serviceability_characteristic",
       "f": {
@@ -1791,8 +1923,8 @@
     ]
   },
   "struxml": {
-    "sha256": "6a5895319646bb35c6e9d2e2c24108ded7087337ec006ad56e44d790c6f3dfb3",
-    "lines": 30368,
+    "sha256": "3cc2790c12400f5d9857e978f02b60ab03d263d54ec9226b4880793d294d13be",
+    "lines": 31711,
     "elements": {
       "analytical": 720,
       "bar": 378,
@@ -1800,39 +1932,39 @@
       "complex_section": 360,
       "compression": 18,
       "connectivity": 720,
-      "contour": 1526,
+      "contour": 1638,
       "cover": 217,
       "curve": 378,
       "database": 1,
-      "direction": 1739,
+      "direction": 1851,
       "displacement": 48,
       "ecc": 720,
       "eccentricity": 378,
-      "edge": 6024,
+      "edge": 6444,
       "elastic": 36,
       "end": 1484,
       "entities": 1,
       "group": 48,
       "line_load": 10,
       "line_temperature_variation_load": 378,
-      "load": 1323,
-      "load_case": 158,
-      "load_combination": 33,
+      "load": 1435,
+      "load_case": 177,
+      "load_combination": 37,
       "loads": 1,
       "local_x": 48,
       "local_y": 48,
       "material": 1,
       "materials": 1,
       "motions": 48,
-      "normal": 6412,
+      "normal": 6832,
       "physical": 756,
-      "point": 12776,
+      "point": 13616,
       "point_load": 1,
       "point_support": 48,
       "point_support_motion_load": 48,
       "position": 48,
       "ref": 360,
-      "region": 1526,
+      "region": 1638,
       "region_group": 7,
       "rigidity": 48,
       "rotations": 48,
@@ -1841,7 +1973,7 @@
       "steel": 1,
       "supporting_structures": 217,
       "supports": 1,
-      "surface_load": 1302,
+      "surface_load": 1414,
       "temperature": 756,
       "tension": 18,
       "truss_behaviour": 18,
