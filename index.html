@@ -1198,7 +1198,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     </div>
     <div class="note">
       <h3>Når filen er åbnet</h3>
-      <p>Lasttilfældene ligger klar: fladelaster på fladerne, gangbroen som linjelaster på sin radialbjælke, temperatur på bjælkerne og svøbets udvidelse som flytning af understøtningerne, og lastkombinationerne fra fanen Kombinationer følger med. Lav de øvrige kombinationer i FEM-Design, og tjek materialets partialkoefficienter, knækningslængder og forbindelser. Profiler og S 235–S 460 er kopier af FEM-Designs eget bibliotek; fladstål findes ikke dér og lægges ind som rektangulære brugertværsnit, som FEM-Design selv beregner tværsnitsværdier for. Det samme gælder svejste T-profiler af fladstål (flange øverst og krop nedad, tyngdepunktet på systemlinjen, fremstillet som svejst). Liggende fladstål skrives som stående tværsnit med stangen drejet 90° om sin akse, så FEM-Designs ståldimensionering kan regne det; derfor bytter My' og Mz' plads for de stænger i FEM-Designs resultater. Parametrene står som kommentar øverst i filen, så den kan indlæses her igen med Indlæs fil.</p>
+      <p>Lasttilfældene ligger klar: fladelaster på fladerne, gangbroen som linjelaster på sin radialbjælke, temperatur på bjælkerne og svøbets udvidelse som flytning af understøtningerne, og lastkombinationerne fra fanen Kombinationer følger med. Lav de øvrige kombinationer i FEM-Design, og tjek materialets partialkoefficienter, knækningslængder og forbindelser. Profiler og S 235–S 460 er kopier af FEM-Designs eget bibliotek; fladstål findes ikke dér og lægges ind som rektangulære brugertværsnit, som FEM-Design selv beregner tværsnitsværdier for. Det samme gælder svejste T-profiler af fladstål (flange øverst og krop nedad, tyngdepunktet på systemlinjen, fremstillet som svejst) og svejste C-profiler af fladstål (kroppen lodret mellem to flanger, tyngdepunktet på systemlinjen og fremstillet som svejst). Et C-profil på den midterste ringbjælke drejes 180° om stangaksen, så flangerne peger udad mod radialbjælkerne; dér peger lokal z nedad. Liggende fladstål skrives som stående tværsnit med stangen drejet 90° om sin akse, så FEM-Designs ståldimensionering kan regne det; derfor bytter My' og Mz' plads for de stænger i FEM-Designs resultater. Parametrene står som kommentar øverst i filen, så den kan indlæses her igen med Indlæs fil.</p>
     </div>
   </section>
 </div>
@@ -1427,6 +1427,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function findSection(lib, key) {
     var p = profileParts(key);
     if (p && lib && p.family === 'TS') return weldedTSection(p.size);
+    if (p && lib && p.family === 'CS') return weldedCSection(p.size);
     if (!p || !lib || !lib.sections[p.family]) return null;
     var rows = lib.sections[p.family];
     for (var i = 0; i < rows.length; i++) {
@@ -1462,27 +1463,49 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var Af = bf * tf, Aw = hw * tw, area = Af + Aw;
     var top = (Af * tf / 2 + Aw * (tf + hw / 2)) / area;   // tyngdepunktets afstand fra flangens overside
     var yt = top, yf = top - tf, yb = top - tf - hw, xf = bf / 2, xw = tw / 2;
-    // omridset mod uret som i biblioteket; normalen peger ind i tværsnittet
     var P = [[-xw, yb], [xw, yb], [xw, yf], [xf, yf], [xf, yt], [-xf, yt], [-xf, yf], [-xw, yf]];
+    return { family: 'TS', size: String(size), area: area, h: tf + hw, b: bf, xml: plateSectionXml('Svejst T', size, P) };
+  }
+  // brugertværsnit af fladstål ud fra omridset P (lokal y, lokal z) i m, fremstillet som svejst (fd-mat 2)
+  function plateSectionXml(code, size, P) {
+    // omridset mod uret som i biblioteket; normalen peger ind i tværsnittet
     var edges = P.map(function (a, i) {
       var b = P[(i + 1) % P.length], d = unit([b[0] - a[0], b[1] - a[1], 0]);
       return '<edge type="line"><point x="' + fmt(a[0]) + '" y="' + fmt(a[1]) + '" z="0"></point><point x="' + fmt(b[0]) +
         '" y="' + fmt(b[1]) + '" z="0"></point><normal x="' + fmt(-d[1]) + '" y="' + fmt(d[0]) + '" z="0"></normal></edge>';
     }).join('');
     var label = String(size).replace(/\*/g, 'x');
-    var name = 'Svejst T, ' + label;
-    var xml = '<section guid="' + tsGuid(name) + '" last_change="1970-01-01T00:00:00.000" action="added" name="' + name +
-      '" type="custom" fd-mat="2" fd_name_code="Svejst T" fd_name_type="fladstål" fd_name_size="' + label + '">' +
+    var name = code + ', ' + label;
+    return '<section guid="' + tsGuid(name) + '" last_change="1970-01-01T00:00:00.000" action="added" name="' + name +
+      '" type="custom" fd-mat="2" fd_name_code="' + code + '" fd_name_type="fladstål" fd_name_size="' + label + '">' +
       '<region_group><region><contour>' + edges + '</contour></region></region_group><end></end></section>';
-    return { family: 'TS', size: String(size), area: area, h: tf + hw, b: bf, xml: xml };
   }
-  // biblioteket med de svejste T-profiler som egen familie lige efter T (til profilvælgeren)
+
+  // svejst C af tre fladstål (familie CS), størrelse "500*15+330*10" = flanger b*t + krop h*t i mm, kroppen mellem
+  // flangerne, så højden er h + 2t. Orienteret som bibliotekets U-profiler: kroppen langs lokal z, flangerne mod +lokal y
+  // og origo i tyngdepunktet, så den stærke akse er om lokal y og stangen ligger på systemlinjen uden ekscentricitet.
+  var CS_SIZES = ['300*12+250*10', '400*12+250*10', '400*15+300*10', '450*15+300*10', '500*15+330*10',
+    '500*20+330*10', '600*20+400*12'];
+  function weldedCSection(size) {
+    var m = TS_RE.exec(String(size));
+    if (!m) return null;
+    var bf = m[1] / 1000, tf = m[2] / 1000, hw = m[3] / 1000, tw = m[4] / 1000;
+    if (!(bf > 0 && tf > 0 && hw > 0 && tw > 0) || tw >= bf) return null;
+    var Af = bf * tf, Aw = hw * tw, area = 2 * Af + Aw;
+    var e = (2 * Af * bf / 2 + Aw * tw / 2) / area;   // tyngdepunktets afstand fra kroppens bagside
+    var x0 = -e, x1 = tw - e, x2 = bf - e, yt = hw / 2 + tf, yi = hw / 2;
+    var P = [[x0, -yt], [x2, -yt], [x2, -yi], [x1, -yi], [x1, yi], [x2, yi], [x2, yt], [x0, yt]];
+    return { family: 'CS', size: String(size), area: area, h: hw + 2 * tf, b: bf, xml: plateSectionXml('Svejst C', size, P) };
+  }
+  // biblioteket med de svejste C- og T-profiler som egne familier lige efter UAP og T (til profilvælgeren)
   function addBuiltSections(lib) {
     var out = {};
     Object.keys(lib.sections).forEach(function (f) {
       out[f] = lib.sections[f];
+      if (f === 'UAP') out.CS = CS_SIZES.map(function (sz) { var s = weldedCSection(sz); return [sz, s.area, s.h, s.b, s.xml]; });
       if (f === 'T') out.TS = TS_SIZES.map(function (sz) { var s = weldedTSection(sz); return [sz, s.area, s.h, s.b, s.xml]; });
     });
+    if (!out.CS) out.CS = CS_SIZES.map(function (sz) { var s = weldedCSection(sz); return [sz, s.area, s.h, s.b, s.xml]; });
     if (!out.TS) out.TS = TS_SIZES.map(function (sz) { var s = weldedTSection(sz); return [sz, s.area, s.h, s.b, s.xml]; });
     lib.sections = out;
     return lib;
@@ -1729,10 +1752,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }
     }
     // ringbjælke
+    // lokal y peger mod centrum. Et svejst C drejes 180° om stangaksen, så flangerne peger udad mod radialbjælkerne
+    var ringP = profileParts(p.profRing), ringFlip = !!ringP && ringP.family === 'CS';
     var ringM = [];
     for (var i3 = 0; i3 < n; i3++) {
-      var a3 = P(rc, i3), b3 = P(rc, i3 + 1);
-      ringM.push(addMember('ring', 'RING.' + (i3 + 1), a3, b3, localYFor(vsub(b3, a3)), 'rigid', 'rigid', { index: i3 }));
+      var a3 = P(rc, i3), b3 = P(rc, i3 + 1), ly3 = localYFor(vsub(b3, a3));
+      ringM.push(addMember('ring', 'RING.' + (i3 + 1), a3, b3, ringFlip ? vscale(ly3, -1) : ly3, 'rigid', 'rigid', { index: i3 }));
     }
     // udvekslinger: udvM[k][i] = [korde], eller i en ring, som sektionsspærene krydser, [RB.i → sektionsspær,
     // sektionsspær → RB.i+1]. Ringene udenfor sektionsspærenes inderste ring deles midt på korden, hvor sektionsspæret
@@ -2902,7 +2927,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, udvProfileOf: udvProfileOf,
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
-    weldedTSection: weldedTSection, addBuiltSections: addBuiltSections
+    weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -4270,7 +4295,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var STORE_KEY = 'tanktag-fd-params-v1';
   var FAMILY_LABEL = {
     'IPE': 'IPE', 'HE-A': 'HE-A', 'HE-B': 'HE-B', 'HE-M': 'HE-M', 'I': 'I (INP)', 'U': 'U (UNP)',
-    'UPE': 'UPE', 'UAP': 'UAP', 'T': 'T', 'TS': 'T, svejst af fladstål', 'LE': 'L, ligebenet', 'LU': 'L, uligebenet',
+    'UPE': 'UPE', 'UAP': 'UAP', 'CS': 'C, svejst af fladstål', 'T': 'T', 'TS': 'T, svejst af fladstål', 'LE': 'L, ligebenet', 'LU': 'L, uligebenet',
     'FL': 'Fladstål, liggende', 'FLS': 'Fladstål, stående', 'VKR': 'VKR (varmf. RHS)', 'KKR': 'KKR (koldf. RHS)', 'CHS': 'CHS (rør)',
     'KCKR': 'KCKR (koldf. rør)', 'VCKR': 'VCKR (varmf. rør)', 'UKB': 'UKB', 'UKC': 'UKC'
   };
@@ -4320,6 +4345,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var fam = key.slice(0, i), size = key.slice(i + 1);
     if (fam === 'FL' || fam === 'FLS') return 'FL ' + sizeLabel(size) + (fam === 'FL' ? ' liggende' : ' stående');
     if (fam === 'TS') return 'T ' + sizeLabel(size).replace('+', ' + ') + ' svejst';
+    if (fam === 'CS') return 'C ' + sizeLabel(size).replace('+', ' + ') + ' svejst';
     var famShort = fam === 'LE' || fam === 'LU' ? 'L' : fam;
     return famShort + ' ' + sizeLabel(size);
   }

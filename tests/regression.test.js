@@ -269,3 +269,48 @@ test('svejst T-profil på kantringen eksporteres som brugertværsnit med flangen
     assert.ok(!/<analytical x="(?!0")/.test(bar[0]), 'Ingen ekscentricitet');
   });
 });
+
+// svejst C af fladstål (flanger 500x15, krop 330x10) på den midterste ringbjælke: tværsnitsværdierne skal svare til
+// FEM-Designs (A = 18300 mm², Iy = 476572500 mm⁴, Iz = 474890205 mm⁴), orienteret som bibliotekets U-profiler
+// med origo i tyngdepunktet, og ringen drejet 180° om stangaksen, så flangerne peger udad
+test('svejst C-profil på ringbjælken har FEM-Designs tværsnitsværdier og flangerne udad', () => {
+  const s = TR.findSection(LIB, 'CS|500*15+330*10');
+  assert.ok(s, 'Fandt ikke det svejste C-profil');
+  const P = TR.sectionOutline(s.xml)[0].map((q) => q.map((v) => v * 1000));
+  let A = 0, Sy = 0, Sz = 0, Iy = 0, Iz = 0;
+  P.forEach((a, i) => {
+    const b = P[(i + 1) % P.length], c = a[0] * b[1] - b[0] * a[1];
+    A += c / 2; Sy += (a[0] + b[0]) * c / 6; Sz += (a[1] + b[1]) * c / 6;
+    Iy += (a[1] * a[1] + a[1] * b[1] + b[1] * b[1]) * c / 12;
+    Iz += (a[0] * a[0] + a[0] * b[0] + b[0] * b[0]) * c / 12;
+  });
+  assert.ok(Math.abs(A - 18300) < 1e-6, 'A = ' + A);
+  assert.ok(Math.abs(Sy / A) < 1e-6 && Math.abs(Sz / A) < 1e-6, 'Origo skal ligge i tyngdepunktet');
+  assert.ok(Math.abs(Iy - 476572500) < 1, 'Iy = ' + Iy);
+  assert.ok(Math.abs(Iz - 474890205) < 1, 'Iz = ' + Iz);
+  // kroppen (bagsiden) ved negativ lokal y og flangerne mod +lokal y som bibliotekets U-profiler
+  const xs = P.map((q) => q[0]);
+  assert.ok(Math.abs(Math.min(...xs) + 205.82) < 0.01 && Math.abs(Math.max(...xs) - 294.18) < 0.01);
+
+  const params = Object.assign({}, TR.DEFAULTS, { profRing: 'CS|500*15+330*10' });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  assert.equal((xml.match(/name="Svejst C, 500x15\+330x10"/g) || []).length, 1, 'Tværsnittet skal stå én gang i filen');
+  const rings = g.members.filter((m) => m.group === 'ring');
+  assert.ok(rings.length > 0);
+  rings.forEach((m) => {
+    const bar = new RegExp('<bar name="' + m.name.replace(/\./g, '\\.') + '"[\\s\\S]*?made="([^"]+)"[\\s\\S]*?<local-y x="([^"]+)" y="([^"]+)" z="([^"]+)"[\\s\\S]*?</bar>').exec(xml);
+    assert.ok(bar, 'Fandt ikke ' + m.name);
+    assert.equal(bar[1], 'welded');
+    const ly = bar.slice(2, 5).map(Number);
+    // lokal y (flangerne) peger væk fra centrum
+    const mid = [0, 1].map((i) => (m.start[i] + m.end[i]) / 2);
+    assert.ok(ly[0] * mid[0] + ly[1] * mid[1] > 0, 'Flangerne skal pege udad');
+    assert.ok(!/<analytical x="(?!0")/.test(bar[0]), 'Ingen ekscentricitet');
+  });
+  // radialbjælkerne er uændrede
+  const base = TR.computeGeometry(Object.assign({}, TR.DEFAULTS, { combos: TR.normCombos(TR.DEFAULTS.combos) }));
+  assert.deepEqual(g.members.filter((m) => m.group !== 'ring').map((m) => m.localY),
+    base.members.filter((m) => m.group !== 'ring').map((m) => m.localY));
+});
