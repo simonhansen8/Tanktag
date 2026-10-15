@@ -129,30 +129,34 @@ test('rapporten over samlingerne indeholder grundlaget og alle knudetyper', () =
   assert.ok(!html.includes(' …</p>'));
 });
 
-test('samlinger: tildeling pr. knudetype og stang med undtagelser, hentet som Excel-ark', async () => {
+test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark', async () => {
   const g = geometry();
   const F = TC.parseForces(TC.textRows(fixtureText()));
   const N = TC.buildNodes(g), M = TC.matchBars(F, g);
   const asg = TC.seedAssign(TC.newAssign(), N);
-  // udgangspunkt: samling 1 er RB mod centrum ved svøbet, i alle 24 KS-knuder
+  // udgangspunkt: samling 1 er RB mod centrum i alle 24 KS-knuder
   const ks = N.nodes.filter((nd) => /^KS\.\d+$/.test(nd.name));
   assert.equal(ks.length, 24);
-  ks.forEach((nd) => assert.equal(TC.samlingOf(asg, nd, 'RB mod centrum'), 1));
-  // undtagelse: KS.3 har ingen samling 1
-  const ks3 = ks.find((nd) => nd.name === 'KS.3');
-  asg.nodes[TC.asgKey(ks3.id, 'RB mod centrum')] = 0;
+  assert.deepEqual(asg.sel[0].slice().sort(), ks.map((nd) => nd.id).sort());
+  assert.deepEqual(asg.roles[0], ['RB mod centrum']);
+  // KS.3 fravalgt; samling 2 er alle stænger i KS.1
+  const ks3 = ks.find((nd) => nd.name === 'KS.3'), ks1 = ks.find((nd) => nd.name === 'KS.1');
+  asg.sel[0] = asg.sel[0].filter((id) => id !== ks3.id);
+  asg.sel[1] = [ks1.id];
+  assert.deepEqual(TC.nodeRoles(N, asg.sel[1]), ks1.ends.map((e) => e.role));
   const se = TC.samlingEnds(N, M, F.combos, asg);
   assert.equal(se.ends[1].length, 23 * F.combos.length);
   assert.ok(se.ends[1].every((r) => r[2] === 'RB mod centrum' && r[0] !== 'KS.3'));
-  assert.deepEqual(se.ends.slice(2).map((e) => e.length), [0, 0, 0, 0, 0, 0]);
+  assert.equal(se.ends[2].length, ks1.ends.length * F.combos.length);
+  assert.deepEqual(se.ends.slice(3).map((e) => e.length), [0, 0, 0, 0, 0]);
 
   const buf = await TC.samlingerXlsx(N, M, F.combos, asg);
   const rows = await TC.readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
   assert.ok(rows.some((r) => r[0] === 'N_Rd'), 'fanen Samling 1 har eftervisningen');
   const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype' && r[5] === 'Kombination');
   assert.deepEqual(head.slice(12), ['Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
-  const data = rows.slice(rows.indexOf(head) + 1).filter((r) => r[1]);
-  assert.equal(data.length, se.ends[1].length);
+  const data = rows.slice(rows.indexOf(head) + 1, rows.indexOf(head) + 1 + se.ends[1].length);
+  assert.ok(data.every((r) => r[2] === 'RB mod centrum'));
   const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig');
   assert.equal(ks7[6], se.ends[1].find((e) => e[0] === 'KS.7' && e[5] === '5 STR Sne, ensidig')[6]);
 });
