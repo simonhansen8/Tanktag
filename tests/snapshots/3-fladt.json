@@ -382,12 +382,14 @@
     ]
   },
   "struxml": {
-    "sha256": "11ca493771eb810c6a5db7e4379645f2b68e439f5d752ce1e98b411576867bd4",
-    "lines": 2600,
+    "sha256": "5de229063c9c6880a91a807cdc5f0b992722ed70700abed2776ad605cab61290",
+    "lines": 2768,
     "elements": {
       "analytical": 72,
       "bar": 36,
       "bar_part": 36,
+      "buckling_data": 12,
+      "buckling_length": 48,
       "complex_section": 36,
       "connectivity": 72,
       "contour": 128,
@@ -414,7 +416,7 @@
       "point": 1228,
       "point_load": 3,
       "point_support": 12,
-      "position": 12,
+      "position": 60,
       "ref": 60,
       "region": 128,
       "region_group": 3,

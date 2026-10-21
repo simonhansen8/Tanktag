@@ -182,6 +182,14 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .subopt { display: grid; grid-template-columns: auto 104px; align-items: center; justify-content: start; gap: 10px; margin-left: 24px; }
 .subopt .lbl { font-size: 0.9rem; }
 .subopt input { min-height: 32px; padding: 4px 9px; }
+/* søjle- og kipningslængder: β og »hele bjælken« for radialbjælker og sektionsspær */
+.bkgrid { display: grid; grid-template-columns: minmax(0, 1fr) 106px 106px; gap: 6px 8px; align-items: center; }
+.bkgrid .lbl { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; }
+.bklbl { font-size: 0.85rem; line-height: 1.25; }
+.bkcell { display: grid; grid-template-columns: 48px auto; gap: 6px; align-items: center; }
+.bkcell input[type="text"] { min-height: 32px; padding: 4px 7px; }
+.bkcell .check { font-size: 0.8rem; }
+.bkgrid .bksec.off { opacity: 0.45; }
 .prof { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 8px; }
 .prof-head { display: flex; align-items: center; gap: 8px; }
 .swatch { width: 18px; height: 0; border-top: 3px solid currentColor; flex: none; }
@@ -678,6 +686,53 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           </div>
         </div>
         <p class="hint">Startværdier efter DS/EN 1993-1-1 DK NA med γ<sub>0</sub> = γ<sub>3</sub> = 1,0. Ret dem, så de svarer til jeres FEM-Design-opsætning.</p>
+      </section>
+
+      <section class="group" aria-labelledby="g-buck">
+        <h2 id="g-buck">Søjle- og kipningslængder</h2>
+        <div class="bkgrid" role="group" aria-label="β for søjle- og kipningslængder">
+          <span class="lbl nocase">β</span>
+          <span class="lbl"><i class="swatch sw-radial"></i>Radialbjælker</span>
+          <span class="lbl bksec"><i class="swatch sw-sec"></i>Sektionsspær</span>
+          <span class="bklbl">Søjle, stærk akse</span>
+          <div class="bkcell">
+            <input class="num" type="text" inputmode="decimal" id="bkRadialStiff" data-key="bkRadialStiff" aria-label="β, søjlelængde om stærk akse, radialbjælker">
+            <label class="check"><input type="checkbox" id="bkRadialStiffFull" data-key="bkRadialStiffFull" aria-label="Hele bjælkens længde, søjlelængde om stærk akse, radialbjælker"> <span>Hele</span></label>
+          </div>
+          <div class="bkcell bksec">
+            <input class="num" type="text" inputmode="decimal" id="bkSecStiff" data-key="bkSecStiff" aria-label="β, søjlelængde om stærk akse, sektionsspær">
+            <label class="check"><input type="checkbox" id="bkSecStiffFull" data-key="bkSecStiffFull" aria-label="Hele bjælkens længde, søjlelængde om stærk akse, sektionsspær"> <span>Hele</span></label>
+          </div>
+          <span class="bklbl">Søjle, svag akse</span>
+          <div class="bkcell">
+            <input class="num" type="text" inputmode="decimal" id="bkRadialWeak" data-key="bkRadialWeak" aria-label="β, søjlelængde om svag akse, radialbjælker">
+            <label class="check"><input type="checkbox" id="bkRadialWeakFull" data-key="bkRadialWeakFull" aria-label="Hele bjælkens længde, søjlelængde om svag akse, radialbjælker"> <span>Hele</span></label>
+          </div>
+          <div class="bkcell bksec">
+            <input class="num" type="text" inputmode="decimal" id="bkSecWeak" data-key="bkSecWeak" aria-label="β, søjlelængde om svag akse, sektionsspær">
+            <label class="check"><input type="checkbox" id="bkSecWeakFull" data-key="bkSecWeakFull" aria-label="Hele bjælkens længde, søjlelængde om svag akse, sektionsspær"> <span>Hele</span></label>
+          </div>
+          <span class="bklbl">Kipning, overflange</span>
+          <div class="bkcell">
+            <input class="num" type="text" inputmode="decimal" id="bkRadialTop" data-key="bkRadialTop" aria-label="β, kipningslængde med trykket overflange, radialbjælker">
+            <label class="check"><input type="checkbox" id="bkRadialTopFull" data-key="bkRadialTopFull" aria-label="Hele bjælkens længde, kipningslængde med trykket overflange, radialbjælker"> <span>Hele</span></label>
+          </div>
+          <div class="bkcell bksec">
+            <input class="num" type="text" inputmode="decimal" id="bkSecTop" data-key="bkSecTop" aria-label="β, kipningslængde med trykket overflange, sektionsspær">
+            <label class="check"><input type="checkbox" id="bkSecTopFull" data-key="bkSecTopFull" aria-label="Hele bjælkens længde, kipningslængde med trykket overflange, sektionsspær"> <span>Hele</span></label>
+          </div>
+          <span class="bklbl">Kipning, underflange</span>
+          <div class="bkcell">
+            <input class="num" type="text" inputmode="decimal" id="bkRadialBottom" data-key="bkRadialBottom" aria-label="β, kipningslængde med trykket underflange, radialbjælker">
+            <label class="check"><input type="checkbox" id="bkRadialBottomFull" data-key="bkRadialBottomFull" aria-label="Hele bjælkens længde, kipningslængde med trykket underflange, radialbjælker"> <span>Hele</span></label>
+          </div>
+          <div class="bkcell bksec">
+            <input class="num" type="text" inputmode="decimal" id="bkSecBottom" data-key="bkSecBottom" aria-label="β, kipningslængde med trykket underflange, sektionsspær">
+            <label class="check"><input type="checkbox" id="bkSecBottomFull" data-key="bkSecBottomFull" aria-label="Hele bjælkens længde, kipningslængde med trykket underflange, sektionsspær"> <span>Hele</span></label>
+          </div>
+        </div>
+        <p class="calc" id="bkCalc"></p>
+        <p class="hint">Tallene er FEM-Designs β: knæklængden er β gange længden. Uden flueben gælder β for hvert stykke, som bjælken er delt i ved udvekslingsringene (RB1.1, RB1.2 … og SEK1.1, SEK1.2 …), og med »Hele« for hele radialbjælken eller hele sektionsspæret fra den inderste til den yderste ende. β omregnes så til det enkelte stykke i filen. Kipning skrives som FEM-Designs trykket overflange og trykket underflange, med lasten på overflangen.</p>
       </section>
 
       <section class="group" aria-labelledby="g-conn">
@@ -1360,6 +1415,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     gammaM1: 1.20,
     gammaM2: 1.35,
     gammaMacc: 1.0,          // γM0 = γM1 = γM2 ved ulykke
+    // søjle- og kipningslængder som FEM-Designs β (knæklængde = β · længde) for radialbjælker (bkRadial…) og
+    // sektionsspær (bkSec…): Stiff = søjle om stærk akse, Weak = om svag akse, Top/Bottom = kipning med trykket
+    // over-/underflange. …Full = β regnes af hele bjælkens længde i stedet for det enkelte stykke.
+    bkRadialStiff: 1, bkRadialStiffFull: false, bkRadialWeak: 1, bkRadialWeakFull: false,
+    bkRadialTop: 1, bkRadialTopFull: false, bkRadialBottom: 1, bkRadialBottomFull: false,
+    bkSecStiff: 1, bkSecStiffFull: false, bkSecWeak: 1, bkSecWeakFull: false,
+    bkSecTop: 1, bkSecTopFull: false, bkSecBottom: 1, bkSecBottomFull: false,
     connRadialRing: 'rigid',   // 'rigid' | 'hinged' – radialbjælke mod ringbjælke
     connRadialShell: 'hinged', // 'rigid' | 'hinged' – radialbjælke mod kantring (kun med kantring)
     connUdv: 'hinged',         // 'rigid' | 'hinged' – udvekslingernes ender
@@ -1738,6 +1800,25 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return e === '' ? p.udvRot : rotNum(e);
   }
 
+  // søjle- og kipningslængder: FEM-Designs fire knæklængder for stålstænger (buckling_length type)
+  var BUCKLING = [
+    { key: 'Stiff', type: 'flexural_stiff', name: 'Søjle, stærk akse' },
+    { key: 'Weak', type: 'flexural_weak', name: 'Søjle, svag akse' },
+    { key: 'Top', type: 'pressured_flange', name: 'Kipning, trykket overflange' },
+    { key: 'Bottom', type: 'pressured_bottom_flange', name: 'Kipning, trykket underflange' }
+  ];
+  var BUCKLING_GROUPS = { radial: 'bkRadial', sec: 'bkSec' };
+  // β for stang m, som den skrives i filen: med »hele længden« omregnes β til stykkets egen længde
+  function bucklingBetas(p, m) {
+    var pre = BUCKLING_GROUPS[m.group];
+    if (!pre) return null;
+    var len = norm(vsub(m.end, m.start));
+    return BUCKLING.map(function (b) {
+      var beta = p[pre + b.key];
+      return p[pre + b.key + 'Full'] && m.fullLength ? beta * m.fullLength / len : beta;
+    });
+  }
+
   // ---------- parametre ----------
   function normalizeParams(p) {
     var q = {};
@@ -1770,6 +1851,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
     ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
+    });
+    Object.keys(BUCKLING_GROUPS).forEach(function (g) {
+      BUCKLING.forEach(function (b) {
+        var k = BUCKLING_GROUPS[g] + b.key;
+        q[k] = toNum(q[k]);
+        q[k + 'Full'] = q[k + 'Full'] === true || q[k + 'Full'] === 'true';
+      });
     });
     q.combos = normCombos(q.combos);
     q.holdMode = q.holdMode === 'nodes' ? 'nodes' : 'auto';
@@ -1849,6 +1937,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         errors.push('Sektionsspærene skal gå til en udvekslingsring fra 1 til ' + radii.length + ', talt fra svøbet.');
       }
     }
+    // β skal ligge i FEM-Designs interval 0–100
+    [['radial', 'radialbjælkerne'], ['sec', 'sektionsspærene']].forEach(function (g) {
+      if (g[0] === 'sec' && !p.secOn) return;
+      BUCKLING.forEach(function (b) {
+        var v = p[BUCKLING_GROUPS[g[0]] + b.key];
+        if (!(v > 0 && v <= 100)) errors.push(b.name + ' for ' + g[1] + ': β skal være større end 0 og højst 100.');
+      });
+    });
     // udvekslingernes profil kan drejes i hele kvarte omgange om stangaksen
     if (ROTATIONS.indexOf(p.udvRot) < 0) errors.push('Rotationen af udvekslingernes profil skal være 0°, 90°, 180° eller 270°.');
     else if (p.udvPerRing) {
@@ -1991,6 +2087,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         }
       }
     }
+
+    // hele længden af hver radialbjælke og hvert sektionsspær (summen af stykkerne) til søjle- og kipningslængderne
+    var fullLen = {};
+    members.forEach(function (mb) {
+      if (BUCKLING_GROUPS[mb.group]) fullLen[mb.group + mb.index] = (fullLen[mb.group + mb.index] || 0) + norm(vsub(mb.end, mb.start));
+    });
+    members.forEach(function (mb) { if (BUCKLING_GROUPS[mb.group]) mb.fullLength = fullLen[mb.group + mb.index]; });
 
     // vindgitter: knude ved radialbjælke r = 1…n (rMid = midt mellem r og r+1) og ring j: 0 = ringbjælke,
     // 1…m = udvekslingsring, m+1 = svøb (lMid = midt mellem j og næste ring udad)
@@ -3121,6 +3224,20 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I5 + '<physical x="0" y="0" z="0"/>');
       L.push(I5 + '<physical x="0" y="0" z="0"/>');
       L.push(I4 + '</eccentricity>');
+      // søjle- og kipningslængder (β gange stangens længde) for radialbjælker og sektionsspær; lasten angriber overflangen
+      var betas = bucklingBetas(p, m);
+      if (betas) {
+        L.push(I4 + '<buckling_data>');
+        BUCKLING.forEach(function (b, bi) {
+          if (betas[bi] > 100) throw new Error(b.name + ' for ' + m.name + ' giver β = ' + fmt(betas[bi]) + ' af stykkets længde. FEM-Design tillader højst 100.');
+          var flange = b.type.indexOf('pressured') === 0;
+          L.push(I5 + '<buckling_length type="' + b.type + '" beta="' + fmt(betas[bi]) + '"' +
+            (flange ? ' load_position="top" continously_restrained="false"' : ' sway="false"') + '>');
+          L.push(I6 + '<position start="0" end="1"/>');
+          L.push(I5 + '</buckling_length>');
+        });
+        L.push(I4 + '</buckling_data>');
+      }
       L.push(I4 + '<end/>');
       L.push(I3 + '</bar_part>');
       L.push(I3 + '<end/>');
@@ -3307,7 +3424,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, modernBracing: modernBracing, udvProfileOf: udvProfileOf,
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
-    weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections
+    weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections,
+    BUCKLING: BUCKLING, bucklingBetas: bucklingBetas
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -5739,6 +5857,10 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('shellConnField').hidden = !p.edgeRing;
     $('udvSecConnField').hidden = !(p.secOn && p.secRing >= 2);
     $('secFields').disabled = !p.secOn;
+    form.querySelectorAll('.bksec').forEach(function (el) {
+      el.classList.toggle('off', !p.secOn);
+      el.querySelectorAll('input').forEach(function (i) { i.disabled = !p.secOn; });
+    });
     $('rotLabel').textContent = p.secOn && p.secAxes ? 'Vinkel for SEK1' : 'Vinkel for RB.1';
     $('springField').hidden = p.support !== 'radialSpring';
     $('holdField').hidden = p.support !== 'vertical';
@@ -6829,6 +6951,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     renderCombos();
     updateBraceUI(geom);
     updateSecUI(geom);
+    updateBucklingUI(geom);
     updateWalkUI(geom);
     updateConn(geom);
     renderDrawing();
@@ -7163,6 +7286,28 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       calc += '<br>' + (axes.length ? axes.join(' · ') : 'Ingen sektionsspær ligger på akserne');
     }
     $('secCalc').innerHTML = calc;
+  }
+  // søjle- og kipningslængder: hele længden og stykkerne pr. bjælke, og de længder, der skrives i filen
+  function updateBucklingUI(g) {
+    var p = g.params, out = [];
+    if (!g.errors.length) {
+      [['radial', 'bkRadial', 'Radialbjælke'], ['sec', 'bkSec', 'Sektionsspær']].forEach(function (gr) {
+        var ms = g.members.filter(function (mb) { return mb.group === gr[0] && mb.index === 0; });
+        if (!ms.length) return;
+        var lens = ms.map(function (mb) { return Math.sqrt(Math.pow(mb.end[0] - mb.start[0], 2) + Math.pow(mb.end[1] - mb.start[1], 2) + Math.pow(mb.end[2] - mb.start[2], 2)); });
+        var full = ms[0].fullLength, line = gr[2] + ' ' + nf(full, 2) + ' m';
+        if (ms.length > 1) line += ' i ' + ms.length + ' stykker på ' + lens.map(function (l) { return nf(l, 2); }).join(' · ') + ' m';
+        // knæklængder: ens for alle stykker med »hele«, ellers fra korteste til længste stykke
+        var Ls = TR.BUCKLING.map(function (b) {
+          var beta = p[gr[1] + b.key];
+          if (p[gr[1] + b.key + 'Full'] || ms.length === 1) return nf(beta * full, 2);
+          var lo = Math.min.apply(null, lens) * beta, hi = Math.max.apply(null, lens) * beta;
+          return nf(lo, 2) + (hi - lo > 0.005 ? '–' + nf(hi, 2) : '');
+        });
+        out.push(line + '<br>L<sub>cr</sub>: stærk ' + Ls[0] + ' · svag ' + Ls[1] + ' · kipning over ' + Ls[2] + ' · under ' + Ls[3] + ' m');
+      });
+    }
+    $('bkCalc').innerHTML = out.join('<br>');
   }
   // gangbro: valg af radialbjælke med bjælkens vinkel
   function updateWalkUI(g) {

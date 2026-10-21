@@ -498,3 +498,45 @@ test('rotationsstivhed ligger langs udvekslingen og er aldrig med i lastkombinat
   assert.deepEqual(empty.errors, []);
   assert.equal(empty.cases.find((c) => c.key === 'rotTest').loads.length, 0);
 });
+
+// søjle- og kipningslængder: β for hvert stykke, eller med »hele« omregnet fra hele bjælkens længde til stykket
+test('søjle- og kipningslængder skrives som buckling_data på radialbjælker og sektionsspær', () => {
+  const params = Object.assign({}, TR.DEFAULTS, {
+    bkRadialStiffFull: true, bkRadialWeak: '0,5', bkSecTop: 0.7, bkSecTopFull: true
+  });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  assert.deepEqual(g.errors, []);
+  const len = (m) => Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
+  const rb = g.members.filter((m) => m.group === 'radial' && m.index === 0);
+  const sek = g.members.filter((m) => m.group === 'sec' && m.index === 0);
+  assert.ok(rb.length > 1 && sek.length > 1, 'standardtaget har delte radialbjælker og sektionsspær');
+  const rbFull = rb.reduce((a, m) => a + len(m), 0), sekFull = sek.reduce((a, m) => a + len(m), 0);
+  rb.forEach((m) => {
+    const b = TR.bucklingBetas(g.params, m);
+    assert.ok(Math.abs(b[0] * len(m) - rbFull) < 1e-9, m.name + ': søjlelængden om stærk akse er hele bjælken');
+    assert.deepEqual(b.slice(1), [0.5, 1, 1]);
+  });
+  sek.forEach((m) => {
+    const b = TR.bucklingBetas(g.params, m);
+    assert.ok(Math.abs(b[2] * len(m) - 0.7 * sekFull) < 1e-9, m.name + ': kipningslængden er 0,7 gange hele sektionsspæret');
+    assert.deepEqual([b[0], b[1], b[3]], [1, 1, 1]);
+  });
+  // kun radialbjælker og sektionsspær får knæklængder
+  g.members.filter((m) => m.group !== 'radial' && m.group !== 'sec').forEach((m) => assert.equal(TR.bucklingBetas(g.params, m), null));
+
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  const bars = xml.split('<bar ').slice(1);
+  const rb11 = bars.find((b) => b.startsWith('name="RB1.1"'));
+  assert.match(rb11, /<buckling_length type="flexural_stiff" beta="[\d.]+" sway="false">\s*<position start="0" end="1"\/>/);
+  assert.match(rb11, /<buckling_length type="flexural_weak" beta="0.5" sway="false">/);
+  assert.match(rb11, /<buckling_length type="pressured_flange" beta="1" load_position="top" continously_restrained="false">/);
+  assert.match(rb11, /<buckling_length type="pressured_bottom_flange" beta="1" load_position="top" continously_restrained="false">/);
+  // buckling_data ligger mellem eccentricity og end i bar_part
+  assert.match(rb11, /<\/eccentricity>\s*<buckling_data>[\s\S]*<\/buckling_data>\s*<end\/>\s*<\/bar_part>/);
+  assert.ok(!bars.find((b) => b.startsWith('name="RING.1"')).includes('buckling_data'));
+
+  // β uden for FEM-Designs interval giver en fejl
+  const bad = TR.computeGeometry(Object.assign({}, params, { bkRadialWeak: 0 }));
+  assert.ok(bad.errors.some((e) => /Søjle, svag akse for radialbjælkerne/.test(e)));
+});
