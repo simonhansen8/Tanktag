@@ -103,6 +103,10 @@ function compute(spec) {
         loads: countBy(c.loads, 'kind'), F: c.F
       })),
       dead: loads.dead, snow: loads.snow, wind: loads.wind, press: loads.press, temp: loads.temp, walk: loads.walk,
+      rot: loads.rot && {
+        F: loads.rot.F, dir: loads.rot.dir, Mz: loads.rot.Mz,
+        nodes: loads.rot.nodes.map((x) => ({ name: x.name, pos: x.pos, dir: x.dir, members: x.members, mz: x.mz }))
+      },
       combos: (loads.combos || []).map((c) => ({
         name: c.name, type: c.type, ok: c.ok, export: c.export,
         factors: c.items.reduce((a, it) => { a[it.key] = it.gamma; return a; }, {}), F: c.F
@@ -441,4 +445,56 @@ test('kun lodret med valgte knuder: globale retninger og rotationer, fejl og adv
   assert.deepEqual(auto.holdErrors, []);
   assert.equal(auto.info.hold.length, 3);
   assert.equal(auto.info.holdDeterminate, true);
+});
+
+// rotationsstivhed: vandrette punktlaster langs udvekslingerne, med i filen men aldrig i lastkombinationerne
+test('rotationsstivhed ligger langs udvekslingen og er aldrig med i lastkombinationer', () => {
+  const run = (o) => {
+    const params = Object.assign({}, TR.DEFAULTS, { rotTestOn: true }, o);
+    params.combos = TR.normCombos(params.combos);
+    const g = TR.computeGeometry(params);
+    return { params, g, L: TR.computeLoads(g) };
+  };
+  const tan = (pos) => { const r = Math.hypot(pos[0], pos[1]); return [-pos[1] / r, pos[0] / r, 0]; };
+  const close = (a, b) => a.every((v, i) => Math.abs(v - b[i]) < 1e-9);
+
+  // tangentielt: vinkelret på radius, midt mellem de to udvekslinger ved radialbjælken
+  const { L: Lm } = run({ rotTestNodes: 'K2.1, K2.13', rotTestF: 10 });
+  assert.deepEqual(Lm.errors, []);
+  const cm = Lm.cases.find((c) => c.key === 'rotTest');
+  assert.equal(cm.name, 'Rotationsstivhed');
+  assert.equal(cm.loads.length, 2);
+  cm.loads.forEach((l) => { assert.equal(l.kind, 'point'); assert.ok(close(l.dir, tan(l.pos))); assert.equal(l.val, 10); });
+  assert.ok(cm.Fh < 1e-9, 'modstående knuder giver et rent moment');
+  assert.ok(Math.abs(Lm.rot.Mz - 2 * 10 * Math.hypot(cm.loads[0].pos[0], cm.loads[0].pos[1])) < 1e-9);
+
+  // langs bjælken mod og med uret: præcis langs den ene udveksling; negativ kraft vender retningen
+  const one = (dir, F) => run({ rotTestNodes: 'K2.1', rotTestDir: dir, rotTestF: F }).L.rot.nodes[0];
+  const ccw = one('ccw', 10), cw = one('cw', 10), neg = one('ccw', -10);
+  assert.deepEqual(ccw.members, ['UDV2.1']);
+  assert.deepEqual(cw.members, ['UDV2.24']);
+  assert.ok(!close(ccw.dir, cw.dir));
+  assert.ok(close(neg.dir, ccw.dir.map((v) => -v)));
+  assert.ok(neg.mz < 0 && ccw.mz > 0);
+  // midt på en udveksling er der kun én bjælke
+  const mid = run({ rotTestNodes: 'K2M.1', rotTestDir: 'mean' }).L.rot.nodes[0];
+  assert.deepEqual(mid.members, ['UDV2.1']);
+
+  // forslag og egne kombinationer tager den ikke med; en faktor for den giver en advarsel
+  const { params, g, L } = run({ rotTestNodes: 'K2.1', combos: [{ name: 'K1', type: 'ultimate_ordinary', f: { dead: '1', rotTest: '1,5' } }] });
+  assert.ok(!TR.proposeCombos(L, {}).some((c) => 'rotTest' in c.f));
+  assert.deepEqual(L.combos[0].items.map((it) => it.key), ['dead']);
+  assert.ok(L.warnings.some((w) => /"Rotationsstivhed", som aldrig kommer med/.test(w)));
+  const xml = TR.buildStruxml(params, LIB, { geometry: g, loads: L });
+  const lc = /<load_case type="static" duration_class="[^"]+" guid="([^"]+)"[^>]*name="Rotationsstivhed"/.exec(xml);
+  assert.ok(lc, 'lasttilfældet står i filen');
+  assert.equal((xml.match(new RegExp('<point_load load_case="' + lc[1] + '"', 'g')) || []).length, 1);
+  assert.ok(!new RegExp('<load_combination[\\s\\S]*' + lc[1]).test(xml), 'lasttilfældet er ikke i nogen kombination');
+
+  // knuder uden udveksling og ukendte navne er fejl
+  assert.equal(run({ rotTestNodes: 'K1L.1, KX.1' }).L.errors.length, 2);
+  // ingen knuder: tomt lasttilfælde, så knuderne kan vælges i planen
+  const empty = run({ rotTestNodes: '' }).L;
+  assert.deepEqual(empty.errors, []);
+  assert.equal(empty.cases.find((c) => c.key === 'rotTest').loads.length, 0);
 });

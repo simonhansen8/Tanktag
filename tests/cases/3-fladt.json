@@ -1,5 +1,5 @@
 {
-  "description": "Lille fladt tag, D = 12 m, 12 radialbjælker uden kantring og sektionsspær, lodrette understøtninger, vindzoner F–I for fladt tag, ingen overtryk og ingen temperatur.",
+  "description": "Lille fladt tag, D = 12 m, 12 radialbjælker uden kantring og sektionsspær, lodrette understøtninger, vindzoner F–I for fladt tag, ingen overtryk, ingen temperatur og rotationsstivhed med tangentielle laster i to modstående knuder.",
   "params": {
     "tankDiameter": 12, "numRadial": 12, "ringDiameter": 1, "numUdv": 1, "udvRadii": "",
     "roofType": "flat", "edgeRing": false, "secOn": false, "secAxes": false, "udvPerRing": false,
@@ -8,6 +8,7 @@
     "bracing": "", "bracingRepeat": 1,
     "deadSelf": false, "plateT": 6, "deadExtra": 0.3,
     "snowAsym": false, "windModel": "flat", "windTerrain": "III", "windH": 8,
-    "pressOver": 0, "tempOn": false, "walkOn": false
+    "pressOver": 0, "tempOn": false, "walkOn": false,
+    "rotTestOn": true, "rotTestNodes": "K1.1, K1.7", "rotTestF": 5
   }
 }

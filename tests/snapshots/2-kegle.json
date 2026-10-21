@@ -170,7 +170,8 @@
   },
   "loads": {
     "warnings": [
-      "Der er ingen flade inden for ringbjælken, så last på centerpladen kommer ikke med."
+      "Der er ingen flade inden for ringbjælken, så last på centerpladen kommer ikke med.",
+      "Lastkombinationen \"ANV 1\" har en faktor for \"Rotationsstivhed\", som aldrig kommer med i lastkombinationer."
     ],
     "panels": 48,
     "totalPanelArea": 310.689597,
@@ -329,6 +330,20 @@
           0,
           0
         ]
+      },
+      {
+        "key": "rotTest",
+        "name": "Rotationsstivhed",
+        "type": "static",
+        "duration": "instantaneous",
+        "loads": {
+          "point": 2
+        },
+        "F": [
+          0,
+          0,
+          0
+        ]
       }
     ],
     "dead": {
@@ -480,6 +495,47 @@
         }
       ]
     },
+    "rot": {
+      "F": -4,
+      "dir": "ccw",
+      "Mz": -54.270119,
+      "nodes": [
+        {
+          "name": "K2.1",
+          "pos": [
+            6.811587,
+            1.201067,
+            0.616667
+          ],
+          "dir": [
+            0.362438,
+            -0.932008,
+            0
+          ],
+          "members": [
+            "UDV2.1"
+          ],
+          "mz": -27.135059
+        },
+        {
+          "name": "K2M.9",
+          "pos": [
+            -6.322522,
+            -2.458694,
+            0.616667
+          ],
+          "dir": [
+            -0.362438,
+            0.932008,
+            0
+          ],
+          "members": [
+            "UDV2.9"
+          ],
+          "mz": -27.135059
+        }
+      ]
+    },
     "combos": [
       {
         "name": "BRUD 1",
@@ -583,8 +639,8 @@
     ]
   },
   "struxml": {
-    "sha256": "c910ba51512d9b89b5c1f959882964d5f7e577bd544772b80505af6ff5bebc74",
-    "lines": 9341,
+    "sha256": "1c25403062a89ff61e95dbfdaeea60fe8fe7db8b7a02e8c3419bf5bd35c7aaa8",
+    "lines": 9350,
     "elements": {
       "analytical": 224,
       "bar": 120,
@@ -597,7 +653,7 @@
       "cover": 48,
       "curve": 120,
       "database": 1,
-      "direction": 502,
+      "direction": 504,
       "displacement": 16,
       "ecc": 224,
       "eccentricity": 120,
@@ -610,8 +666,8 @@
       "limit_force": 72,
       "line_load": 6,
       "line_temperature_variation_load": 120,
-      "load": 372,
-      "load_case": 19,
+      "load": 374,
+      "load_case": 20,
       "load_combination": 3,
       "loads": 1,
       "local_x": 16,
@@ -622,6 +678,7 @@
       "normal": 1955,
       "physical": 240,
       "point": 3877,
+      "point_load": 2,
       "point_support": 16,
       "point_support_motion_load": 16,
       "position": 80,

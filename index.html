@@ -1015,6 +1015,36 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <p class="hint">Svøbet følger indholdets temperatur, mens bjælkerne i dampzonen under tagpladen ofte er lidt koldere. Bjælkerne får ΔT = T − T<sub>0</sub> (ens over højden), kantringen følger svøbet, og svøbets udvidelse u = α · ΔT · R lægges som radial flytning af understøtningerne (α = 12 for stål, ca. 16 for austenitisk rustfrit). Så giver kun forskellen mellem tag og svøb tvang. Efter DS/EN 1993-4-2, A.2.3 må tvangsspændingerne ignoreres, hvis antallet af temperaturcykler ikke giver risiko for udmattelse eller cyklisk plastisk brud.</p>
         </fieldset>
       </section>
+
+      <section class="group" aria-labelledby="g-rot">
+        <div class="toggle">
+          <h2 id="g-rot">Rotationsstivhed</h2>
+          <label class="check"><input type="checkbox" id="rotTestOn" data-key="rotTestOn"> <span>Med</span></label>
+        </div>
+        <fieldset class="sub" id="rotTestFields">
+          <p class="hint">Prøvelast til at se, hvor stift taget er mod at dreje i sit eget plan om centrum. Hver valgt knude får en vandret punktlast langs udvekslingen i knuden. Lasttilfældet skrives i StruXML-filen, men kommer aldrig med i lastkombinationerne.</p>
+          <div class="field">
+            <label class="lbl" for="rotTestNodes">Knuder</label>
+            <input type="text" id="rotTestNodes" data-key="rotTestNodes" spellcheck="false" autocomplete="off" placeholder="fx K2.1, K2.13">
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="rotTestF">Kraft pr. knude <span class="unit">kN</span></label>
+              <input class="num" type="text" inputmode="decimal" id="rotTestF" data-key="rotTestF">
+            </div>
+            <div class="field">
+              <label class="lbl" for="rotTestDir">Retning</label>
+              <select id="rotTestDir" data-key="rotTestDir">
+                <option value="mean">Tangentielt</option>
+                <option value="ccw">Langs bjælken mod uret</option>
+                <option value="cw">Langs bjælken med uret</option>
+              </select>
+            </div>
+          </div>
+          <p class="calc" id="rotTestCalc"></p>
+          <p class="hint">Skriv knuderne med navnene fra planen, adskilt af komma, eller vis lasttilfældet i planen og klik på knuderne. K2.3 er RB.3 ved udvekslingsring 2, og K2M.3 ligger midt på udvekslingen efter RB.3; knuder på ringbjælken (KR) og kantringen (KS) kan også bruges. En positiv kraft drejer taget mod uret set oppefra. I en knude ved en radialbjælke mødes to udvekslinger med en lille vinkel: Tangentielt lægger lasten midt imellem dem (vinkelret på radius), mens de to andre lægger den præcis langs udvekslingen på den ene side. Momentet om centrum står ovenfor, så drejningsstivheden er M divideret med tagets drejning fra FEM-Design.</p>
+        </fieldset>
+      </section>
       </div>
 
       <div class="pane" id="pane-brace" role="tabpanel" aria-labelledby="ftab-brace" hidden>
@@ -1395,6 +1425,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     walkG: 1.0,                // egenlast [kN/m] langs gangbroen: rist, vanger og rækværk (0 = intet lasttilfælde)
     walkQ: 2.0,                // nyttelast q_k [kN/m²] pr. vandret projektion (0 = intet lasttilfælde)
     walkB: 0.8,                // gangbroens bredde [m]; linjelasten er q_k · bredde
+    // rotationsstivhed: prøvelast, der drejer taget om centrum i dets eget plan; aldrig med i lastkombinationerne
+    rotTestOn: false,          // lasttilfældet "Rotationsstivhed"
+    rotTestNodes: 'K1.1',      // knuderne med navnene fra planen, fx "K2.1, K2.13" (udveksling, ringbjælke eller kantring)
+    rotTestF: 10,              // kraft pr. knude [kN]; positiv drejer taget mod uret set oppefra
+    rotTestDir: 'mean',        // 'mean' (tangentielt, middel af bjælkerne i knuden) | 'ccw' | 'cw' (langs bjælken mod/med uret)
 
     // --- lastkombinationer: [{ name: 'KB1', type: 'ultimate_ordinary', f: { dead: '1,2', snowUniform: '1,5' } }] ---
     combos: []
@@ -1412,7 +1447,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   var CASE_NAMES = { dead: 'Egenlast', live: 'Nyttelast', liveHalf: 'Nyttelast, halv', livePoint: 'Nyttelast, punkt',
     walkDead: 'Gangbro, egenlast', walkLive: 'Gangbro, nyttelast',
     snowUniform: 'Sne, jævn', snowAsym: 'Sne, ensidig', snowHalf: 'Sne, halvt tag', pressOver: 'Overtryk',
-    pressVac: 'Undertryk', temp: 'Temperatur' };
+    pressVac: 'Undertryk', temp: 'Temperatur', rotTest: 'Rotationsstivhed' };
   // "A", "B" og "C" – navne på lasttilfælde indeholder selv kommaer
   function quoteList(a) {
     var q = a.map(function (s) { return '"' + s + '"'; });
@@ -1728,12 +1763,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.bracingRepeat = toNum(q.bracingRepeat);
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
-      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB']
+      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
-      'pressOn', 'tempOn', 'walkOn', 'braceTensionOnly', 'resultPoints']
+      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'braceTensionOnly', 'resultPoints']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
-    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu'].forEach(function (k) {
+    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
     });
     q.combos = normCombos(q.combos);
@@ -2350,15 +2385,51 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return segs[0].start;
   }
 
+  // knuderne, hvor rotationsstivhedens prøvelast kan ligge: knuder og midtpunkter på udvekslingerne, ringbjælken
+  // og kantringen. For hver knude retningerne langs bjælkerne, vendt mod uret set oppefra: 'ccw' langs bjælken på
+  // den side, der ligger mod uret, 'cw' langs den på siden med uret, og 'mean' middel af de to (tangentielt).
+  // Ligger knuden inde på en bjælke, er alle tre retninger bjælkens.
+  var ROT_DIRS = ['mean', 'ccw', 'cw'];
+  function rotTestNodes(geom) {
+    var tol = 1e-6 * Math.max(1, geom.info.R), all = {}, byName = {}, list = [];
+    var rings = geom.members.filter(function (m) { return m.group === 'udv' || m.group === 'ring' || m.group === 'edge'; });
+    (geom.bracePoints || []).forEach(function (sp) {
+      all[sp.fd.toUpperCase()] = true;
+      if (byName[sp.fd.toUpperCase()]) return;
+      var q = sp.pos, tq = [-q[1], q[0], 0], side = { ccw: null, cw: null }, sum = [0, 0, 0];
+      rings.forEach(function (m) {
+        var ab = vsub(m.end, m.start), L2 = dot(ab, ab), t = dot(vsub(q, m.start), ab) / L2;
+        if (t < -1e-9 || t > 1 + 1e-9 || norm(vsub(q, vadd(m.start, vscale(ab, t)))) > tol) return;
+        var d = unit(ab);
+        if (dot(d, tq) < 0) d = vscale(d, -1);
+        var at = { d: d, m: m.name };
+        if (t > 1e-9 && t < 1 - 1e-9) { side.ccw = side.cw = at; sum = d.slice(); return; }
+        var mid = vscale(vadd(m.start, m.end), 0.5);
+        side[q[0] * mid[1] - q[1] * mid[0] > 0 ? 'ccw' : 'cw'] = at;
+        sum = vadd(sum, d);
+      });
+      if (!side.ccw && !side.cw) return;
+      var ccw = side.ccw || side.cw, cw = side.cw || side.ccw, ms = ccw === cw ? [ccw.m] : [cw.m, ccw.m];
+      var nd = {
+        name: sp.fd, pos: q,
+        dirs: { mean: unit(sum), ccw: ccw.d, cw: cw.d },
+        members: { mean: ms, ccw: [ccw.m], cw: [cw.m] }
+      };
+      byName[sp.fd.toUpperCase()] = nd;
+      list.push(nd);
+    });
+    return { byName: byName, all: all, list: list };
+  }
+
   function computeLoads(geom) {
     var res = {
       cases: [], errors: [], warnings: [], panels: [], dead: null, snow: null, wind: null, press: null, temp: null,
-      walk: null, combos: [], comboErrors: [],
+      walk: null, rot: null, combos: [], comboErrors: [],
       any: false, dirs: []
     };
     if (!geom || (geom.errors && geom.errors.length)) return res;
     var p = geom.params, info = geom.info, E = res.errors, W = res.warnings;
-    res.any = p.loadsOn && (p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn || p.tempOn || p.walkOn);
+    res.any = p.loadsOn && (p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn || p.tempOn || p.walkOn || p.rotTestOn);
     if (!res.any) return res;
     function chk(ok, msg) { if (!ok) E.push(msg); }
     if (p.deadOn) {
@@ -2696,16 +2767,50 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         W.push('Over 100 °C skal stålets styrke og E-modul reduceres (DS/EN 1993-4-2, 3.1(6), værdier i EN 13084-7). Generatoren ændrer ikke materialet i filen.');
       }
     }
+    // rotationsstivhed: prøvelast, der drejer taget i dets eget plan om centrum. Vandrette punktlaster i de valgte
+    // knuder langs udvekslingen (eller ringbjælken eller kantringen) i knuden. Lasttilfældet skrives i filen, men
+    // kommer aldrig med i lastkombinationerne.
+    if (p.rotTestOn) {
+      var rt = rotTestNodes(geom), rl = [], rN = [], rMz = 0, rF = p.rotTestF, rSeen = {};
+      var rToks = String(p.rotTestNodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
+      if (!isFinite(rF) || Math.abs(rF) > 10000) E.push('Rotationsstivhed: kraften skal være et tal mellem −10000 og 10000 kN.');
+      if (ROT_DIRS.indexOf(p.rotTestDir) < 0) E.push('Rotationsstivhed: ukendt retning.');
+      rToks.forEach(function (t) {
+        var nm = t.toUpperCase();
+        if (rSeen[nm]) return;
+        rSeen[nm] = 1;
+        var nd = rt.byName[nm];
+        if (!nd) {
+          E.push('Rotationsstivhed: "' + t + '" ' + (rt.all[nm] ? 'ligger ikke på en udveksling, ringbjælken eller kantringen.' : 'er ikke en knude. Brug navnene fra planen, fx K1.3 eller K2M.3.'));
+          return;
+        }
+        rN.push(nd);
+      });
+      if (E.length) return res;
+      res.rot = { nodes: [], F: rF, dir: p.rotTestDir, Mz: 0, cand: rt.list };
+      if (rF !== 0) {
+        rN.forEach(function (nd) {
+          var d = nd.dirs[p.rotTestDir], v = vscale(d, rF > 0 ? 1 : -1);
+          rl.push({ kind: 'point', pos: nd.pos, dir: v, val: Math.abs(rF), node: nd.name });
+          var mz = rF * (nd.pos[0] * d[1] - nd.pos[1] * d[0]);
+          rMz += mz;
+          res.rot.nodes.push({ name: nd.name, pos: nd.pos, dir: v, members: nd.members[p.rotTestDir], mz: mz });
+        });
+      }
+      res.rot.Mz = rMz;
+      if (!rl.length) W.push('Rotationsstivhed har ingen laster endnu: skriv knuderne, eller klik på dem i planen, og giv en kraft forskellig fra 0.');
+      addCase('rotTest', 'Rotationsstivhed', 'static', 'instantaneous', rl, { values: zeros(), rot: res.rot, noCombo: true }, true);
+    }
     // lastkombinationer: faktor pr. lasttilfælde; tomt felt eller 0 = ikke med
     var CE = res.comboErrors, caseIdx = {}, nameCount = {}, nameReported = {};
     res.cases.forEach(function (c, ci) { caseIdx[c.key] = ci; });
-    p.combos.forEach(function (cb) {
+        p.combos.forEach(function (cb) {
       var lc = cb.name.trim().toLowerCase();
       if (lc) nameCount[lc] = (nameCount[lc] || 0) + 1;
     });
     p.combos.forEach(function (cb, k) {
       var name = cb.name.trim(), label = name ? '"' + name + '"' : 'kombination ' + (k + 1);
-      var o = { index: k, name: name, type: cb.type, items: [], badKeys: [], missing: [], nameErr: false, typeErr: false, F: [0, 0, 0] };
+      var o = { index: k, name: name, type: cb.type, items: [], badKeys: [], missing: [], ignored: [], nameErr: false, typeErr: false, F: [0, 0, 0] };
       if (!name) { CE.push('Lastkombination ' + (k + 1) + ' mangler et navn.'); o.nameErr = true; }
       else if (name.length > 159) { CE.push('Navnet på lastkombination ' + (k + 1) + ' er for langt (højst 159 tegn).'); o.nameErr = true; }
       else if (/[$&<>]/.test(name)) { CE.push('Lastkombinationen ' + label + ' må ikke indeholde $, &, < eller > i navnet.'); o.nameErr = true; }
@@ -2718,6 +2823,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (!Object.prototype.hasOwnProperty.call(cb.f, c.key)) return;
         var g = parseFactor(cb.f[c.key]);
         if (g === null) return;
+        if (c.noCombo) { if (g !== 0) o.ignored.push(c.name); return; }   // prøvelaster kommer aldrig med
         if (!isFinite(g)) { CE.push('Faktoren for ' + c.name + ' i ' + label + ' kan ikke læses – skriv fx 1,5.'); o.badKeys.push(c.key); return; }
         if (Math.abs(g) > 100) { CE.push('Faktoren for ' + c.name + ' i ' + label + ' skal ligge mellem −100 og 100.'); o.badKeys.push(c.key); return; }
         if (g !== 0) { o.items.push({ key: c.key, ci: ci, name: c.name, gamma: g }); o.F = vadd(o.F, vscale(c.F, g)); }
@@ -2733,6 +2839,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       o.export = o.ok && o.items.length > 0;
       if (o.ok && !o.items.length) W.push('Lastkombinationen ' + label + ' har ingen lasttilfælde med en faktor og kommer ikke med i filen.');
       if (o.missing.length) W.push('Lastkombinationen ' + label + ' har faktorer for ' + quoteList(o.missing) + ', som ikke findes lige nu og derfor ikke kommer med.');
+      if (o.ignored.length) W.push('Lastkombinationen ' + label + ' har en faktor for ' + quoteList(o.ignored) + ', som aldrig kommer med i lastkombinationer.');
       res.combos.push(o);
     });
     return res;
@@ -4485,6 +4592,26 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           : 'Understøtningerne er radialt frie, så svøbets udvidelse giver ikke tvang.')) });
     }
 
+    if (p.rotTestOn && L.rot && K.rotTest) {
+      h('Rotationsstivhed');
+      var RT = L.rot, RDIR = { mean: 'tangentielt, midt mellem bjælkerne i knuden', ccw: 'langs bjælken på siden mod uret', cw: 'langs bjælken på siden med uret' };
+      B.push({ p: 'Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på ' +
+        num(Math.abs(RT.F), 2) + ' kN ' + (RDIR[RT.dir] || '') + ', så taget drejer ' + (RT.F >= 0 ? 'mod' : 'med') + ' uret set oppefra. ' +
+        'Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination. Drejningsstivheden er M<sub>z</sub> divideret med tagets drejning i FEM-Design.' });
+      if (RT.nodes.length) {
+        B.push({
+          table: {
+            head: ['Knude', 'Bjælke', 'Retning, °', 'M<sub>z</sub>, kNm'], num: [false, false, true, true], keep: true,
+            rows: RT.nodes.map(function (x) {
+              var a = Math.atan2(x.dir[1], x.dir[0]) * 180 / Math.PI;
+              return [esc(x.name), esc(x.members.join(', ')), num((a + 360) % 360, 1), num(x.mz, 2)];
+            }).concat([['I alt', '', '', '<b>' + num(RT.Mz, 2) + '</b>']])
+          }
+        });
+        B.push({ p: 'Vandret resultant: ' + num(caseFh(K.rotTest), 2) + ' kN. Er den ikke 0, tager understøtningerne også en vandret kraft; vælg knuder symmetrisk om centrum for et rent moment.' });
+      }
+    }
+
     var combos = (L.combos || []).filter(function (c) { return c.export; });
     if (combos.length) {
       h('Lastkombinationer');
@@ -5548,6 +5675,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     storeParams();
     render();
     if (el.dataset.key && /^walk/.test(el.dataset.key) && formTab === 'loads') showWalkCase();
+    if (el.dataset.key && /^rotTest/.test(el.dataset.key) && formTab === 'loads') showRotCase();
   }
   form.addEventListener('input', onFieldChange);
   form.addEventListener('change', onFieldChange);
@@ -5622,7 +5750,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('slopeUnit').textContent = lab[1];
     // laster
     var on = p.loadsOn;
-    ['deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn'].forEach(function (k) { $(k).disabled = !on; });
+    ['deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn'].forEach(function (k) { $(k).disabled = !on; });
     $('deadFields').disabled = !(on && p.deadOn);
     $('liveFields').disabled = !(on && p.liveOn);
     $('walkFields').disabled = !(on && p.walkOn);
@@ -5630,6 +5758,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('windFields').disabled = !(on && p.windOn);
     $('pressFields').disabled = !(on && p.pressOn);
     $('tempFields').disabled = !(on && p.tempOn);
+    $('rotTestFields').disabled = !(on && p.rotTestOn);
     var dome = p.roofType === 'dome';
     $('asymDir').disabled = !(on && ((p.snowOn && (p.snowAsym || (dome && p.snowHalf))) || (p.liveOn && p.liveHalf)));
     $('snowAsymMu').disabled = !(on && p.snowOn && (dome ? p.snowHalf : p.snowAsym));
@@ -5767,6 +5896,14 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         (wk.q > 0 ? 'Nyttelast ' + nf(p.walkQ, 2) + ' · ' + nf(p.walkB, 2) + ' = ' + nf(wk.q, 2) + ' kN/m · i alt ' + nf(wk.q * wk.plan, 1) + ' kN' : 'Ingen nyttelast');
     }
     $('walkCalc').innerHTML = walk;
+    var rot = '';
+    if (ok && L.rot && L.rot.nodes.length) {
+      var rc = L.cases.filter(function (c) { return c.key === 'rotTest'; })[0], rk = L.rot.nodes.length;
+      rot = rk + (rk === 1 ? ' knude: ' : ' knuder: ') + esc(shortList(L.rot.nodes.map(function (x) { return x.name; }), 8)) + '<br>' +
+        'M<sub>z</sub> om centrum = ' + sg(L.rot.Mz, 1) + ' kNm (' + (L.rot.Mz >= 0 ? 'mod uret' : 'med uret') + ')' +
+        (rc ? ' · vandret resultant ' + nf(rc.Fh, 2) + ' kN' : '');
+    }
+    $('rotTestCalc').innerHTML = rot;
     $('pressCalc').innerHTML = press;
     $('tempCalc').innerHTML = temp.replace(/ΔT_tag/g, 'ΔT<sub>tag</sub>').replace(/ΔT_svøb/g, 'ΔT<sub>svøb</sub>');
     $('deadCalc').innerHTML = dead;
@@ -6020,6 +6157,43 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       out.push('<g class="d-point"><circle cx="' + qp0[0].toFixed(1) + '" cy="' + qp0[1].toFixed(1) + '" r="' + (7 * k).toFixed(1) + '"/>' +
         '<circle cx="' + qp0[0].toFixed(1) + '" cy="' + qp0[1].toFixed(1) + '" r="' + (2.5 * k).toFixed(1) + '" class="dot"/></g>');
       out.push(textEl('svg-label strong', qp0[0], qp0[1] - 12 * k, 'Q = ' + nf(lc.loads[0].val, 2) + ' kN', fs, 'middle'));
+    }
+    // rotationsstivhed: de mulige knuder, når man vælger dem i planen, og en vandret pil til hver valgt knude
+    if (lc && lc.rot) {
+      var rp = rotPickMode(), ron = {};
+      lc.rot.nodes.forEach(function (x) { ron[x.name] = true; });
+      if (rp) {
+        out.push('<g class="d-cnode">');
+        lc.rot.cand.forEach(function (nd) {
+          var q = P(nd.pos), on = ron[nd.name];
+          out.push('<circle' + (on ? ' class="on"' : '') + ' cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + ((on ? 4.6 : 3.2) * k).toFixed(2) + '"/>');
+        });
+        out.push('</g>');
+      }
+      var rlen = 52 * k, rhl = 14 * k, rhw = 6 * k;
+      out.push('<g class="d-move">');
+      lc.rot.nodes.forEach(function (x) {
+        var tip = P(x.pos), ux = x.dir[0], uy = -x.dir[1], base = [tip[0] - ux * rhl, tip[1] - uy * rhl];
+        out.push(lineEl('', [tip[0] - ux * rlen, tip[1] - uy * rlen], base, ' stroke-width="' + (2.4 * k).toFixed(2) + '"'));
+        out.push('<polygon points="' + tip[0].toFixed(1) + ',' + tip[1].toFixed(1) + ' ' + (base[0] - uy * rhw).toFixed(1) + ',' + (base[1] + ux * rhw).toFixed(1) +
+          ' ' + (base[0] + uy * rhw).toFixed(1) + ',' + (base[1] - ux * rhw).toFixed(1) + '"><title>' + esc(x.name) + ': F = ' + nf(lc.rot.F, 2) + ' kN</title></polygon>');
+      });
+      out.push('</g>');
+      // navnene skrevet udad fra centrum, og kraften ved den første pil
+      out.push('<g class="d-cnlbl">');
+      lc.rot.nodes.forEach(function (x) {
+        var q = P(x.pos), r = Math.hypot(x.pos[0], x.pos[1]), ux = r > 1e-9 ? x.pos[0] / r : 0, uy = r > 1e-9 ? -x.pos[1] / r : -1;
+        out.push(textEl('strong', q[0] + ux * 9 * k, q[1] + uy * 9 * k + 3.5 * k, x.name, 10 * k, ux > 0.3 ? 'start' : (ux < -0.3 ? 'end' : 'middle')));
+      });
+      out.push('</g>');
+      if (lc.rot.nodes.length) {
+        var r0 = lc.rot.nodes[0], t0 = P(r0.pos), tl0 = [t0[0] - r0.dir[0] * rlen, t0[1] + r0.dir[1] * rlen];
+        var ftxt = 'F = ' + nf(Math.abs(lc.rot.F), 2) + ' kN', ftw = ftxt.length * fs * 0.6, fy = tl0[1] + (r0.dir[1] > 0 ? fs * 1.4 : -fs * 0.7);
+        out.push('<rect class="d-lblbg" x="' + (tl0[0] - ftw / 2 - 4 * k).toFixed(1) + '" y="' + (fy - fs * 0.95).toFixed(1) + '" width="' + (ftw + 8 * k).toFixed(1) +
+          '" height="' + (fs * 1.3).toFixed(1) + '" rx="' + (3 * k).toFixed(1) + '"/>');
+        out.push(textEl('svg-label strong', tl0[0], fy, ftxt, fs, 'middle'));
+      }
+      if (rp) out.push('<g class="d-live" id="rotLive"></g>');
     }
     var arrowDeg = lc ? (lc.windDir !== undefined ? lc.windDir : (/^(snowAsym|snowHalf|liveHalf)$/.test(lc.key) ? g.params.asymDir : null)) : null;
     if (arrowDeg !== null && isFinite(arrowDeg)) {
@@ -6436,8 +6610,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     lc.loads.forEach(function (Ld) {
       if (Ld.kind === 'point') {
         var tail = [Ld.pos[0] - Ld.dir[0] * Lmax, Ld.pos[1] - Ld.dir[1] * Lmax, Ld.pos[2] - Ld.dir[2] * Lmax];
-        out.push(arrow(tail, Ld.pos, 2.4, 'Q = ' + nf(Ld.val, 2) + ' kN'));
-        label(tail, Ld.pos, 'Q = ' + nf(Ld.val, 2) + ' kN');
+        var qtxt = (lc.rot ? Ld.node + ': F = ' : 'Q = ') + nf(Ld.val, 2) + ' kN';
+        out.push(arrow(tail, Ld.pos, 2.4, qtxt));
+        label(tail, Ld.pos, qtxt);
       }
     });
     // linjelast (gangbroen): tyk streg på bjælken, pile langs den og en linje gennem halerne
@@ -6586,6 +6761,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         : (mn < 0 ? 'linear-gradient(90deg, ' + loadFill(-vmax, vmax) + ', ' + loadFill(-vmax * 0.01, vmax) + ')'
           : 'linear-gradient(90deg, ' + loadFill(vmax * 0.01, vmax) + ', ' + loadFill(vmax, vmax) + ')');
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> ' + nf(mn < 0 ? mn : Math.min(mn, 0), 2) + '<i style="background: ' + grad + '"></i>' + nf(mx > 0 ? mx : 0, 2) + ' kN/m²</span>');
+    } else if (lc && lc.rot) {
+      html.push('<span class="scale"><b>' + esc(lc.name) + '</b> ' + (lc.rot.nodes.length ? lc.rot.nodes.length + ' × ' + nf(Math.abs(lc.rot.F), 2) + ' kN vandret, M<sub>z</sub> = ' +
+        nf(lc.rot.Mz, 1) + ' kNm' : 'ingen knuder valgt') + ' · ikke i kombinationer</span>');
     } else if (lc && lc.point) {
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> punktlast midt på RB.1</span>');
     } else if (lc && lc.line) {
@@ -7011,6 +7189,20 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (view === 'section') setView('plan');
     else { updateLegend(geom); renderDrawing(); }
   }
+  // vis rotationsstivhedens lasttilfælde i planen, mens man retter i felterne, så knuderne kan vælges ved at klikke
+  function showRotCase() {
+    if (!loads || loads.errors.length || loadView === 'rotTest') return;
+    if (!loads.cases.some(function (c) { return c.key === 'rotTest'; })) return;
+    loadView = 'rotTest';
+    updateLoadPicker();
+    if (view !== 'plan') setView('plan');
+    else { updateLegend(geom); renderDrawing(); }
+  }
+  function rotPickMode() {
+    if (formTab !== 'loads' || view !== 'plan' || !geom || geom.errors.length) return false;
+    var lc = activeCase();
+    return !!(lc && lc.rot);
+  }
   function renderDrawing() {
     if (!geom || geom.errors.length) {
       drawing.innerHTML = '<p class="hint" style="padding: 40px 8px; text-align: center">Ret de markerede felter, så vises tegningen igen.</p>';
@@ -7019,7 +7211,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     }
     $('showProfBox').hidden = view !== '3d';
     drawing.classList.toggle('drawmode', drawMode());
-    drawing.classList.toggle('pickmode', connMode());
+    drawing.classList.toggle('pickmode', connMode() || rotPickMode());
     drawing.classList.toggle('zoomed', zoomState[view].s > 1);
     drawing.innerHTML = view === 'plan' ? drawPlan(geom) : (view === 'section' ? drawSection(geom) : draw3D(geom));
     if (drawMode()) {
@@ -7039,6 +7231,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('caption').textContent = view === 'plan'
       ? (lcv ? (lcv.temp ? 'Temperaturlasten ligger på bjælkerne' + (lcv.temp.motions ? ', og pilene viser, hvordan svøbet flytter understøtningerne.' : '.')
         : lcv.line ? 'Den tykke streg viser gangbroens linjelast på RB.' + lcv.line.rb + (lcv.key === 'walkDead' ? '; egenlasten virker på den skrå længde.' : '; nyttelasten virker på den vandrette projektion.')
+        : lcv.rot ? 'Pilene viser rotationsstivhedens punktlaster, der drejer taget ' + (lcv.rot.F >= 0 ? 'mod' : 'med') + ' uret. Klik på knuderne for at vælge dem eller fravælge dem.'
         : lcv.point ? 'Cirklen viser punktlasten midt på RB.1.'
         : 'Farverne viser ' + lcv.name.toLowerCase() + ' pr. lastfordelingsflade' +
           (/^press/.test(lcv.key) ? '; trykket virker vinkelret på fladen, ' + (lcv.key === 'pressOver' ? 'udad.' : 'indad.')
@@ -7050,6 +7243,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
               (geom.params.support === 'vertical' ? ' De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.' : '')) : '')
         : (lcv ? (lcv.temp ? (lcv.temp.motions ? 'Pilene viser svøbets flytning af understøtningerne ved temperatur.' : 'Temperaturen ligger på bjælkerne og vises ikke i 3D.')
             : lcv.line ? 'Pilene viser gangbroens linjelast på RB.' + lcv.line.rb + '.'
+            : lcv.rot ? 'Pilene viser rotationsstivhedens vandrette punktlaster.'
             : lcv.point ? 'Pilen viser punktlasten midt på RB.1.'
             : 'Fladelasten vises som en blok på hver lastfordelingsflade: højden følger værdien, og farven viser tryk (rød) og sug (blå). Hold musen over en flade for værdien.') +
           ' Vælg Ingen under Vis last for at skjule lasterne. Træk i tegningen for at dreje den.'
@@ -7254,7 +7448,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     }
     var z = zoomState[view];
     var wantPan = (e.pointerType === 'mouse' && (e.button === 1 || (e.button === 0 && e.shiftKey))) ||
-      (e.button === 0 && !e.shiftKey && view !== '3d' && !drawMode() && !connMode() && z.s > 1);
+      (e.button === 0 && !e.shiftKey && view !== '3d' && !drawMode() && !connMode() && !rotPickMode() && z.s > 1);
     if (!wantPan) return;
     pan = { x: e.clientX, y: e.clientY, id: e.pointerId };
     try { drawing.setPointerCapture(e.pointerId); } catch (err) { /* ok */ }
@@ -7310,7 +7504,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var s = zoomState[view].s, touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
     if (touch) return s > 1 ? ' Knib eller træk med to fingre for at zoome og flytte.' : ' Knib med to fingre for at zoome.';
     if (s <= 1) return ' Rul med musehjulet for at zoome.';
-    return view === '3d' || drawMode() || connMode() ? ' Flyt udsnittet med midterste musetast eller Skift+træk.' : ' Træk for at flytte udsnittet.';
+    return view === '3d' || drawMode() || connMode() || rotPickMode() ? ' Flyt udsnittet med midterste musetast eller Skift+træk.' : ' Træk for at flytte udsnittet.';
   }
 
   // ---------- vindgitter: tegning med mus og finger ----------
@@ -7783,6 +7977,52 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   });
   drawing.addEventListener('pointerleave', function () { if (!connMode()) return; conn.hover = null; updateConnLive(); });
 
+  // rotationsstivhed: klik på knuderne i planen for at vælge dem eller fravælge dem
+  var rotHover = null;
+  function nearestRotNode(q, tol) {
+    var lc = activeCase(), best = null, bd = tol;
+    (lc && lc.rot ? lc.rot.cand : []).forEach(function (nd) {
+      var t = toPlan(nd.pos), d = Math.hypot(t[0] - q.x, t[1] - q.y);
+      if (d < bd) { bd = d; best = nd; }
+    });
+    return best;
+  }
+  function updateRotLive() {
+    var gl = drawing.querySelector('#rotLive');
+    if (!gl || !planXf) return;
+    var nd = rotHover, k = planXf.k;
+    if (!nd) { gl.innerHTML = ''; return; }
+    var c = toPlan(nd.pos);
+    gl.innerHTML = '<circle class="hover" cx="' + c[0].toFixed(1) + '" cy="' + c[1].toFixed(1) + '" r="' + (8 * k).toFixed(2) + '"/>' +
+      textEl('svg-label strong', c[0] + 11 * k, c[1] - 9 * k, nd.name + ' · ' + nd.members.mean.join(', '), 12 * k, 'start');
+  }
+  drawing.addEventListener('pointerdown', function (e) {
+    if (!rotPickMode() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    var q = svgPoint(e);
+    if (!q) return;
+    var nd = nearestRotNode(q, (e.pointerType === 'touch' ? 24 : 13) * q.upp);
+    if (!nd) return;
+    e.preventDefault();
+    var toks = String(params.rotTestNodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
+    var i = toks.map(function (t) { return t.toUpperCase(); }).indexOf(nd.name.toUpperCase());
+    if (i >= 0) toks.splice(i, 1); else toks.push(nd.name);
+    params.rotTestNodes = toks.join(', ');
+    $('rotTestNodes').value = params.rotTestNodes;
+    statusExtra = [];
+    storeParams();
+    render();
+    rotHover = nd;
+    updateRotLive();
+  });
+  drawing.addEventListener('pointermove', function (e) {
+    if (!rotPickMode()) return;
+    var q = svgPoint(e);
+    if (!q) return;
+    var nd = nearestRotNode(q, (e.pointerType === 'touch' ? 24 : 13) * q.upp);
+    if (nd !== rotHover) { rotHover = nd; updateRotLive(); }
+  });
+  drawing.addEventListener('pointerleave', function () { if (!rotPickMode()) return; rotHover = null; updateRotLive(); });
+
   // ---------- eksport ----------
   // almindelig browser-download, når siden kører for sig selv (fx åbnet direkte eller gemt som fil)
   function directDownload(text, name, mime) {
@@ -7890,10 +8130,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     else if (!gp.loadsOn) note = 'Lasterne er slået fra under Laster, så der er ingen lasttilfælde at kombinere.';
     else if (loads && loads.errors.length) note = 'Ret fejlene under Laster, så vises lasttilfældene her.';
     else if (!okLoads) note = 'Der er ingen lasttilfælde. Slå en eller flere laster til under Laster.';
+    var skip = okLoads ? loads.cases.filter(function (c) { return c.noCombo; }) : [];
+    if (!note && skip.length) note = TR.quoteList(skip.map(function (c) { return c.name; })) + ' er en prøvelast og kommer ikke med i lastkombinationerne.';
     $('comboNote').textContent = note;
     $('comboClear').disabled = !combos.length;
     updateGenPreview();
-    var cases = okLoads ? loads.cases : [], info = okLoads ? loads.combos : [];
+    var cases = okLoads ? loads.cases.filter(function (c) { return !c.noCombo; }) : [], info = okLoads ? loads.combos : [];
     var sig = JSON.stringify([combos.length, cases.map(function (c) { return c.key + '|' + c.name; }), cOpen]);
     // felterne bygges kun om, når listen eller lasttilfældene ændrer sig – så mister man ikke fokus, mens man skriver
     if (sig !== comboSig) {

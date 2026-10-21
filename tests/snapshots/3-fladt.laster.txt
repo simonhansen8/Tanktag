@@ -12,6 +12,7 @@ Nyttelast, punkt	Korttids	1	1,50	0,00
 Sne, jævn	Korttids	25	86,40	0,00
 Vind 0°	Øjeblikkelig	25	−36,50	0,00
 Undertryk	Korttids	25	27,00	0,00
+Rotationsstivhed	Øjeblikkelig	2	0,00	0,00
 
 2. Egenlast
 ===========
@@ -181,3 +182,14 @@ Tankens designtryk og designvakuum virker vinkelret på tagpladen med 1 mbar = 0
 
 Lasttilfælde	Tryk	Lodret, kN	p · A_proj, kN
 Undertryk	2,5 mbar = 0,250 kN/m², nedad	27,00	27,00
+
+7. Rotationsstivhed
+===================
+Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på 5,00 kN tangentielt, midt mellem bjælkerne i knuden, så taget drejer mod uret set oppefra. Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination. Drejningsstivheden er M_z divideret med tagets drejning i FEM-Design.
+
+Knude	Bjælke	Retning, °	M_z, kNm
+K1.1	UDV1.12, UDV1.1	90,0	16,25
+K1.7	UDV1.6, UDV1.7	270,0	16,25
+I alt			32,50
+
+Vandret resultant: 0,00 kN. Er den ikke 0, tager understøtningerne også en vandret kraft; vælg knuder symmetrisk om centrum for et rent moment.
