@@ -279,6 +279,10 @@ svg.lgsup { width: 22px; height: 14px; flex: none; stroke: var(--ink); fill: non
 svg.lgsup.hold { stroke: var(--primer); }
 .supchk { align-items: center; font-size: 0.875rem; color: var(--ink-2); }
 .supchk input { margin: 0; }
+/* profiler i 3D: fladerne skygges ved at blande gruppens farve (andel --s) med hvid eller sort (--k) */
+.pf { fill: color-mix(in srgb, var(--c) var(--s), var(--k)); stroke: color-mix(in srgb, var(--c) var(--s), var(--k)); stroke-linejoin: round; }
+.pf-radial { --c: var(--c-radial); } .pf-ring { --c: var(--c-ring); } .pf-udv { --c: var(--c-udv); }
+.pf-edge { --c: var(--c-edge); } .pf-brace { --c: var(--c-brace); } .pf-sec { --c: var(--c-sec); }
 .cov { width: 14px; height: 10px; background: var(--c-cover); outline: 1px solid var(--rule); flex: none; }
 
 /* drawing (SVG) */
@@ -1182,6 +1186,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <button type="button" role="tab" id="tab-3d" aria-selected="false" data-view="3d">3D</button>
         </div>
         <label class="check supchk" title="Vis understøtningsforholdene i plan, snit og 3D: lodrette understøtninger, fastholdte retninger, fjedre og fastholdte rotationer"><input type="checkbox" id="showSup" checked> <span>Understøtninger</span></label>
+        <label class="check supchk" id="showProfBox" title="Vis profilerne i 3D som tværsnit i virkelig størrelse, så deres orientering kan ses" hidden><input type="checkbox" id="showProf" checked> <span>Profiler</span></label>
         <div class="loadpick" id="loadPick" hidden>
           <label class="lbl" for="loadView">Vis last</label>
           <select id="loadView"></select>
@@ -5457,6 +5462,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   // vis understøtningsforholdene i tegningerne (til som standard, huskes i browseren)
   var showSup = true;
   try { showSup = window.localStorage.getItem(STORE_KEY + '-sup') !== '0'; } catch (e) { /* ok */ }
+  // vis profilerne som tværsnit i 3D (til som standard, huskes i browseren)
+  var showProf = true;
+  try { showProf = window.localStorage.getItem(STORE_KEY + '-prof') !== '0'; } catch (e) { /* ok */ }
   // samlinger: indlæste kræfter (F), valgte knuder, knuder i modellen (N), kobling til stængerne (M)
   var TC = window.TankConn, CONN_KEY = STORE_KEY + '-conn';
   var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null, labels: 'sel', tab: 0, asg: null };
@@ -6166,6 +6174,97 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     return out.join('');
   }
 
+  // ---------- profiler i 3D ----------
+  function unit3(a) { var l = Math.sqrt(dot3(a, a)) || 1; return [a[0] / l, a[1] / l, a[2] / l]; }
+  function cross3(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  // tværsnittets omrids til 3D: buerne forenklet (de små flader ses ikke i den målestok), og for hvert omrids den side,
+  // der vender ud af materialet: out = 1 til højre for gennemløbet, -1 til venstre (et hul vender modsat det ydre omrids)
+  var outline3DCache = {};
+  function outline3D(key) {
+    if (!LIB) return null;
+    if (!Object.prototype.hasOwnProperty.call(outline3DCache, key)) {
+      var o = outlineOf(key), res = null;
+      if (o && o.length) {
+        var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        o.forEach(function (c) { c.forEach(function (q) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); }); });
+        var size = Math.max(x1 - x0, y1 - y0, Math.abs(x0), Math.abs(x1), Math.abs(y0), Math.abs(y1));
+        var cs = o.map(function (c) { return simplifyRing(c, 0.02 * size); }).filter(function (c) { return c.length >= 3; });
+        res = { size: size, rings: cs.map(function (c, i) {
+          var hole = cs.some(function (d, j) { return j !== i && inRing(c[0], d); });
+          return { pts: c, out: (ringArea(c) > 0) !== hole ? 1 : -1 };
+        }) };
+        if (!res.rings.length) res = null;
+      }
+      outline3DCache[key] = res;
+    }
+    return outline3DCache[key];
+  }
+  function ringArea(c) {
+    var a = 0;
+    for (var i = 0; i < c.length; i++) { var q = c[i], r = c[(i + 1) % c.length]; a += q[0] * r[1] - r[0] * q[1]; }
+    return a / 2;
+  }
+  function inRing(pt, c) {
+    var inside = false;
+    for (var i = 0, j = c.length - 1; i < c.length; j = i++) {
+      if ((c[i][1] > pt[1]) !== (c[j][1] > pt[1]) && pt[0] < (c[j][0] - c[i][0]) * (pt[1] - c[i][1]) / (c[j][1] - c[i][1]) + c[i][0]) inside = !inside;
+    }
+    return inside;
+  }
+  // Douglas–Peucker på et lukket omrids: delt ved det første punkt og punktet længst fra det
+  function simplifyRing(c, tol) {
+    var n = c.length;
+    if (n <= 4) return c;
+    var far = 0, dmax = -1;
+    c.forEach(function (q, i) { var d = Math.hypot(q[0] - c[0][0], q[1] - c[0][1]); if (d > dmax) { dmax = d; far = i; } });
+    var keep = c.map(function () { return false; });
+    keep[0] = keep[far] = true;
+    function dp(i, j) {
+      var A = c[i % n], B = c[j % n], dx = B[0] - A[0], dy = B[1] - A[1], L2 = dx * dx + dy * dy, best = -1, bi = -1;
+      for (var q = i + 1; q < j; q++) {
+        var Q = c[q % n], t = L2 > 0 ? Math.max(0, Math.min(1, ((Q[0] - A[0]) * dx + (Q[1] - A[1]) * dy) / L2)) : 0;
+        var d = Math.hypot(Q[0] - A[0] - t * dx, Q[1] - A[1] - t * dy);
+        if (d > best) { best = d; bi = q; }
+      }
+      if (best > tol) { keep[bi % n] = true; dp(i, bi); dp(bi, j); }
+    }
+    dp(0, far);
+    dp(far, n);
+    return c.filter(function (q, i) { return keep[i]; });
+  }
+  // stang med profil som prisme: sidefladerne, der vender mod beskueren (bagerst først), og endefladen nærmest beskueren.
+  // Tværsnittets x er lokal y og dets y lokal z = x × y (som i FEM-Design), origo i tyngdepunktet på systemlinjen.
+  function profileSolid(m, o, P, f, cz, light) {
+    var ex = unit3(vsub3(m.end, m.start)), ey = m.localY, ez = cross3(ex, ey), faces = [];
+    function W(q, base) { return vadd3(base, vadd3(vscale3(ey, q[0]), vscale3(ez, q[1]))); }
+    // lys flade: farven blandet med hvid, skyggeside: med sort (i trin på 5 %)
+    function shade(nv) {
+      var t = dot3(nv, light);
+      return t > 0.5 ? '--k:#fff;--s:' + (100 - Math.round((t - 0.5) * 2 * 9) * 5) + '%' : '--k:#000;--s:' + (100 - Math.round((0.5 - Math.max(t, -0.5)) * 9) * 5) + '%';
+    }
+    function d(pts) { return pts.map(function (v) { var t = P(v); return t[0].toFixed(1) + ' ' + t[1].toFixed(1); }).join('L'); }
+    o.rings.forEach(function (c) {
+      var n = c.pts.length;
+      for (var i = 0; i < n; i++) {
+        var A = c.pts[i], B = c.pts[(i + 1) % n], dy = B[0] - A[0], dz = B[1] - A[1], l = Math.hypot(dy, dz);
+        if (!(l > 0)) continue;
+        var nv = vadd3(vscale3(ey, c.out * dz / l), vscale3(ez, -c.out * dy / l));
+        if (dot3(nv, f) <= 1e-9) continue;   // vender bort
+        var mid = W([(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], vscale3(vadd3(m.start, m.end), 0.5));
+        faces.push({ dep: dot3(vsub3(mid, [0, 0, cz]), f), s: shade(nv), d: 'M' + d([W(A, m.start), W(B, m.start), W(B, m.end), W(A, m.end)]) + 'Z' });
+      }
+    });
+    faces.sort(function (a, b) { return a.dep - b.dep; });
+    var out = faces.map(function (fc) { return '<path class="pf" style="' + fc.s + '" d="' + fc.d + '"/>'; });
+    var ef = dot3(ex, f);
+    if (Math.abs(ef) > 1e-6) {
+      var base = ef > 0 ? m.end : m.start;
+      out.push('<path class="pf" fill-rule="evenodd" style="' + shade(vscale3(ex, ef > 0 ? 1 : -1)) + '" d="' +
+        o.rings.map(function (c) { return 'M' + d(c.pts.map(function (q) { return W(q, base); })) + 'Z'; }).join('') + '"/>');
+    }
+    return out.join('');
+  }
+
   // ---------- 3D ----------
   function draw3D(g) {
     var VBW = 1000, VBH = 750, info = g.info, p = g.params, R = info.R, k0 = pxScale(VBW, 760, 4 / 3);
@@ -6197,9 +6296,21 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       return { m: m, d: mid[0] * f[0] + mid[1] * f[1] + mid[2] * f[2] };
     }).sort(function (a, b) { return a.d - b.d; });
     var lc = formTab !== 'brace' && formTab !== 'conn' ? activeCase() : null;
+    // profilerne som tværsnit i virkelig størrelse langs stængerne, ellers stængernes systemlinjer
+    var profOf = { radial: p.profRadial, sec: p.profSec, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace };
+    var light = unit3(vadd3(vadd3(f, vscale3(up, 0.7)), vscale3(right, -0.4)));
     items.forEach(function (it) {
-      var m = it.m;
-      out.push(lineEl(GROUP_CLASS[m.group], P(m.start), P(m.end), ' stroke-width="' + GROUP_WIDTH[m.group] + '" stroke-linecap="round"'));
+      var m = it.m, key = m.prof || profOf[m.group], o = showProf ? outline3D(key) : null;
+      if (!o) {
+        out.push(lineEl(GROUP_CLASS[m.group], P(m.start), P(m.end), ' stroke-width="' + GROUP_WIDTH[m.group] + '" stroke-linecap="round"'));
+        return;
+      }
+      var a = P(m.start), b = P(m.end), rr = o.size * s;
+      if (Math.max(a[0], b[0]) + rr < win.x0 || Math.min(a[0], b[0]) - rr > win.x0 + win.w ||
+        Math.max(a[1], b[1]) + rr < win.y0 || Math.min(a[1], b[1]) - rr > win.y0 + win.h) return;   // uden for udsnittet
+      out.push(lineEl(GROUP_CLASS[m.group], a, b, ' stroke-width="' + (1.1 * k).toFixed(2) + '"'));   // tynde profiler forsvinder ikke
+      out.push('<g class="pf-' + m.group + '" stroke-width="' + (0.35 * k).toFixed(2) + '"><title>' + esc(m.name + ' · ' + profLabel(key)) + '</title>' +
+        profileSolid(m, o, P, f, cz, light) + '</g>');
     });
     // understøtningsforhold: pendulstang lodret ned og i de fastholdte vandrette retninger, fjedre som zigzag, fastholdte rotationer som firkant
     if (showSup) {
@@ -6906,6 +7017,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       $('caption').textContent = '';
       return;
     }
+    $('showProfBox').hidden = view !== '3d';
     drawing.classList.toggle('drawmode', drawMode());
     drawing.classList.toggle('pickmode', connMode());
     drawing.classList.toggle('zoomed', zoomState[view].s > 1);
@@ -6941,7 +7053,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
             : lcv.point ? 'Pilen viser punktlasten midt på RB.1.'
             : 'Fladelasten vises som en blok på hver lastfordelingsflade: højden følger værdien, og farven viser tryk (rød) og sug (blå). Hold musen over en flade for værdien.') +
           ' Vælg Ingen under Vis last for at skjule lasterne. Træk i tegningen for at dreje den.'
-          : 'Træk i tegningen for at dreje den. Vælg et lasttilfælde under Vis last for at se lasterne.'));
+          : 'Træk i tegningen for at dreje den. Vælg et lasttilfælde under Vis last for at se lasterne.') +
+          (showProf ? ' Profilerne er tegnet i virkelig størrelse med deres orientering; zoom ind for at se dem tydeligt, og hold musen over en stang for navn og profil.' : ''));
     $('caption').textContent += zoomHint();
     drawing.setAttribute('aria-label', view === 'plan' ? 'Plan af taget' : (view === 'section' ? 'Snit gennem tagets centrum' : '3D-visning af taget'));
   }
@@ -7013,6 +7126,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     showSup = this.checked;
     try { window.localStorage.setItem(STORE_KEY + '-sup', showSup ? '1' : '0'); } catch (e) { /* ok */ }
     updateLegend(geom);
+    renderDrawing();
+  });
+  $('showProf').checked = showProf;
+  $('showProf').addEventListener('change', function () {
+    showProf = this.checked;
+    try { window.localStorage.setItem(STORE_KEY + '-prof', showProf ? '1' : '0'); } catch (e) { /* ok */ }
     renderDrawing();
   });
 
