@@ -385,3 +385,60 @@ test('halvt tag på kuppel: μ1 = 0,8 på læsiden og μ på luvsiden (tomt felt
   const kegle = TR.computeLoads(TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { roofType: 'cone' }))));
   assert.ok(!kegle.cases.some((x) => x.key === 'snowHalf'));
 });
+
+test('kun lodret med valgte knuder: globale retninger og rotationer, fejl og advarsler', () => {
+  // RB.1 ved 0°, 24 radialbjælker: KS.1 ved 0°, KS.7 ved 90°, KS.13 ved 180° og KS.19 ved 270°
+  const geo = (o) => TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS,
+    { support: 'vertical', holdMode: 'nodes', rotationDeg: 0, secAxes: false }, o)));
+  const g = geo({ holds: [{ nodes: 'KS.1', x: true }, { nodes: 'ks.7, KS.13', y: true }, { nodes: 'KSM.4', rx: true }] });
+  assert.deepEqual(g.errors, []);
+  assert.deepEqual(g.holdErrors, []);
+  assert.deepEqual(g.warnings.filter((w) => /fastholdelser|fastholdt vandret/.test(w)), []);
+  const by = Object.fromEntries(g.supports.map((s) => [s.node, s]));
+  assert.ok(Math.abs(by['KS.7'].pos[0]) < 1e-9 && by['KS.7'].pos[1] > 0, 'KS.7 ved 90°');
+  assert.ok(by['KS.1'].motions.x > 0 && by['KS.1'].motions.y === 0 && by['KS.1'].motions.z > 0);
+  assert.ok(by['KS.13'].motions.x === 0 && by['KS.13'].motions.y > 0);
+  assert.ok(by['KSM.4'].motions.x === 0 && by['KSM.4'].motions.y === 0 && by['KSM.4'].rotations.x > 0 && by['KSM.4'].rotations.z === 0);
+  assert.ok(by['KS.2'].motions.x === 0 && by['KS.2'].motions.y === 0 && by['KS.2'].motions.z > 0);
+  // globalt system ved de valgte knuder, radialt ved resten
+  assert.deepEqual(by['KS.7'].localX, [1, 0, 0]);
+  assert.deepEqual(by['KSM.4'].localY, [0, 1, 0]);
+  assert.notDeepEqual(by['KS.2'].localX, [1, 0, 0]);
+  assert.deepEqual(g.info.hold.map((h) => h.name + ' ' + h.dir), ['KS.1 X', 'KS.7 Y', 'KS.13 Y', 'KSM.4 rot X']);
+  // samme tre fastholdelser som den automatiske: statisk bestemt, så svøbets udvidelse ikke lægges ind
+  assert.equal(g.info.holdDeterminate, true);
+  assert.equal(TR.computeLoads(g).temp.determinate, true);
+  const xml = TR.buildStruxml(g.params, LIB, { geometry: g });
+  assert.match(xml, /name="SS\.4">[\s\S]*?<rotations x_neg="10000000000"/);
+
+  // en rotation om den lodrette akse låser også drejningen, men gør det statisk ubestemt
+  const gz = geo({ holds: [{ nodes: 'KS.1', x: true, rz: true }, { nodes: 'KS.7 KS.13', y: true }] });
+  assert.ok(!gz.warnings.some((w) => /fastholdelser/.test(w)));
+  assert.equal(gz.info.holdDeterminate, false);
+  // X og Y uden mere kan dreje; X ved 0° og 180° på samme linje kan forskydes og dreje
+  assert.ok(geo({ holds: [{ nodes: 'KS.1', x: true }, { nodes: 'KS.7', y: true }] }).warnings.some((w) => /kan dreje om den lodrette akse/.test(w)));
+  assert.ok(geo({ holds: [{ nodes: 'KS.1 KS.13', x: true }] }).warnings.some((w) => /kan forskydes eller dreje/.test(w)));
+  assert.ok(geo({ holds: [] }).warnings.some((w) => /Ingen understøtninger er fastholdt vandret/.test(w)));
+  // X og Y ved fire knuder: statisk ubestemt, så svøbets udvidelse lægges ind som flytning i X og Y
+  const g4 = geo({ holds: [{ nodes: 'KS.1; KS.7; KS.13; KS.19', x: true, y: true }, { nodes: 'KS.4', x: true, y: true }] });
+  assert.equal(g4.info.holdDeterminate, false);
+  const L4 = TR.computeLoads(g4), tc = L4.cases.find((c) => c.key === 'temp');
+  assert.equal(L4.temp.motions, 5);
+  const mv = tc.loads.filter((l) => l.kind === 'motion');
+  assert.equal(mv.length, 6);   // én ved hver af de fire ved akserne, to ved KS.4 (45°)
+  const at4 = mv.filter((l) => Math.abs(l.pos[0] - by['KS.4'].pos[0]) < 1e-9 && Math.abs(l.pos[1] - by['KS.4'].pos[1]) < 1e-9);
+  assert.equal(at4.length, 2);
+  assert.ok(Math.abs(Math.hypot(at4[0].val, at4[1].val) - L4.temp.u) < 1e-12, 'samlet flytning = svøbets radiale udvidelse');
+
+  // ukendte knuder og rækker uden retning er fejl, som stopper eksporten
+  const bad = geo({ holds: [{ nodes: 'KS.99', x: true }, { nodes: 'KS.2' }, { nodes: '', y: true }] });
+  assert.equal(bad.holdErrors.length, 3);
+  assert.throws(() => TR.buildStruxml(bad.params, LIB, { geometry: bad }), /KS\.99/);
+  assert.equal(geo({ secOn: false, holds: [{ nodes: 'KSM.1', x: true }] }).holdErrors.length, 1);
+
+  // automatisk er uændret, og listen bruges kun ved holdMode 'nodes'
+  const auto = geo({ holdMode: 'auto', holds: [{ nodes: 'KS.99', x: true }] });
+  assert.deepEqual(auto.holdErrors, []);
+  assert.equal(auto.info.hold.length, 3);
+  assert.equal(auto.info.holdDeterminate, true);
+});

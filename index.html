@@ -197,6 +197,22 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .radrow input[aria-invalid="true"] { border-color: var(--bad); }
 .radrow .rx { width: 32px; height: 32px; border: 1px solid var(--rule); border-radius: 4px; background: var(--field); color: var(--ink-2); font-size: 1rem; line-height: 1; cursor: pointer; }
 .radrow .rx:hover { border-color: var(--ink-2); color: var(--ink); }
+.holdlist { display: grid; gap: 4px; }
+#holdNodes { display: grid; gap: 6px; margin-top: 6px; }
+#holdNodes[hidden] { display: none; }
+.holdlist:empty { display: none; }
+.holdrow { display: grid; grid-template-columns: minmax(0, 1fr) auto 32px; gap: 6px; align-items: center; }
+.holdrow input[type="text"] { min-height: 32px; padding: 4px 9px; font-family: var(--f-data); font-size: 0.85rem; }
+.holdrow input[aria-invalid="true"] { border-color: var(--bad); }
+.holdrow .hd { display: flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; background: var(--field); }
+.holdrow .hd label { position: relative; cursor: pointer; }
+.holdrow .hd label + label { border-left: 1px solid var(--rule); }
+.holdrow .hd input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.holdrow .hd span { display: block; min-width: 30px; padding: 6px 5px; text-align: center; font-family: var(--f-data); font-size: 0.78rem; color: var(--ink-2); }
+.holdrow .hd input:checked + span { background: var(--ink); color: var(--sheet); font-weight: 500; }
+.holdrow .hd input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: -2px; }
+.holdrow .rx { width: 32px; height: 32px; border: 1px solid var(--rule); border-radius: 4px; background: var(--field); color: var(--ink-2); font-size: 1rem; line-height: 1; cursor: pointer; }
+.holdrow .rx:hover { border-color: var(--ink-2); color: var(--ink); }
 .ringprofs { display: grid; gap: 8px; margin-top: 4px; padding-left: 12px; border-left: 2px solid var(--rule-2); }
 .ringprof { display: grid; gap: 4px; }
 .ringprof .rl { font-family: var(--f-data); font-size: 0.8rem; color: var(--ink-2); }
@@ -697,6 +713,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <label><input type="radio" name="support" value="vertical" data-key="support"><span>Kun lodret</span></label>
           </div>
           <p class="hint" id="supportHint">Lodret og tangentielt altid fastholdt; rotationer fri.</p>
+        </div>
+        <div class="field" id="holdField">
+          <span class="lbl">Vandrette fastholdelser</span>
+          <div class="seg" role="radiogroup" aria-label="Vandrette fastholdelser">
+            <label><input type="radio" name="holdMode" value="auto" data-key="holdMode"><span>Automatisk</span></label>
+            <label><input type="radio" name="holdMode" value="nodes" data-key="holdMode"><span>Valgte knuder</span></label>
+          </div>
+          <div id="holdNodes">
+            <div class="holdlist" id="holdList" role="group" aria-label="Valgte knuder og fastholdte retninger"></div>
+            <div class="tools"><button type="button" class="btn small" id="holdAdd">Tilføj række</button></div>
+            <p class="hint">Skriv knuderne med navnene fra planen, adskilt af komma: KS.3 ved radialbjælke 3 og KSM.3 ved sektionsspæret efter den. Vælg de retninger, de er fastholdt i, ud over lodret: X og Y er globale, og rot X, rot Y og rot Z er rotationer om de globale akser. Alle andre understøtninger er kun lodret fastholdt.</p>
+          </div>
         </div>
         <div class="field" id="springField">
           <label class="lbl" for="radialSpring">Radial fjederstivhed <span class="unit">kN/m</span></label>
@@ -1239,7 +1267,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <h3>Sådan er modellen bygget</h3>
       <p>Systemlinjerne er profilernes tyngdepunktsakser, og den fysiske 3D-visning i FEM-Design viser også profilerne med tyngdepunktet på systemlinjen. Origo ligger i tankens centrum med Z opad. Bjælkernes krop står lodret (lokal y vandret), og udvekslingerne kan i stedet stilles vinkelret på tagfladen og drejes om stangaksen i kvarte omgange.</p>
       <p>Udvekslingernes ender ligger på radialbjælkerne, og FEM-Design forbinder dem automatisk. Hvor et sektionsspær går igennem en udvekslingsring, er udvekslingen delt med et knæk på ringens cirkel, så begge halvdele ender på det gennemgående sektionsspær. Den ring, sektionsspæret ender på, er lige. Charnier frigiver bøjning om begge akser; vridning og flytninger overføres. Vindgitteret er gitterstænger med kun normalkraft.</p>
-      <p>Med understøtningen Kun lodret holdes taget vandret af præcis tre fastholdelser: X ved 0°, Y ved 90° og Y ved 180°, så det hverken kan forskydes eller dreje om den lodrette akse. Det er statisk bestemt, så temperatur og svøbets udvidelse ikke giver tvang – til gengæld skal taget selv føre de vandrette laster hen til de tre punkter.</p>
+      <p>Med understøtningen Kun lodret holdes taget vandret af præcis tre fastholdelser: X ved 0°, Y ved 90° og Y ved 180°, så det hverken kan forskydes eller dreje om den lodrette akse. Det er statisk bestemt, så temperatur og svøbets udvidelse ikke giver tvang – til gengæld skal taget selv føre de vandrette laster hen til de tre punkter. Med »Valgte knuder« bestemmer du selv, hvilke understøtninger der også fastholdes i globalt X og Y eller mod rotation om de globale akser; er det andet end tre fastholdelser, lægges svøbets udvidelse ind som flytning i de fastholdte retninger.</p>
     </div>
     <div class="note">
       <h3>Når filen er åbnet</h3>
@@ -1299,6 +1327,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     connUdvSec: 'hinged',      // 'rigid' | 'hinged' – udvekslinger mod sektionsspær, der krydser ringen (ringen deles der)
     support: 'pinned',         // 'pinned' | 'radialFree' | 'radialSpring' | 'vertical' (kun lodret + X ved 0°, Y ved 90° og 180°)
     radialSpring: 50000,       // kN/m – radial fjeder ved 'radialSpring'
+    holdMode: 'auto',          // 'auto' | 'nodes' – vandrette fastholdelser ved 'vertical': de tre automatiske eller valgte knuder
+    holds: [],                 // ved holdMode 'nodes': [{ nodes: 'KS.1, KSM.7', x, y, rx, ry, rz }] – globale retninger og rotationer
     covers: 'radial',          // 'none' | 'radial' | 'all'  (lastfordelingsflader)
     coverCenter: true,         // flade inden for ringbjælken (bæres af ringen)
     bracing: 'KS.23-K3.22; KS.22-K3.23; K3.22-K2.23; K2.23-K1.22; K1.23-K2.22; K2.22-K3.23', // vindgitter, tegnes i fanen Vindgitter: "KS.1-K4.2; K4.2-K3.1" (K + ring.RB, R = ringbjælke, S = svøb, M/L = midt til næste RB/ring)
@@ -1444,6 +1474,37 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       out.push({ name: jsString(c.name), type: c.type === null || c.type === undefined ? 'ultimate_ordinary' : jsString(c.type), f: f });
     });
     return out;
+  }
+  // vandrette fastholdelser ved valgte knuder: hver række er en liste af knuder og de fastholdte retninger
+  var HOLD_DIRS = ['x', 'y', 'rx', 'ry', 'rz'];
+  function normHolds(v) {
+    if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = []; } }
+    if (!Array.isArray(v)) return [];
+    var out = [];
+    v.forEach(function (h) {
+      if (!h || typeof h !== 'object' || Array.isArray(h)) return;
+      var o = { nodes: jsString(h.nodes) };
+      HOLD_DIRS.forEach(function (k) { o[k] = h[k] === true || h[k] === 'true'; });
+      out.push(o);
+    });
+    return out;
+  }
+  // rang af fastholdelsernes rækker [ux, uy, drejning] – under 3 betyder, at taget kan bevæge sig vandret som stift legeme
+  function planeRank(rows) {
+    var a = rows.map(function (r) { return r.slice(); }), rank = 0;
+    for (var c = 0; c < 3 && rank < a.length; c++) {
+      var piv = -1, best = 1e-9;
+      for (var i = rank; i < a.length; i++) if (Math.abs(a[i][c]) > best) { best = Math.abs(a[i][c]); piv = i; }
+      if (piv < 0) continue;
+      var t = a[piv]; a[piv] = a[rank]; a[rank] = t;
+      for (var j = 0; j < a.length; j++) {
+        if (j === rank) continue;
+        var f = a[j][c] / a[rank][c];
+        for (var k = c; k < 3; k++) a[j][k] -= f * a[rank][k];
+      }
+      rank++;
+    }
+    return rank;
   }
   function escAttr(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1667,6 +1728,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
     });
     q.combos = normCombos(q.combos);
+    q.holdMode = q.holdMode === 'nodes' ? 'nodes' : 'auto';
+    q.holds = normHolds(q.holds);
     return q;
   }
 
@@ -2010,7 +2073,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var th = thetas[i6];
       var kx = p.support === 'pinned' ? FIXED : (p.support === 'radialSpring' ? p.radialSpring : 0);
       supports.push({
-        name: 'S.' + (i6 + 1), pos: P(R, i6), rho: R,
+        name: 'S.' + (i6 + 1), node: 'KS.' + (i6 + 1), pos: P(R, i6), rho: R,
         localX: [Math.cos(th), Math.sin(th), 0], localY: [-Math.sin(th), Math.cos(th), 0],
         motions: { x: kx, y: FIXED, z: FIXED }, rotations: { x: 0, y: 0, z: 0 }
       });
@@ -2020,7 +2083,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       for (var i10 = 0; i10 < n; i10++) {
         var thm = thetas[i10] + Math.PI / n, qs = Cpt(i10);
         supports.push({
-          name: 'SS.' + (i10 + 1), pos: qs, rho: R,
+          name: 'SS.' + (i10 + 1), node: 'KSM.' + (i10 + 1), pos: qs, rho: R,
           localX: [Math.cos(thm), Math.sin(thm), 0], localY: [-Math.sin(thm), Math.cos(thm), 0],
           motions: { x: supports[0].motions.x, y: FIXED, z: FIXED }, rotations: { x: 0, y: 0, z: 0 }
         });
@@ -2029,8 +2092,51 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // kun lodrette understøtninger: tre vandrette fastholdelser gør taget statisk bestemt vandret, så hverken
     // temperatur eller svøbets udvidelse giver tvang. X ved understøtningen nærmest 0°, Y nærmest 90° og Y
     // længst fra den i X-retningen (normalt ved 180°), så taget heller ikke kan dreje om den lodrette akse.
-    var hold = [];
-    if (p.support === 'vertical') {
+    var hold = [], holdErrors = [], holdCustom = p.support === 'vertical' && p.holdMode === 'nodes', holdDeterminate = false;
+    if (holdCustom) {
+      // valgte knuder: hver række fastholder sine knuder i de afkrydsede globale retninger, resten er kun lodret
+      supports.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
+      var byNode = {}, used = {}, rows = [];
+      supports.forEach(function (s, i) { byNode[s.node] = i; byNode[s.name] = i; });
+      p.holds.forEach(function (h, k) {
+        var toks = String(h.nodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
+        var label = 'Fastholdelse ' + (k + 1) + ': ';
+        if (!toks.length) { holdErrors.push(label + 'skriv en eller flere knuder, fx "KS.1, KS.13".'); return; }
+        if (!HOLD_DIRS.some(function (d) { return h[d]; })) holdErrors.push(label + 'vælg mindst én retning.');
+        toks.forEach(function (t) {
+          var key = t.toUpperCase(), i = byNode[key];
+          if (i === undefined) {
+            holdErrors.push(label + '"' + t + '" er ikke en understøtning. Brug KS.1–KS.' + n + (p.secOn ? ' ved radialbjælkerne eller KSM.1–KSM.' + n + ' ved sektionsspærene' : '') + '.');
+            return;
+          }
+          var s = supports[i];
+          s.localX = [1, 0, 0]; s.localY = [0, 1, 0]; s.global = true;   // globalt system ved de vandret fastholdte
+          if (h.x) s.motions.x = FIXED;
+          if (h.y) s.motions.y = FIXED;
+          if (h.rx) s.rotations.x = FIXED;
+          if (h.ry) s.rotations.y = FIXED;
+          if (h.rz) s.rotations.z = FIXED;
+          used[i] = true;
+        });
+      });
+      // én række pr. understøtning til tegning og tekst, og stivlegemebevægelserne i planen (u, v, drejning), som fastholdelserne låser
+      supports.forEach(function (s, i) {
+        if (!used[i]) return;
+        var x = s.pos[0] / R, y = s.pos[1] / R;
+        if (s.motions.x) { hold.push({ name: s.node, dir: 'X', vec: [1, 0], pos: s.pos }); rows.push([1, 0, -y]); }
+        if (s.motions.y) { hold.push({ name: s.node, dir: 'Y', vec: [0, 1], pos: s.pos }); rows.push([0, 1, x]); }
+        if (s.rotations.z) rows.push([0, 0, 1]);
+        ['x', 'y', 'z'].forEach(function (a) {
+          if (s.rotations[a]) hold.push({ name: s.node, dir: 'rot ' + a.toUpperCase(), rot: true, pos: s.pos });
+        });
+      });
+      var rk = planeRank(rows);
+      if (!holdErrors.length && rk < 3) {
+        warnings.push(rows.length ? 'De vandrette fastholdelser holder ikke taget: det kan ' + (rk === 2 ? 'dreje om den lodrette akse eller forskydes' : 'forskydes eller dreje') +
+          ' vandret. Tilføj fastholdelser, så de ikke alle peger mod samme punkt eller er parallelle.' : 'Ingen understøtninger er fastholdt vandret, så taget kan forskydes og dreje frit.');
+      }
+      holdDeterminate = rk === 3 && rows.length === 3;
+    } else if (p.support === 'vertical') {
       supports.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
       var pick = function (score, skip) {
         var best = -1, bv = -Infinity;
@@ -2050,8 +2156,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var s = supports[h[0]];
         s.localX = [1, 0, 0]; s.localY = [0, 1, 0];   // globalt system ved de vandret fastholdte
         s.motions[h[1]] = FIXED;
-        hold.push({ name: s.name, dir: h[2], lock: h[3], pos: s.pos });
+        hold.push({ name: s.name, dir: h[2], lock: h[3], vec: h[1] === 'x' ? [1, 0] : [0, 1], pos: s.pos });
       });
+      holdDeterminate = true;
     }
     // lastfordelingsflader
     var covers = [];
@@ -2124,13 +2231,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       spacingShell: 2 * R * Math.sin(Math.PI / n),
       spacingShellSec: p.secOn ? 2 * R * Math.sin(Math.PI / (2 * n)) : null,   // radialbjælke til sektionsspær ved svøbet
       spacingRing: 2 * rc * Math.sin(Math.PI / n),
-      thetas: thetas, segmented: segmented, secRadius: p.secOn ? nodesR[jSec] : null, hold: hold,
+      thetas: thetas, segmented: segmented, secRadius: p.secOn ? nodesR[jSec] : null, hold: hold, holdDeterminate: holdDeterminate,
       brace: { lines: braceLines.length, valid: braceValid, members: nBrace, repeat: rep }
     };
 
     return {
       params: p, errors: [], warnings: warnings, members: members, supports: supports, covers: covers,
-      info: info, zOf: zOf, braceErrors: braceErrors, bracePoints: bracePoints, braceLines: braceLines,
+      info: info, zOf: zOf, braceErrors: braceErrors, holdErrors: holdErrors, bracePoints: bracePoints, braceLines: braceLines,
       braceLineOk: lineRefs.map(function (x) { return !!x; })
     };
   }
@@ -2544,23 +2651,36 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // u = α·ΔT·R lægges som flytning af de radialt fastholdte understøtninger
     if (p.tempOn) {
       var dRoof = p.tempRoof - p.tempRef, dShell = p.tempShell - p.tempRef;
-      var u = p.tempAlpha * 1e-6 * dShell * R, tl = [], nMotion = 0, determinate = p.support === 'vertical';
+      var u = p.tempAlpha * 1e-6 * dShell * R, tl = [], nMotion = 0, determinate = !!geom.info.holdDeterminate;
       geom.members.forEach(function (m) {
         var dT = m.group === 'edge' ? dShell : dRoof;
         if (Math.abs(dT) > 1e-12) tl.push({ kind: 'temp', member: m, dT: dT });
       });
-      // statisk bestemt vandret (kun lodrette understøtninger): svøbets udvidelse flytter blot taget som et stift legeme
+      // statisk bestemt vandret (kun lodrette understøtninger og tre vandrette fastholdelser): svøbets udvidelse flytter
+      // blot taget som et stift legeme. Ellers flyttes de radialt fastholdte understøtninger.
       if (Math.abs(u) > 1e-12 && !determinate) {
         geom.supports.forEach(function (s) {
-          if (!(s.motions.x > 0)) return; // radialt fri: svøbet trækker ikke i taget
           var us = p.tempAlpha * 1e-6 * dShell * s.rho;   // svøbets udvidelse ved understøtningens radius
+          if (s.global) {
+            // valgte knuder i globalt system: den radiale flytning deles op i de fastholdte retninger X og Y
+            var th = Math.atan2(s.pos[1], s.pos[0]), any = false;
+            [['x', [1, 0, 0], Math.cos(th)], ['y', [0, 1, 0], Math.sin(th)]].forEach(function (c) {
+              var v = us * c[2];
+              if (!(s.motions[c[0]] > 0) || Math.abs(v) < 1e-12) return;
+              tl.push({ kind: 'motion', pos: s.pos, dir: v > 0 ? c[1] : vscale(c[1], -1), val: Math.abs(v) });
+              any = true;
+            });
+            if (any) nMotion++;
+            return;
+          }
+          if (!(s.motions.x > 0)) return; // radialt fri: svøbet trækker ikke i taget
           tl.push({ kind: 'motion', pos: s.pos, dir: us > 0 ? s.localX.slice() : vscale(s.localX, -1), val: Math.abs(us) });
           nMotion++;
         });
       }
       res.temp = {
         dRoof: dRoof, dShell: dShell, u: u, uRoof: ALPHA_STEEL * dRoof * R, motions: nMotion,
-        radialFree: !determinate && !geom.supports.some(function (s) { return s.motions.x > 0; }), determinate: determinate
+        radialFree: !determinate && !geom.supports.some(function (s) { return s.motions.x > 0 || (s.global && s.motions.y > 0); }), determinate: determinate
       };
       addCase('temp', 'Temperatur', 'static', 'long-term', tl, { values: zeros(), temp: res.temp });
       if (Math.max(p.tempRoof, p.tempShell) > 100) {
@@ -2774,6 +2894,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var geom = opts.geometry || computeGeometry(params);
     if (geom.errors && geom.errors.length) throw new Error(geom.errors.join('\n'));
     if (geom.braceErrors && geom.braceErrors.length) throw new Error(geom.braceErrors.join('\n'));
+    if (geom.holdErrors && geom.holdErrors.length) throw new Error(geom.holdErrors.join('\n'));
     var p = geom.params;
     var loads = opts.loads || computeLoads(geom);
     if (loads.errors.length) throw new Error(loads.errors.join('\n'));
@@ -5477,6 +5598,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('secFields').disabled = !p.secOn;
     $('rotLabel').textContent = p.secOn && p.secAxes ? 'Vinkel for SEK1' : 'Vinkel for RB.1';
     $('springField').hidden = p.support !== 'radialSpring';
+    $('holdField').hidden = p.support !== 'vertical';
+    $('holdNodes').hidden = p.holdMode !== 'nodes';
     $('coverCenter').disabled = p.covers === 'none';
     $('numUdv').disabled = TR.parseRadii(p.udvRadii).length > 0;
     var lab = { deg: ['Hældning', '°'], ratio: ['Hældning 1 :', 'x'], rise: ['Rejsning til ring', 'm'] }[p.slopeMode] || ['Hældning', ''];
@@ -5529,6 +5652,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   function updateSupportHint(g) {
     var p = g.params, el = $('supportHint');
     if (p.support !== 'vertical') { el.textContent = 'Lodret og tangentielt altid fastholdt; rotationer fri.'; return; }
+    if (p.holdMode === 'nodes') {
+      var ok = !g.errors.length && !(g.holdErrors || []).length && g.info.hold.length;
+      el.innerHTML = 'Alle understøtninger er lodret fastholdt.' + (ok ? ' Derudover fastholdes ' + holdText(g.info.hold) + '.' +
+        (g.info.holdDeterminate ? ' Det er tre fastholdelser og statisk bestemt, så der opstår ingen tvangsspændinger.' : '') : '');
+      return;
+    }
     el.innerHTML = 'Alle understøtninger er kun lodrette. Vandret fastholdes ' +
       (!g.errors.length && g.info.hold.length ? holdText(g.info.hold) : 'X ved 0°, Y ved 90° og Y ved 180°') +
       ' – tre fastholdelser, så taget hverken kan forskydes eller dreje. Det er statisk bestemt, så der opstår ingen tvangsspændinger.';
@@ -5755,6 +5884,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       out.push('<g class="d-hold">');
       var seenH = {};
       info.hold.forEach(function (h) {
+        if (h.rot) return;   // rotationerne står kun i teksten
         var th = Math.atan2(h.pos[1], h.pos[0]), q = P(h.pos), off = (seenH[h.name] ? 40 : 24) * k;
         seenH[h.name] = 1;
         var cx2 = q[0] + Math.cos(th) * off, cy2 = q[1] - Math.sin(th) * off;
@@ -5777,7 +5907,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var sgn = lc.temp.u > 0 ? 1 : -1, hl2 = 10 * k, hw2 = 5 * k, r0 = -36 * k, r1 = -5 * k;
       out.push('<g class="d-move">');
       g.supports.forEach(function (sp) {
-        if (!(sp.motions.x > 0)) return;
+        if (!(sp.motions.x > 0 || (sp.global && sp.motions.y > 0))) return;
         var th = Math.atan2(sp.pos[1], sp.pos[0]), ux = Math.cos(th), uy = -Math.sin(th), q = P(sp.pos);
         var ta = sgn > 0 ? r0 : r1, tb = sgn > 0 ? r1 : r0;
         var tail = [q[0] + ux * ta, q[1] + uy * ta], tip = [q[0] + ux * tb, q[1] + uy * tb];
@@ -6229,8 +6359,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       if (!keys.length) keys.push(p[grp.prof]);
       html.push('<span><i class="swatch sw-' + grp.key + '"></i>' + esc(grp.name) + ' <b>' + esc(keys.map(profLabel).join(', ')) + '</b></span>');
     });
-    if (g.supports && g.supports.length) html.push('<span><i class="tri"></i>Understøtning' + (g.info && g.info.hold && g.info.hold.length ? ', kun lodret' : '') + '</span>');
-    if (g.info && g.info.hold && g.info.hold.length) html.push('<span><i class="hold"></i>Vandret fastholdt (X / Y)</span>');
+    if (g.supports && g.supports.length) html.push('<span><i class="tri"></i>Understøtning' + (g.params.support === 'vertical' ? ', kun lodret' : '') + '</span>');
+    if (g.info && g.info.hold && g.info.hold.some(function (h) { return !h.rot; })) html.push('<span><i class="hold"></i>Vandret fastholdt (X / Y)</span>');
     var lc = view !== 'section' && formTab !== 'brace' && formTab !== 'conn' ? activeCase() : null;
     if (lc && lc.temp) {
       var tp = lc.temp, sg = function (x, d) { return (x > 0 ? '+' : (x < 0 ? '−' : '')) + nf(Math.abs(x), d); };
@@ -6258,6 +6388,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var da = function (t) { return String(t).replace(/(\d)\.(\d)/g, '$1,$2'); };
     (g.errors || []).forEach(function (e) { items.push('<div class="msg bad">' + esc(da(e)) + '</div>'); });
     (g.braceErrors || []).forEach(function (e) { items.push('<div class="msg bad">' + esc(e) + '</div>'); });
+    (g.holdErrors || []).forEach(function (e) { items.push('<div class="msg bad">' + esc(e) + '</div>'); });
     (g.warnings || []).forEach(function (w) { items.push('<div class="msg">' + esc(da(w)) + '</div>'); });
     if (loads) {
       loads.errors.forEach(function (e) { items.push('<div class="msg bad">' + esc(e) + '</div>'); });
@@ -6295,6 +6426,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     updateVisibility(geom.params);
     updateHints(geom);
     renderRadList(geom);
+    renderHoldList(geom);
     renderRingProfs(geom);
     updateRotUI(geom);
     if (!geom.errors.length) updateLoadHints(geom, loads);
@@ -6356,6 +6488,72 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       : (all.length ? 'Ringene fordeles ligeligt mellem ringbjælken og svøbet. Ret en radius for at bruge egne radier.' : 'Ingen udvekslingsringe.');
   }
   function commitRadii() { statusExtra = []; storeParams(); render(); }
+  // ---------- vandrette fastholdelser ved valgte knuder: én række pr. gruppe af knuder ----------
+  var HOLD_UI = [['x', 'X', 'Fastholdt i globalt X'], ['y', 'Y', 'Fastholdt i globalt Y'], ['rx', 'rot X', 'Fastholdt mod rotation om globalt X'],
+    ['ry', 'rot Y', 'Fastholdt mod rotation om globalt Y'], ['rz', 'rot Z', 'Fastholdt mod rotation om globalt Z']];
+  function renderHoldList(g) {
+    var box = $('holdList'), holds = Array.isArray(params.holds) ? params.holds : [];
+    var sig = JSON.stringify(holds.map(function (h) { return HOLD_UI.map(function (d) { return !!h[d[0]]; }); }));
+    var ae = document.activeElement, typing = ae && ae.tagName === 'INPUT' && ae.type === 'text' && box.contains(ae);
+    if (!typing || box.dataset.sig !== sig) {
+      box.innerHTML = holds.map(function (h, i) {
+        return '<div class="holdrow"><input type="text" data-hn="' + i + '" value="' + esc(h.nodes || '') + '" placeholder="fx KS.1, KS.13" spellcheck="false" aria-label="Knuder i række ' + (i + 1) + '">' +
+          '<div class="hd">' + HOLD_UI.map(function (d) {
+            return '<label title="' + d[2] + '"><input type="checkbox" data-hd="' + i + '" data-dir="' + d[0] + '"' + (h[d[0]] ? ' checked' : '') +
+              ' aria-label="' + d[2] + ', række ' + (i + 1) + '"><span>' + d[1] + '</span></label>';
+          }).join('') + '</div>' +
+          '<button type="button" class="rx" data-hdel="' + i + '" aria-label="Fjern række ' + (i + 1) + '">×</button></div>';
+      }).join('');
+      box.dataset.sig = sig;
+    }
+    // ugyldige rækker markeres
+    var bad = {};
+    (g.holdErrors || []).forEach(function (e) { var m = /^Fastholdelse (\d+):/.exec(e); if (m) bad[Number(m[1]) - 1] = true; });
+    box.querySelectorAll('input[data-hn]').forEach(function (el) { el.setAttribute('aria-invalid', String(!!bad[Number(el.dataset.hn)])); });
+  }
+  function commitHolds() { statusExtra = []; storeParams(); render(); }
+  function holdsFromAuto() {
+    // start med de tre automatiske fastholdelser, så man kan rette i dem
+    var g0 = TR.computeGeometry(Object.assign({}, params, { holdMode: 'auto', support: 'vertical' }));
+    if (g0.errors.length) return [];
+    var out = [];
+    g0.info.hold.forEach(function (h) {
+      var s = g0.supports.filter(function (x) { return x.name === h.name; })[0], node = s ? s.node : h.name;
+      var row = out.filter(function (o) { return o.nodes === node; })[0];
+      if (!row) { row = { nodes: node, x: false, y: false, rx: false, ry: false, rz: false }; out.push(row); }
+      row[h.dir === 'X' ? 'x' : 'y'] = true;
+    });
+    return out;
+  }
+  function onHoldEdit(e) {
+    var t = e.target, d = t.dataset || {};
+    if (!Array.isArray(params.holds)) params.holds = [];
+    if (d.hn !== undefined) { if (e.type !== 'input') { e.stopPropagation(); return; } params.holds[Number(d.hn)].nodes = t.value; }
+    else if (d.hd !== undefined) { if (e.type !== 'change') { e.stopPropagation(); return; } params.holds[Number(d.hd)][d.dir] = t.checked; }
+    else return;
+    e.stopPropagation();
+    commitHolds();
+  }
+  $('holdList').addEventListener('input', onHoldEdit);
+  $('holdList').addEventListener('change', onHoldEdit);
+  $('holdList').addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-hdel]');
+    if (!b) return;
+    params.holds = params.holds.filter(function (x, k) { return k !== Number(b.dataset.hdel); });
+    commitHolds();
+  });
+  $('holdAdd').addEventListener('click', function () {
+    if (!Array.isArray(params.holds)) params.holds = [];
+    params.holds = params.holds.concat([{ nodes: '', x: true, y: false, rx: false, ry: false, rz: false }]);
+    commitHolds();
+    var els = $('holdList').querySelectorAll('input[data-hn]');
+    if (els.length) els[els.length - 1].focus();
+  });
+  form.querySelectorAll('input[name="holdMode"]').forEach(function (el) {
+    el.addEventListener('change', function () {
+      if (this.checked && this.value === 'nodes' && !(Array.isArray(params.holds) && params.holds.length)) params.holds = holdsFromAuto();
+    }, true);
+  });
   $('radList').addEventListener('input', function (e) {
     if (!e.target.dataset || e.target.dataset.ring === undefined) return;
     var vals = [].map.call($('radList').querySelectorAll('input[data-ring]'), function (el) { return el.value.trim() || '?'; });

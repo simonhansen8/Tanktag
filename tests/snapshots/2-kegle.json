@@ -51,6 +51,7 @@
       "segmented": true,
       "secRadius": null,
       "hold": [],
+      "holdDeterminate": false,
       "brace": {
         "lines": 2,
         "valid": 2,
@@ -582,7 +583,7 @@
     ]
   },
   "struxml": {
-    "sha256": "8639d413b5552cea08ad47a811ece8087e6045d5f9edd5828e059bea7ca6e8d3",
+    "sha256": "c910ba51512d9b89b5c1f959882964d5f7e577bd544772b80505af6ff5bebc74",
     "lines": 9341,
     "elements": {
       "analytical": 224,
