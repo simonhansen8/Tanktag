@@ -4,6 +4,8 @@ Et browserværktøj til at modellere tanktage (fladt, konisk eller kuppel) og ek
 
 Du indstiller radialbjælker, midterste ringbjælke, udvekslingsringe, sektionsspær, vindgitter, profiler, forbindelser, understøtninger og laster, ser modellen i plan, snit og 3D, og henter en `.struxml`-fil. Lastkombinationer kan genereres i værktøjet eller laves i FEM-Design.
 
+Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer aldrig med i lastkombinationerne.
+
 ## Kom i gang
 
 Værktøjet er én selvstændig HTML-fil uden build-trin.

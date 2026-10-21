@@ -238,6 +238,20 @@
           0,
           -27
         ]
+      },
+      {
+        "key": "rotTest",
+        "name": "Rotationsstivhed",
+        "type": "static",
+        "duration": "instantaneous",
+        "loads": {
+          "point": 2
+        },
+        "F": [
+          0,
+          0,
+          0
+        ]
       }
     ],
     "dead": {
@@ -273,6 +287,49 @@
     },
     "temp": null,
     "walk": null,
+    "rot": {
+      "F": 5,
+      "dir": "mean",
+      "Mz": 32.5,
+      "nodes": [
+        {
+          "name": "K1.1",
+          "pos": [
+            3.25,
+            0,
+            0
+          ],
+          "dir": [
+            0,
+            1,
+            0
+          ],
+          "members": [
+            "UDV1.12",
+            "UDV1.1"
+          ],
+          "mz": 16.25
+        },
+        {
+          "name": "K1.7",
+          "pos": [
+            -3.25,
+            0,
+            0
+          ],
+          "dir": [
+            0,
+            -1,
+            0
+          ],
+          "members": [
+            "UDV1.6",
+            "UDV1.7"
+          ],
+          "mz": 16.25
+        }
+      ]
+    },
     "combos": []
   },
   "proposedCombos": null,
@@ -325,8 +382,8 @@
     ]
   },
   "struxml": {
-    "sha256": "437c9e2a37b9f6c61a8e1c7fcf2c1fe8035551b45cceef98e410401e7f1acbdb",
-    "lines": 2591,
+    "sha256": "11ca493771eb810c6a5db7e4379645f2b68e439f5d752ce1e98b411576867bd4",
+    "lines": 2600,
     "elements": {
       "analytical": 72,
       "bar": 36,
@@ -337,15 +394,15 @@
       "cover": 25,
       "curve": 36,
       "database": 1,
-      "direction": 101,
+      "direction": 103,
       "ecc": 72,
       "eccentricity": 36,
       "edge": 584,
       "end": 148,
       "entities": 1,
       "group": 12,
-      "load": 101,
-      "load_case": 5,
+      "load": 103,
+      "load_case": 6,
       "loads": 1,
       "local_x": 12,
       "local_y": 12,
@@ -355,7 +412,7 @@
       "normal": 584,
       "physical": 72,
       "point": 1228,
-      "point_load": 1,
+      "point_load": 3,
       "point_support": 12,
       "position": 12,
       "ref": 60,

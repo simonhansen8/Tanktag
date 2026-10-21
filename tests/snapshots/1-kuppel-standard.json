@@ -835,6 +835,7 @@
         }
       ]
     },
+    "rot": null,
     "combos": [
       {
         "name": "STR 6.10a",
@@ -1924,7 +1925,7 @@
     ]
   },
   "struxml": {
-    "sha256": "caefb3c3111d0ec3bb5121fed1f3764c7b15b1f19f981662f84eb3959e2655fa",
+    "sha256": "c79695212c88e10b56d4da2c56a8976601d9e000849d8023c0e2e1dcf005e037",
     "lines": 31711,
     "elements": {
       "analytical": 720,
