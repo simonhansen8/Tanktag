@@ -676,6 +676,7 @@
             "connEnd": "rigid",
             "index": 0,
             "seg": 0,
+            "fullLength": 16.400476,
             "partGuid": "00000000-0000-4000-8000-000000000003"
           },
           "a": [
@@ -712,6 +713,7 @@
             "connEnd": "rigid",
             "index": 0,
             "seg": 1,
+            "fullLength": 16.400476,
             "partGuid": "00000000-0000-4000-8000-000000000006"
           },
           "a": [
@@ -748,6 +750,7 @@
             "connEnd": "rigid",
             "index": 0,
             "seg": 2,
+            "fullLength": 16.400476,
             "partGuid": "00000000-0000-4000-8000-000000000009"
           },
           "a": [
@@ -784,6 +787,7 @@
             "connEnd": "rigid",
             "index": 0,
             "seg": 3,
+            "fullLength": 16.400476,
             "partGuid": "00000000-0000-4000-8000-000000000012"
           },
           "a": [
@@ -820,6 +824,7 @@
             "connEnd": "hinged",
             "index": 0,
             "seg": 4,
+            "fullLength": 16.400476,
             "partGuid": "00000000-0000-4000-8000-000000000015"
           },
           "a": [
@@ -1925,12 +1930,14 @@
     ]
   },
   "struxml": {
-    "sha256": "c79695212c88e10b56d4da2c56a8976601d9e000849d8023c0e2e1dcf005e037",
-    "lines": 31711,
+    "sha256": "64190bbddc7641a82e972006622214e1be78732781570a8a6830e3c6578cea34",
+    "lines": 34063,
     "elements": {
       "analytical": 720,
       "bar": 378,
       "bar_part": 378,
+      "buckling_data": 168,
+      "buckling_length": 672,
       "complex_section": 360,
       "compression": 18,
       "connectivity": 720,
@@ -1964,7 +1971,7 @@
       "point_load": 1,
       "point_support": 48,
       "point_support_motion_load": 48,
-      "position": 48,
+      "position": 720,
       "ref": 360,
       "region": 1638,
       "region_group": 7,

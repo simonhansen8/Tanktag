@@ -1,9 +1,10 @@
 {
-  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med en faktor for rotationsstivheden, der ignoreres), rotationsstivhed langs udvekslingen mod uret med negativ kraft og knuderne som resultatpunkter.",
+  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med en faktor for rotationsstivheden, der ignoreres), rotationsstivhed langs udvekslingen mod uret med negativ kraft, knuderne som resultatpunkter og søjle- og kipningslængder over hele radialbjælken.",
   "params": {
     "tankDiameter": 20, "resultPoints": true, "numRadial": 16, "ringDiameter": 1.5, "numUdv": 2, "udvRadii": "",
     "roofType": "cone", "slopeMode": "ratio", "slopeValue": 5, "rotationDeg": 10,
-    "splitRadial": true, "secOn": false, "udvPerRing": false, "udvOrientation": "vertical",
+    "splitRadial": true, "secOn": false,
+    "bkRadialWeak": 0.5, "bkRadialWeakFull": true, "bkRadialTop": "0,8", "bkRadialTopFull": true, "bkRadialStiff": 1.2, "udvPerRing": false, "udvOrientation": "vertical",
     "connRadialRing": "hinged", "connUdv": "rigid", "support": "radialSpring", "radialSpring": 25000,
     "covers": "all", "coverCenter": false,
     "bracing": "1:S-2:2; 2:S-1:2", "bracingRepeat": 4, "braceTensionOnly": true,
