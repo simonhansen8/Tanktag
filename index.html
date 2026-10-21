@@ -120,7 +120,10 @@ fieldset.sub:disabled { opacity: 0.5; }
 .d-point circle.dot { fill: var(--primer); stroke: none; }
 .d-arrow { stroke: var(--ink); fill: var(--ink); }
 .d-move { stroke: var(--primer); fill: var(--primer); }
-.d-hold { stroke: var(--primer); fill: var(--primer); }
+.d-supl { stroke: var(--ink); fill: none; }
+.d-supl .hold { stroke: var(--primer); }
+.d-supl .rot { stroke: var(--primer); fill: var(--sheet); }
+.d-supl circle:not(.d-sup) { fill: var(--sheet); }
 .d-holdlbl { stroke: none; fill: var(--primer); font-family: var(--f-data); font-weight: 600; }
 .d-walk { stroke: var(--primer); opacity: 0.85; }
 .d-lblbg { fill: var(--sheet); fill-opacity: 0.9; stroke: var(--primer); stroke-width: 1; }
@@ -272,10 +275,10 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend b { font-weight: 500; color: var(--ink); }
 .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 9px solid var(--ink); flex: none; }
-.hold { width: 16px; height: 0; border-top: 2px solid var(--primer); position: relative; flex: none; }
-.hold::before, .hold::after { content: ""; position: absolute; top: -5px; width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
-.hold::before { left: -2px; border-right: 5px solid var(--primer); }
-.hold::after { right: -2px; border-left: 5px solid var(--primer); }
+svg.lgsup { width: 22px; height: 14px; flex: none; stroke: var(--ink); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+svg.lgsup.hold { stroke: var(--primer); }
+.supchk { align-items: center; font-size: 0.875rem; color: var(--ink-2); }
+.supchk input { margin: 0; }
 .cov { width: 14px; height: 10px; background: var(--c-cover); outline: 1px solid var(--rule); flex: none; }
 
 /* drawing (SVG) */
@@ -1178,6 +1181,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <button type="button" role="tab" id="tab-section" aria-selected="false" data-view="section">Snit</button>
           <button type="button" role="tab" id="tab-3d" aria-selected="false" data-view="3d">3D</button>
         </div>
+        <label class="check supchk" title="Vis understøtningsforholdene i plan, snit og 3D: lodrette understøtninger, fastholdte retninger, fjedre og fastholdte rotationer"><input type="checkbox" id="showSup" checked> <span>Understøtninger</span></label>
         <div class="loadpick" id="loadPick" hidden>
           <label class="lbl" for="loadView">Vis last</label>
           <select id="loadView"></select>
@@ -5450,6 +5454,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   // tegning af vindgitter: valgt linje, startknude, knude under markøren, fortryd-stak
   var bstate = { sel: -1, start: null, hover: null, cursor: null, drag: false, moved: false, down: null, undo: [], mid: true };
   var planXf = null;
+  // vis understøtningsforholdene i tegningerne (til som standard, huskes i browseren)
+  var showSup = true;
+  try { showSup = window.localStorage.getItem(STORE_KEY + '-sup') !== '0'; } catch (e) { /* ok */ }
   // samlinger: indlæste kræfter (F), valgte knuder, knuder i modellen (N), kobling til stængerne (M)
   var TC = window.TankConn, CONN_KEY = STORE_KEY + '-conn';
   var conn = { F: null, file: '', sel: [], hover: null, N: null, M: null, G: null, labels: 'sel', tab: 0, asg: null };
@@ -5825,6 +5832,65 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var GROUP_CLASS = { radial: 'd-radial', sec: 'd-sec', ring: 'd-ring', udv: 'd-udv', edge: 'd-edge', brace: 'd-brace' };
   var GROUP_WIDTH = { radial: 2, sec: 1.7, ring: 2.6, udv: 1.5, edge: 2, brace: 1.8 };
 
+  // ---------- understøtningsforhold ----------
+  var SUP_FIXED = 1e10;   // samme som FIXED i beregningskernen
+  // vandrette retninger, der er fastholdt eller fjedrende (enhedsvektorer i planen), og fastholdte rotationer for én understøtning.
+  // Ved Kun lodret er de vandrette fastholdelser i globalt X og Y, ellers radialt og tangentielt.
+  function supRestraints(sp, p) {
+    var glob = p.support === 'vertical', links = [], rots = [];
+    [['x', sp.localX], ['y', sp.localY]].forEach(function (t) {
+      var v = sp.motions[t[0]];
+      if (!(v > 0)) return;
+      var vec = [t[1][0], t[1][1]];
+      links.push({ vec: vec, spring: v < SUP_FIXED, k: v, name: glob ? (Math.abs(vec[0]) > 0.5 ? 'X' : 'Y') : (t[0] === 'x' ? 'radialt' : 'tangentielt') });
+    });
+    ['x', 'y', 'z'].forEach(function (a) { if (sp.rotations[a] > 0) rots.push(a.toUpperCase()); });
+    return { links: links, rots: rots, hold: glob };
+  }
+  function joinDa(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' og ' + a[a.length - 1]; }
+  function supText(sp, p) {
+    var r = supRestraints(sp, p), fixed = ['lodret'], rest = [];
+    r.links.forEach(function (l) {
+      if (l.spring) rest.push('radial fjeder ' + nf(l.k, 0) + ' kN/m');
+      else fixed.push(r.hold ? 'i ' + l.name : l.name);
+    });
+    r.rots.forEach(function (a) { fixed.push('mod rotation om ' + a); });
+    if (!r.hold && !r.links.some(function (l) { return l.name === 'radialt'; })) rest.push('radialt fri');
+    var txt = r.hold && fixed.length === 1 ? 'kun lodret fastholdt' : joinDa(fixed) + ' fastholdt';
+    return sp.name + ' (' + sp.node + '): ' + txt + (rest.length ? ', ' + rest.join(', ') : '') + '. Rotationerne er ellers frie.';
+  }
+  function ptsAttr(a) { return a.map(function (t) { return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' '); }
+  // pendulstang fra q i skærmretningen d (enhedsvektor) med længden L og en skraveret jordlinje for enden; en fjeder tegnes som zigzag
+  function linkSym(q, d, L, k, spring) {
+    var n = [-d[1], d[0]], e = [q[0] + d[0] * L, q[1] + d[1] * L], w = 5 * k, out = [];
+    if (spring) {
+      var a = 0.25 * L, b = 0.8 * L, nz = 6, amp = 3.2 * k, pts = [q, [q[0] + d[0] * a, q[1] + d[1] * a]];
+      for (var i = 1; i < nz; i++) {
+        var t = a + (b - a) * i / nz, sg = i % 2 ? 1 : -1;
+        pts.push([q[0] + d[0] * t + n[0] * amp * sg, q[1] + d[1] * t + n[1] * amp * sg]);
+      }
+      pts.push([q[0] + d[0] * b, q[1] + d[1] * b], e);
+      out.push('<polyline points="' + ptsAttr(pts) + '"/>');
+    } else out.push(lineEl('', q, e));
+    out.push(lineEl('', [e[0] - n[0] * w, e[1] - n[1] * w], [e[0] + n[0] * w, e[1] + n[1] * w], ' stroke-width="' + (1.8 * k).toFixed(2) + '"'));
+    for (var j = -2; j <= 1; j++) {
+      var o = (j + 0.5) * w / 2, s0 = [e[0] + n[0] * (o + w / 4), e[1] + n[1] * (o + w / 4)];
+      out.push(lineEl('', s0, [s0[0] + (d[0] - n[0]) * 2.6 * k, s0[1] + (d[1] - n[1]) * 2.6 * k], ' stroke-width="' + (0.9 * k).toFixed(2) + '"'));
+    }
+    return out.join('');
+  }
+  // vandret skraveret jordlinje under (x, y) med halvbredden w
+  function groundSym(x, y, w, k) {
+    var out = [lineEl('', [x - w, y], [x + w, y], ' stroke-width="' + (1.6 * k).toFixed(2) + '"')];
+    for (var t = -w + 2 * k; t <= w + 1e-9; t += 3.5 * k) out.push(lineEl('', [x + t, y], [x + t - 2.8 * k, y + 2.8 * k], ' stroke-width="' + (0.9 * k).toFixed(2) + '"'));
+    return out.join('');
+  }
+  // fastholdte rotationer: lille firkant om knuden
+  function rotSym(q, k) {
+    var a = 4.5 * k;
+    return '<rect class="rot" x="' + (q[0] - a).toFixed(1) + '" y="' + (q[1] - a).toFixed(1) + '" width="' + (2 * a).toFixed(1) + '" height="' + (2 * a).toFixed(1) + '" stroke-width="' + (1.6 * k).toFixed(2) + '"/>';
+  }
+
   function niceScale(target) {
     var steps = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100], best = steps[0];
     steps.forEach(function (s) { if (s <= target) best = s; });
@@ -5834,7 +5900,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   // ---------- plan ----------
   function drawPlan(g) {
     var VB = 1000, c = VB / 2, info = g.info, R = info.R, k0 = pxScale(VB, 640, 1);
-    var rPix = Math.min(400, c - 48 * k0), s = rPix / R;
+    var rPix = Math.min(400, c - (showSup ? 66 : 48) * k0), s = rPix / R;   // plads til understøtningerne og numrene uden for svøbet
     var band = 64 * k0, H = VB + band;
     var win = zwin('plan', VB, H), k = k0 / win.s;   // k: viewBox-enheder pr. skærmpixel ved den aktuelle zoom
     var fs = 12 * k, fsSmall = 10.5 * k;
@@ -5869,36 +5935,31 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       });
       out.push('</g>');
     });
-    // understøtninger: trekant med spidsen i knuden
-    out.push('<g class="d-sup">');
-    g.supports.forEach(function (sp) {
-      var th = Math.atan2(sp.pos[1], sp.pos[0]), q = P(sp.pos);
-      var ux = Math.cos(th), uy = -Math.sin(th), L = 11 * k, Wd = 4.5 * k;
-      var b = [q[0] + ux * L, q[1] + uy * L];
-      var p1 = [b[0] - uy * Wd, b[1] + ux * Wd], p2 = [b[0] + uy * Wd, b[1] - ux * Wd];
-      out.push('<polygon points="' + [q, p1, p2].map(function (t) { return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' ') + '"/>');
-    });
-    out.push('</g>');
-    // kun lodrette understøtninger: dobbeltpil i den fastholdte retning (X eller Y) uden for trekanten
-    if (info.hold && info.hold.length) {
-      out.push('<g class="d-hold">');
-      var seenH = {};
-      info.hold.forEach(function (h) {
-        if (h.rot) return;   // rotationerne står kun i teksten
-        var th = Math.atan2(h.pos[1], h.pos[0]), q = P(h.pos), off = (seenH[h.name] ? 40 : 24) * k;
-        seenH[h.name] = 1;
-        var cx2 = q[0] + Math.cos(th) * off, cy2 = q[1] - Math.sin(th) * off;
-        var dx = h.dir === 'X' ? 1 : 0, dy = h.dir === 'X' ? 0 : -1, hl3 = 9 * k, ah = 4 * k, ahw = 3.2 * k;
-        var e1 = [cx2 - dx * hl3, cy2 - dy * hl3], e2 = [cx2 + dx * hl3, cy2 + dy * hl3];
-        out.push(lineEl('', e1, e2, ' stroke-width="' + (1.6 * k).toFixed(2) + '"'));
-        [[e1, -1], [e2, 1]].forEach(function (t) {
-          var tip = t[0], sgn = t[1], b0 = [tip[0] - sgn * dx * ah, tip[1] - sgn * dy * ah];
-          out.push('<polygon points="' + tip[0].toFixed(1) + ',' + tip[1].toFixed(1) + ' ' + (b0[0] - dy * ahw).toFixed(1) + ',' + (b0[1] + dx * ahw).toFixed(1) +
-            ' ' + (b0[0] + dy * ahw).toFixed(1) + ',' + (b0[1] - dx * ahw).toFixed(1) + '"/>');
+    // understøtningsforhold: trekant med spidsen i knuden (lodret), pendulstænger i de fastholdte vandrette retninger,
+    // fjedre som zigzag og fastholdte rotationer som firkant om knuden. Fastholdelserne ved Kun lodret er fremhævet.
+    if (showSup) {
+      var p = g.params;
+      out.push('<g class="d-supl" stroke-width="' + (1.4 * k).toFixed(2) + '" stroke-linecap="round">');
+      g.supports.forEach(function (sp) {
+        var r = supRestraints(sp, p), q = P(sp.pos), th = Math.atan2(sp.pos[1], sp.pos[0]), ur = [Math.cos(th), -Math.sin(th)];
+        out.push('<g' + (r.hold ? ' class="hold"' : '') + '><title>' + esc(supText(sp, p)) + '</title>');
+        r.links.forEach(function (l) {
+          var d = [l.vec[0], -l.vec[1]], dot = d[0] * ur[0] + d[1] * ur[1];
+          if (dot < -1e-6) { d = [-d[0], -d[1]]; dot = -dot; }
+          var radial = dot > 0.7, q0 = radial ? q : [q[0] + ur[0] * 11 * k, q[1] + ur[1] * 11 * k], L = radial ? 24 * k : 18 * k;
+          out.push(linkSym(q0, d, L, k, l.spring));
+          if (r.hold) {
+            var lp = [q0[0] + d[0] * (L + 9 * k), q0[1] + d[1] * (L + 9 * k) + 4 * k];
+            out.push(textEl('d-holdlbl', lp[0], lp[1], l.name, 11 * k, 'middle'));
+          }
         });
-        var lx = cx2 + (h.dir === 'X' ? 0 : 7 * k), ly2 = cy2 + (h.dir === 'X' ? -6 * k : 4 * k);
-        out.push('<text class="d-holdlbl" x="' + lx.toFixed(1) + '" y="' + ly2.toFixed(1) + '" text-anchor="' + (h.dir === 'X' ? 'middle' : 'start') +
-          '" font-size="' + (11 * k).toFixed(1) + '">' + h.dir + '</text>');
+        if (r.rots.length) {
+          out.push(rotSym(q, k));
+          out.push(textEl('d-holdlbl', q[0] - ur[0] * 16 * k, q[1] - ur[1] * 16 * k + 4 * k, 'rot ' + r.rots.join(', '), 10 * k, ur[0] > 0.3 ? 'end' : (ur[0] < -0.3 ? 'start' : 'middle')));
+        }
+        var L0 = 11 * k, Wd = 4.5 * k, bse = [q[0] + ur[0] * L0, q[1] + ur[1] * L0];
+        out.push('<polygon class="d-sup" points="' + ptsAttr([q, [bse[0] - ur[1] * Wd, bse[1] + ur[0] * Wd], [bse[0] + ur[1] * Wd, bse[1] - ur[0] * Wd]]) + '"/>');
+        out.push('</g>');
       });
       out.push('</g>');
     }
@@ -5942,7 +6003,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var n = g.params.numRadial, step = n <= 36 ? 1 : (n <= 72 ? 2 : (n <= 144 ? 4 : 8));
     info.thetas.forEach(function (th, i) {
       if (i % step !== 0 && i !== walkIdx) return;
-      var rr = rPix + 26 * k, x = c + Math.cos(th) * rr, y = c - Math.sin(th) * rr, big = i === 0 || i === walkIdx;
+      var rr = rPix + (showSup ? 44 : 26) * k, x = c + Math.cos(th) * rr, y = c - Math.sin(th) * rr, big = i === 0 || i === walkIdx;
       out.push(textEl('svg-label' + (big ? ' strong' : ''), x, y + fsSmall * 0.35, big ? 'RB.' + (i + 1) : String(i + 1), big ? fs : fsSmall, 'middle',
         big ? ' font-weight="600"' : ''));
     });
@@ -6050,10 +6111,21 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         return '<rect x="' + (X(sg * R) - b * 0.8).toFixed(1) + '" y="' + (Y(z0) - b * 0.8).toFixed(1) + '" width="' + (1.6 * b).toFixed(1) + '" height="' + (1.6 * b).toFixed(1) + '"/>';
       }).join('') + '</g>');
     }
-    out.push('<g class="d-sup">' + [-1, 1].map(function (sg) {
-      var x = X(sg * R), y = Y(z0) + 2 * k, h = 11 * k, w = 8 * k;
-      return '<polygon points="' + x.toFixed(1) + ',' + y.toFixed(1) + ' ' + (x - w).toFixed(1) + ',' + (y + h).toFixed(1) + ' ' + (x + w).toFixed(1) + ',' + (y + h).toFixed(1) + '"/>';
-    }).join('') + '</g>');
+    // understøtningsforhold i snittets plan: fast leje når de er radialt fastholdt, ellers rullende leje (ved radial fjeder med fjederen
+    // vandret ud mod svøbet). Det tangentielle og de enkelte vandrette fastholdelser ved Kun lodret ses i plan og 3D.
+    if (showSup) {
+      var tip = p.support === 'vertical' ? 'Understøtning ved svøbet: kun lodret fastholdt. De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.'
+        : (g.supports[0] ? supText(g.supports[0], p).replace(/^[^:]*: /, 'Understøtning ved svøbet: ') : '');
+      var rFix = p.support === 'pinned', rSpring = p.support === 'radialSpring';
+      out.push('<g class="d-supl" stroke-width="' + (1.4 * k).toFixed(2) + '" stroke-linecap="round">' + [-1, 1].map(function (sg) {
+        var x = X(sg * R), y = Y(z0) + 2 * k, h = 11 * k, w = 8 * k, cr = 2.2 * k, gy = rFix ? y + h : y + h + 2 * cr + 0.4 * k, o = ['<g><title>' + esc(tip) + '</title>'];
+        if (rSpring) o.push(linkSym([x, Y(z0)], [sg, 0], 34 * k, k, true));
+        o.push('<polygon class="d-sup" points="' + ptsAttr([[x, y], [x - w, y + h], [x + w, y + h]]) + '"/>');
+        if (!rFix) [-1, 1].forEach(function (t) { o.push('<circle cx="' + (x + t * w * 0.55).toFixed(1) + '" cy="' + (y + h + cr).toFixed(1) + '" r="' + cr.toFixed(1) + '"/>'); });
+        o.push(groundSym(x, gy, w + 3 * k, k));
+        return o.join('') + '</g>';
+      }).join('') + '</g>');
+    }
     // koter over knuderne i højre side; svøbets kote vises altid
     var placed = [];
     for (var j3 = nr.length - 1; j3 >= 0; j3--) {
@@ -6129,9 +6201,29 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var m = it.m;
       out.push(lineEl(GROUP_CLASS[m.group], P(m.start), P(m.end), ' stroke-width="' + GROUP_WIDTH[m.group] + '" stroke-linecap="round"'));
     });
-    out.push('<g class="d-sup">');
-    g.supports.forEach(function (sp) { var q = P(sp.pos); out.push('<circle cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (3.2 * k).toFixed(1) + '"/>'); });
-    out.push('</g>');
+    // understøtningsforhold: pendulstang lodret ned og i de fastholdte vandrette retninger, fjedre som zigzag, fastholdte rotationer som firkant
+    if (showSup) {
+      out.push('<g class="d-supl" stroke-width="' + (1.3 * k).toFixed(2) + '" stroke-linecap="round">');
+      g.supports.forEach(function (sp) {
+        var r = supRestraints(sp, p), q = P(sp.pos), rho = Math.hypot(sp.pos[0], sp.pos[1]) || 1;
+        var link = function (v, len, spring) {
+          var e = P([sp.pos[0] + v[0] * len, sp.pos[1] + v[1] * len, sp.pos[2] + v[2] * len]), dx = e[0] - q[0], dy = e[1] - q[1], Ls = Math.hypot(dx, dy);
+          return Ls > 4 * k ? linkSym(q, [dx / Ls, dy / Ls], Ls, k, spring) : '';
+        };
+        out.push('<g><title>' + esc(supText(sp, p)) + '</title>' + link([0, 0, -1], 26 * k / s, false));
+        if (r.links.length) {
+          out.push('<g' + (r.hold ? ' class="hold"' : '') + '>');
+          r.links.forEach(function (l) {
+            var sg = l.vec[0] * sp.pos[0] + l.vec[1] * sp.pos[1] < -1e-6 * rho ? -1 : 1;
+            out.push(link([sg * l.vec[0], sg * l.vec[1], 0], 22 * k / s, l.spring));
+          });
+          out.push('</g>');
+        }
+        if (r.rots.length) out.push(rotSym(q, k));
+        out.push('<circle class="d-sup" cx="' + q[0].toFixed(1) + '" cy="' + q[1].toFixed(1) + '" r="' + (2.6 * k).toFixed(1) + '"/></g>');
+      });
+      out.push('</g>');
+    }
     if (lc) out.push(loadArrows3D(g, lc, P, f, cz, k, z0 - wall));
     if (formTab === 'conn' && conn.N && activeSel().length) {
       var cs3 = connSelSet();
@@ -6359,8 +6451,18 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       if (!keys.length) keys.push(p[grp.prof]);
       html.push('<span><i class="swatch sw-' + grp.key + '"></i>' + esc(grp.name) + ' <b>' + esc(keys.map(profLabel).join(', ')) + '</b></span>');
     });
-    if (g.supports && g.supports.length) html.push('<span><i class="tri"></i>Understøtning' + (g.params.support === 'vertical' ? ', kun lodret' : '') + '</span>');
-    if (g.info && g.info.hold && g.info.hold.some(function (h) { return !h.rot; })) html.push('<span><i class="hold"></i>Vandret fastholdt (X / Y)</span>');
+    if (showSup && g.supports && g.supports.length) {
+      var sr = g.supports.map(function (sp) { return supRestraints(sp, p); }), vert = p.support === 'vertical';
+      var lgLink = '<svg class="lgsup" viewBox="0 0 22 14"><line x1="2" y1="7" x2="15" y2="7"/><line x1="15" y1="2" x2="15" y2="12"/><line x1="15" y1="4" x2="19" y2="8" stroke-width="0.8"/><line x1="15" y1="8" x2="19" y2="12" stroke-width="0.8"/></svg>';
+      html.push('<span><i class="tri"></i>Understøtning, lodret fastholdt</span>');
+      if (view !== 'section' && sr.some(function (r) { return r.links.some(function (l) { return !l.spring; }); })) {
+        html.push('<span>' + (vert ? lgLink.replace('class="lgsup"', 'class="lgsup hold"') + 'Vandret fastholdt (X / Y)' : lgLink + 'Fastholdt vandret retning') + '</span>');
+      }
+      if (sr.some(function (r) { return r.links.some(function (l) { return l.spring; }); })) {
+        html.push('<span><svg class="lgsup" viewBox="0 0 22 14"><polyline points="1,7 5,7 7,4 9,10 11,4 13,10 15,7 17,7"/><line x1="17" y1="2" x2="17" y2="12"/></svg>Radial fjeder</span>');
+      }
+      if (view !== 'section' && sr.some(function (r) { return r.rots.length; })) html.push('<span><svg class="lgsup hold" viewBox="0 0 22 14"><rect x="6" y="2" width="10" height="10"/></svg>Fastholdt rotation</span>');
+    }
     var lc = view !== 'section' && formTab !== 'brace' && formTab !== 'conn' ? activeCase() : null;
     if (lc && lc.temp) {
       var tp = lc.temp, sg = function (x, d) { return (x > 0 ? '+' : (x < 0 ? '−' : '')) + nf(Math.abs(x), d); };
@@ -6829,8 +6931,11 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         : 'Farverne viser ' + lcv.name.toLowerCase() + ' pr. lastfordelingsflade' +
           (/^press/.test(lcv.key) ? '; trykket virker vinkelret på fladen, ' + (lcv.key === 'pressOver' ? 'udad.' : 'indad.')
             : (lcv.signed ? ' (blå er sug, rød er tryk).' : '.')) + ' Hold musen over en flade for værdien.')
-        : 'Set oppefra. Radialbjælkerne er nummereret mod uret fra RB.1; trekanterne er understøtningerne ved svøbet.')
-      : (view === 'section' ? 'Snit gennem centrum i samme målestok lodret og vandret. Koter i m; målekæden viser afstande fra centrum.'
+        : 'Set oppefra. Radialbjælkerne er nummereret mod uret fra RB.1.' + (showSup ? ' Ved svøbet viser trekanterne de lodrette understøtninger og stængerne med jordlinje de fastholdte vandrette retninger; hold musen over en understøtning for detaljer.' : ''))
+      : (view === 'section' ? 'Snit gennem centrum i samme målestok lodret og vandret. Koter i m; målekæden viser afstande fra centrum.' +
+          (showSup ? (geom.params.support === 'pinned' ? ' Understøtningerne er faste lejer: lodret og radialt fastholdt (tangentielt også, men det ligger uden for snittet).'
+            : ' Understøtningerne er rullende lejer: lodret fastholdt og radialt ' + (geom.params.support === 'radialSpring' ? 'med fjeder.' : 'fri.') +
+              (geom.params.support === 'vertical' ? ' De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.' : '')) : '')
         : (lcv ? (lcv.temp ? (lcv.temp.motions ? 'Pilene viser svøbets flytning af understøtningerne ved temperatur.' : 'Temperaturen ligger på bjælkerne og vises ikke i 3D.')
             : lcv.line ? 'Pilene viser gangbroens linjelast på RB.' + lcv.line.rb + '.'
             : lcv.point ? 'Pilen viser punktlasten midt på RB.1.'
@@ -6902,6 +7007,13 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   document.querySelectorAll('.tabs button').forEach(function (btn) {
     btn.addEventListener('click', function () { setView(btn.dataset.view); });
+  });
+  $('showSup').checked = showSup;
+  $('showSup').addEventListener('change', function () {
+    showSup = this.checked;
+    try { window.localStorage.setItem(STORE_KEY + '-sup', showSup ? '1' : '0'); } catch (e) { /* ok */ }
+    updateLegend(geom);
+    renderDrawing();
   });
 
   // 3D-drejning
