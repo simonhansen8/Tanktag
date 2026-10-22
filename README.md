@@ -6,7 +6,7 @@ Du indstiller radialbjælker, midterste ringbjælke, udvekslingsringe, sektionss
 
 Under *Søjle- og kipningslængder* angives FEM-Designs β for søjlelængde om stærk og svag akse og for kipning med trykket over- og underflange, hver for sig for radialbjælker og sektionsspær. Med fluebenet *Hele* regnes β af hele bjælkens længde i stedet for det enkelte stykke, som bjælken er delt i ved udvekslingsringene, og omregnes til stykket i filen. Værdierne skrives som `buckling_data` på stængerne.
 
-Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer aldrig med i lastkombinationerne.
+Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i de øvrige lastkombinationer. Som standard får det sin egen kombination *Rotationsstivhed* med faktor 1 og typen anvendelse, karakteristisk, så det kan regnes ikke-lineært (NLE) i FEM-Design, uden at stålets styrkeeftervisning bruger den. Under Samlinger springes kombinationen over, når kræfterne indlæses.
 
 ## Kom i gang
 

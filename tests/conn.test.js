@@ -193,3 +193,17 @@ test('samlinger: gemt tildeling fra før samling 2 og 3 får deres udgangspunkt 
   TC.seedAssign(b, N);
   assert.deepEqual(b.sel[2], []);
 });
+
+test('kombinationen Rotationsstivhed springes over, når kræfterne indlæses', () => {
+  const text = fixtureText();
+  const rot = text.split(/\r?\n/).filter((l) => /\t1 STR 6\.10a$/.test(l)).slice(0, 4)
+    .map((l) => l.replace(/\t1 STR 6\.10a$/, '\t20 Rotationsstivhed').replace(/\t275\.098\t/, '\t9999\t')).join('\n');
+  const F0 = TC.parseForces(TC.textRows(text));
+  const F1 = TC.parseForces(TC.textRows(text + '\n' + rot));
+  assert.deepEqual(F1.combos, F0.combos);
+  assert.deepEqual(F1.bars, F0.bars);
+  assert.ok(F1.warnings.some((w) => /Rotationsstivhed.*sprunget over/.test(w)));
+  // også som titel over en blok i Internal forces
+  const F2 = TC.parseForces([['Bars, End forces, Load comb.: 20 Rotationsstivhed'], ['KANT1.1.1', 'Start', '1', '2', '3', '4', '5', '6']]);
+  assert.deepEqual(F2.combos, []);
+});
