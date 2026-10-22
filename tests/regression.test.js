@@ -448,7 +448,7 @@ test('kun lodret med valgte knuder: globale retninger og rotationer, fejl og adv
 });
 
 // rotationsstivhed: vandrette punktlaster langs udvekslingerne, med i filen men aldrig i lastkombinationerne
-test('rotationsstivhed ligger langs udvekslingen og er aldrig med i lastkombinationer', () => {
+test('rotationsstivhed ligger langs udvekslingen og er kun med i sin egen lastkombination', () => {
   const run = (o) => {
     const params = Object.assign({}, TR.DEFAULTS, { rotTestOn: true }, o);
     params.combos = TR.normCombos(params.combos);
@@ -484,12 +484,27 @@ test('rotationsstivhed ligger langs udvekslingen og er aldrig med i lastkombinat
   const { params, g, L } = run({ rotTestNodes: 'K2.1', combos: [{ name: 'K1', type: 'ultimate_ordinary', f: { dead: '1', rotTest: '1,5' } }] });
   assert.ok(!TR.proposeCombos(L, {}).some((c) => 'rotTest' in c.f));
   assert.deepEqual(L.combos[0].items.map((it) => it.key), ['dead']);
-  assert.ok(L.warnings.some((w) => /"Rotationsstivhed", som aldrig kommer med/.test(w)));
+  assert.ok(L.warnings.some((w) => /"Rotationsstivhed", som ikke kommer med i de almindelige/.test(w)));
   const xml = TR.buildStruxml(params, LIB, { geometry: g, loads: L });
   const lc = /<load_case type="static" duration_class="[^"]+" guid="([^"]+)"[^>]*name="Rotationsstivhed"/.exec(xml);
   assert.ok(lc, 'lasttilfældet står i filen');
   assert.equal((xml.match(new RegExp('<point_load load_case="' + lc[1] + '"', 'g')) || []).length, 1);
-  assert.ok(!new RegExp('<load_combination[\\s\\S]*' + lc[1]).test(xml), 'lasttilfældet er ikke i nogen kombination');
+  // kun i sin egen kombination: faktor 1, anvendelse, karakteristisk
+  const combosXml = xml.match(/<load_combination [\s\S]*?<\/load_combination>/g);
+  const own = combosXml.filter((c) => c.includes(lc[1]));
+  assert.equal(own.length, 1);
+  assert.match(own[0], /name="Rotationsstivhed" type="serviceability_characteristic"/);
+  assert.equal((own[0].match(/<load_case /g) || []).length, 1);
+  assert.match(own[0], /gamma="1"/);
+  // uden fluebenet er den ikke i nogen kombination
+  const off = run({ rotTestNodes: 'K2.1', rotTestCombo: false });
+  const xmlOff = TR.buildStruxml(off.params, LIB, { geometry: off.g, loads: off.L });
+  const lcOff = /<load_case [^>]*guid="([^"]+)"[^>]*name="Rotationsstivhed"/.exec(xmlOff)[1];
+  assert.ok(!(xmlOff.match(/<load_combination [\s\S]*?<\/load_combination>/g) || []).some((c) => c.includes(lcOff)));
+  // en egen kombination med samme navn vinder, og der kommer en advarsel
+  const clash = run({ rotTestNodes: 'K2.1', combos: [{ name: 'rotationsstivhed', type: 'ultimate_ordinary', f: { dead: '1' } }] }).L;
+  assert.equal(clash.combos.filter((c) => c.auto).length, 0);
+  assert.ok(clash.warnings.some((w) => /får ikke sin egen/.test(w)));
 
   // knuder uden udveksling og ukendte navne er fejl
   assert.equal(run({ rotTestNodes: 'K1L.1, KX.1' }).L.errors.length, 2);

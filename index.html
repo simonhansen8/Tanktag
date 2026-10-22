@@ -1077,7 +1077,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="check"><input type="checkbox" id="rotTestOn" data-key="rotTestOn"> <span>Med</span></label>
         </div>
         <fieldset class="sub" id="rotTestFields">
-          <p class="hint">Prøvelast til at se, hvor stift taget er mod at dreje i sit eget plan om centrum. Hver valgt knude får en vandret punktlast langs udvekslingen i knuden. Lasttilfældet skrives i StruXML-filen, men kommer aldrig med i lastkombinationerne.</p>
+          <p class="hint">Prøvelast til at se, hvor stift taget er mod at dreje i sit eget plan om centrum. Hver valgt knude får en vandret punktlast langs udvekslingen i knuden. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i de øvrige lastkombinationer.</p>
           <div class="field">
             <label class="lbl" for="rotTestNodes">Knuder</label>
             <input type="text" id="rotTestNodes" data-key="rotTestNodes" spellcheck="false" autocomplete="off" placeholder="fx K2.1, K2.13">
@@ -1096,6 +1096,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
               </select>
             </div>
           </div>
+          <label class="check"><input type="checkbox" id="rotTestCombo" data-key="rotTestCombo"> <span>Egen lastkombination "Rotationsstivhed" med faktor 1</span></label>
+          <p class="hint">Kombinationen er af typen anvendelse, karakteristisk, så den kan regnes ikke-lineært (sæt flueben i NLE ved kombinationen i FEM-Design), uden at stålets styrkeeftervisning bruger den – den bruger kun brudkombinationerne. Har designgrupperne grænser for udbøjning, indgår den dog i udbøjningskontrollen. Under Samlinger springes den over, når kræfterne indlæses.</p>
           <p class="calc" id="rotTestCalc"></p>
           <p class="hint">Skriv knuderne med navnene fra planen, adskilt af komma, eller vis lasttilfældet i planen og klik på knuderne. K2.3 er RB.3 ved udvekslingsring 2, og K2M.3 ligger midt på udvekslingen efter RB.3; knuder på ringbjælken (KR) og kantringen (KS) kan også bruges. En positiv kraft drejer taget mod uret set oppefra. I en knude ved en radialbjælke mødes to udvekslinger med en lille vinkel: Tangentielt lægger lasten midt imellem dem (vinkelret på radius), mens de to andre lægger den præcis langs udvekslingen på den ene side. Momentet om centrum står ovenfor, så drejningsstivheden er M divideret med tagets drejning fra FEM-Design.</p>
         </fieldset>
@@ -1487,11 +1489,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     walkG: 1.0,                // egenlast [kN/m] langs gangbroen: rist, vanger og rækværk (0 = intet lasttilfælde)
     walkQ: 2.0,                // nyttelast q_k [kN/m²] pr. vandret projektion (0 = intet lasttilfælde)
     walkB: 0.8,                // gangbroens bredde [m]; linjelasten er q_k · bredde
-    // rotationsstivhed: prøvelast, der drejer taget om centrum i dets eget plan; aldrig med i lastkombinationerne
+    // rotationsstivhed: prøvelast, der drejer taget om centrum i dets eget plan; kun med i sin egen lastkombination
     rotTestOn: false,          // lasttilfældet "Rotationsstivhed"
     rotTestNodes: 'K1.1',      // knuderne med navnene fra planen, fx "K2.1, K2.13" (udveksling, ringbjælke eller kantring)
     rotTestF: 10,              // kraft pr. knude [kN]; positiv drejer taget mod uret set oppefra
     rotTestDir: 'mean',        // 'mean' (tangentielt, middel af bjælkerne i knuden) | 'ccw' | 'cw' (langs bjælken mod/med uret)
+    rotTestCombo: true,        // egen kombination "Rotationsstivhed" med faktor 1 som anvendelse, karakteristisk (til NLE i FEM-Design)
 
     // --- lastkombinationer: [{ name: 'KB1', type: 'ultimate_ordinary', f: { dead: '1,2', snowUniform: '1,5' } }] ---
     combos: []
@@ -1847,7 +1850,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
-      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'braceTensionOnly', 'resultPoints']
+      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'braceTensionOnly', 'resultPoints']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
     ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
@@ -2493,6 +2496,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // den side, der ligger mod uret, 'cw' langs den på siden med uret, og 'mean' middel af de to (tangentielt).
   // Ligger knuden inde på en bjælke, er alle tre retninger bjælkens.
   var ROT_DIRS = ['mean', 'ccw', 'cw'];
+  var ROT_COMBO_NAME = 'Rotationsstivhed';
   function rotTestNodes(geom) {
     var tol = 1e-6 * Math.max(1, geom.info.R), all = {}, byName = {}, list = [];
     var rings = geom.members.filter(function (m) { return m.group === 'udv' || m.group === 'ring' || m.group === 'edge'; });
@@ -2872,7 +2876,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     // rotationsstivhed: prøvelast, der drejer taget i dets eget plan om centrum. Vandrette punktlaster i de valgte
     // knuder langs udvekslingen (eller ringbjælken eller kantringen) i knuden. Lasttilfældet skrives i filen, men
-    // kommer aldrig med i lastkombinationerne.
+    // kommer kun med i sin egen lastkombination (rotTestCombo), ikke i de øvrige.
     if (p.rotTestOn) {
       var rt = rotTestNodes(geom), rl = [], rN = [], rMz = 0, rF = p.rotTestF, rSeen = {};
       var rToks = String(p.rotTestNodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
@@ -2926,7 +2930,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (!Object.prototype.hasOwnProperty.call(cb.f, c.key)) return;
         var g = parseFactor(cb.f[c.key]);
         if (g === null) return;
-        if (c.noCombo) { if (g !== 0) o.ignored.push(c.name); return; }   // prøvelaster kommer aldrig med
+        if (c.noCombo) { if (g !== 0) o.ignored.push(c.name); return; }   // prøvelaster kommer kun med i deres egen kombination
         if (!isFinite(g)) { CE.push('Faktoren for ' + c.name + ' i ' + label + ' kan ikke læses – skriv fx 1,5.'); o.badKeys.push(c.key); return; }
         if (Math.abs(g) > 100) { CE.push('Faktoren for ' + c.name + ' i ' + label + ' skal ligge mellem −100 og 100.'); o.badKeys.push(c.key); return; }
         if (g !== 0) { o.items.push({ key: c.key, ci: ci, name: c.name, gamma: g }); o.F = vadd(o.F, vscale(c.F, g)); }
@@ -2942,9 +2946,23 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       o.export = o.ok && o.items.length > 0;
       if (o.ok && !o.items.length) W.push('Lastkombinationen ' + label + ' har ingen lasttilfælde med en faktor og kommer ikke med i filen.');
       if (o.missing.length) W.push('Lastkombinationen ' + label + ' har faktorer for ' + quoteList(o.missing) + ', som ikke findes lige nu og derfor ikke kommer med.');
-      if (o.ignored.length) W.push('Lastkombinationen ' + label + ' har en faktor for ' + quoteList(o.ignored) + ', som aldrig kommer med i lastkombinationer.');
+      if (o.ignored.length) W.push('Lastkombinationen ' + label + ' har en faktor for ' + quoteList(o.ignored) + ', som ikke kommer med i de almindelige lastkombinationer – brug fluebenet under Rotationsstivhed i stedet.');
       res.combos.push(o);
     });
+    // rotationsstivheden får sin egen kombination med faktor 1, så den kan regnes ikke-lineært (NLE) i FEM-Design.
+    // Typen er anvendelse, karakteristisk, så stålets styrkeeftervisning, der kun bruger brudkombinationerne, ikke ser den.
+    var rc = res.cases.filter(function (c) { return c.key === 'rotTest'; })[0];
+    if (p.rotTestCombo && rc && rc.loads.length) {
+      if (nameCount[ROT_COMBO_NAME.toLowerCase()]) {
+        W.push('Der er allerede en lastkombination, der hedder "' + ROT_COMBO_NAME + '", så rotationsstivheden får ikke sin egen.');
+      } else {
+        res.combos.push({
+          index: -1, auto: true, name: ROT_COMBO_NAME, type: 'serviceability_characteristic',
+          items: [{ key: rc.key, ci: res.cases.indexOf(rc), name: rc.name, gamma: 1 }], badKeys: [], missing: [], ignored: [],
+          nameErr: false, typeErr: false, F: rc.F.slice(), Fz: rc.Fz, Fh: rc.Fh, ok: true, export: true
+        });
+      }
+    }
     return res;
   }
 
@@ -4715,7 +4733,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var RT = L.rot, RDIR = { mean: 'tangentielt, midt mellem bjælkerne i knuden', ccw: 'langs bjælken på siden mod uret', cw: 'langs bjælken på siden med uret' };
       B.push({ p: 'Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på ' +
         num(Math.abs(RT.F), 2) + ' kN ' + (RDIR[RT.dir] || '') + ', så taget drejer ' + (RT.F >= 0 ? 'mod' : 'med') + ' uret set oppefra. ' +
-        'Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination. Drejningsstivheden er M<sub>z</sub> divideret med tagets drejning i FEM-Design.' });
+        ((L.combos || []).some(function (c) { return c.auto; })
+          ? 'Lasttilfældet står i StruXML-filen med sin egen kombination "Rotationsstivhed" (faktor 1, anvendelse, karakteristisk), så det kan regnes ikke-lineært uden at indgå i styrkeeftervisningen, og det er ikke med i de øvrige kombinationer. '
+          : 'Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination. ') +
+        'Drejningsstivheden er M<sub>z</sub> divideret med tagets drejning i FEM-Design.' });
       if (RT.nodes.length) {
         B.push({
           table: {
@@ -4897,6 +4918,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // "Bars, End forces" uden overskrift: ID, Start/End, N, Ty', Tz', Mt,SV, My', Mz', B, Mt,w, Mt,tot og evt. Comb. (FEM-Designs faste rækkefølge)
   var END_COLS = { x: 1, f: [2, 3, 4, 5, 6, 7], mtTot: 10, comb: 11, ends: true };
   function endOf(s) { return /^(start|begin|begyndelse)$/i.test(s) ? 's' : (/^(end|slut)$/i.test(s) ? 'e' : null); }
+  var ROT_COMBO_RE = /^(\d+\s+)?rotationsstivhed$/i;   // kombinationen, Tanktag laver til rotationsstivheden (FEM-Design sætter nummeret foran)
   // rækker (celler som tekst eller tal) → kræfterne i hver stangs to ender for hver kombination
   function parseForces(rows) {
     var combos = [], comboIdx = {}, cur = -1, col = null, raw = {}, ids = [], warnings = [], skipped = 0;
@@ -4912,7 +4934,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     var thousands = nInt > 0 && nFrac === 0 && tBig === 0 && tSmall > 0;
     function val(v) { return typeof v === 'number' ? (thousands ? v / 1000 : v) : parseNum(v); }
+    // rotationsstivhedens kombination er en prøvelast og må ikke blive dimensionerende for samlingerne
+    var rotSkipped = false;
     function combo(name) {
+      if (ROT_COMBO_RE.test(name.trim())) { rotSkipped = true; return -2; }
       if (!(name in comboIdx)) { comboIdx[name] = combos.length; combos.push(name); }
       return comboIdx[name];
     }
@@ -4933,7 +4958,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       else if (col.x < 0 || !isFinite(x)) { skipped++; return; }
       var cn = col.comb >= 0 ? cells[col.comb] || '' : '';
       if (cn && !isFinite(parseNum(cn)) && cn !== '-') cur = combo(cn);
-      else if (cur < 0) cur = combo('Uden navn');
+      else if (cur === -1) cur = combo('Uden navn');
+      if (cur === -2) return;
       var f = col.f.map(function (i, k) {
         var v = i < 0 ? NaN : val(r[i]);
         if (k === 3 && col.mtTot >= 0) { var t = val(r[col.mtTot]); if (isFinite(t)) v = t; }
@@ -4955,6 +4981,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (!col) warnings.push('Fandt ingen overskrift med ID, x, N … – er det listen Bars, Internal forces eller Bars, End forces?');
     else if ((col.x < 0 && !col.ends) || col.f[0] < 0) warnings.push('Overskriften mangler kolonnen x eller N.');
     if (skipped) warnings.push(skipped + ' rækker kunne ikke læses og er sprunget over.');
+    if (rotSkipped) warnings.push('Kombinationen "Rotationsstivhed" er en prøvelast og er sprunget over.');
     var bars = {};
     ids.forEach(function (id) {
       var b = raw[id];
@@ -6885,7 +6912,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> ' + nf(mn < 0 ? mn : Math.min(mn, 0), 2) + '<i style="background: ' + grad + '"></i>' + nf(mx > 0 ? mx : 0, 2) + ' kN/m²</span>');
     } else if (lc && lc.rot) {
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> ' + (lc.rot.nodes.length ? lc.rot.nodes.length + ' × ' + nf(Math.abs(lc.rot.F), 2) + ' kN vandret, M<sub>z</sub> = ' +
-        nf(lc.rot.Mz, 1) + ' kNm' : 'ingen knuder valgt') + ' · ikke i kombinationer</span>');
+        nf(lc.rot.Mz, 1) + ' kNm' : 'ingen knuder valgt') +
+        ((loads.combos || []).some(function (c) { return c.auto; }) ? ' · egen kombination' : ' · ikke i kombinationer') + '</span>');
     } else if (lc && lc.point) {
       html.push('<span class="scale"><b>' + esc(lc.name) + '</b> punktlast midt på RB.1</span>');
     } else if (lc && lc.line) {
@@ -8276,7 +8304,10 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     else if (loads && loads.errors.length) note = 'Ret fejlene under Laster, så vises lasttilfældene her.';
     else if (!okLoads) note = 'Der er ingen lasttilfælde. Slå en eller flere laster til under Laster.';
     var skip = okLoads ? loads.cases.filter(function (c) { return c.noCombo; }) : [];
-    if (!note && skip.length) note = TR.quoteList(skip.map(function (c) { return c.name; })) + ' er en prøvelast og kommer ikke med i lastkombinationerne.';
+    if (!note && skip.length) {
+      note = TR.quoteList(skip.map(function (c) { return c.name; })) + ' er en prøvelast og kommer ikke med i kombinationerne her.' +
+        (loads.combos.some(function (c) { return c.auto; }) ? ' Den får sin egen kombination "Rotationsstivhed" i filen (faktor 1, anvendelse, karakteristisk).' : '');
+    }
     $('comboNote').textContent = note;
     $('comboClear').disabled = !combos.length;
     updateGenPreview();

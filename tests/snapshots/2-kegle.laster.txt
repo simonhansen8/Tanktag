@@ -277,7 +277,7 @@ Bjælkerne får ΔT ens over højden. Svøbets udvidelse ved hver understøtning
 
 9. Rotationsstivhed
 ===================
-Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på 4,00 kN langs bjælken på siden mod uret, så taget drejer med uret set oppefra. Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination. Drejningsstivheden er M_z divideret med tagets drejning i FEM-Design.
+Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på 4,00 kN langs bjælken på siden mod uret, så taget drejer med uret set oppefra. Lasttilfældet står i StruXML-filen med sin egen kombination "Rotationsstivhed" (faktor 1, anvendelse, karakteristisk), så det kan regnes ikke-lineært uden at indgå i styrkeeftervisningen, og det er ikke med i de øvrige kombinationer. Drejningsstivheden er M_z divideret med tagets drejning i FEM-Design.
 
 Knude	Bjælke	Retning, °	M_z, kNm
 K2.1	UDV2.1	291,3	−27,14
@@ -290,8 +290,9 @@ Vandret resultant: 0,00 kN. Er den ikke 0, tager understøtningerne også en van
 =====================
 Kombinationerne står i StruXML-filen med disse faktorer. Den lodrette resultant er summen af lasttilfældenes resultanter gange faktorerne.
 
-3 kombinationer
+4 kombinationer
 Kombination	Type	Lasttilfælde med faktor	Lodret, kN
 BRUD 1	Brud, almindelig	1 · Egenlast + 0,45 · Gangbro, nyttelast + 1,5 · Sne, jævn	423,64
 BRUD 2	Brud, almindelig	0,9 · Egenlast + 1,5 · Vind 0° + 1,5 · Undertryk	64,09
 ANV 1	Anvendelse, karakteristisk	1 · Egenlast + 1 · Sne, ensidig	255,89
+Rotationsstivhed	Anvendelse, karakteristisk	1 · Rotationsstivhed	0,00

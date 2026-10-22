@@ -171,7 +171,7 @@
   "loads": {
     "warnings": [
       "Der er ingen flade inden for ringbjælken, så last på centerpladen kommer ikke med.",
-      "Lastkombinationen \"ANV 1\" har en faktor for \"Rotationsstivhed\", som aldrig kommer med i lastkombinationer."
+      "Lastkombinationen \"ANV 1\" har en faktor for \"Rotationsstivhed\", som ikke kommer med i de almindelige lastkombinationer – brug fluebenet under Rotationsstivhed i stedet."
     ],
     "panels": 48,
     "totalPanelArea": 310.689597,
@@ -586,6 +586,20 @@
           0,
           -255.892522
         ]
+      },
+      {
+        "name": "Rotationsstivhed",
+        "type": "serviceability_characteristic",
+        "ok": true,
+        "export": true,
+        "factors": {
+          "rotTest": 1
+        },
+        "F": [
+          0,
+          0,
+          0
+        ]
       }
     ]
   },
@@ -642,8 +656,8 @@
     ]
   },
   "struxml": {
-    "sha256": "cee4f347f1d25166d47bd358f3e368c5c868c2b5efec7936c36fd128993a5ba2",
-    "lines": 10022,
+    "sha256": "0bcdf025ed0bc0d36e40a8e20a758e2aebb77b5a33e9cb27a88c8b63d96fdab3",
+    "lines": 10025,
     "elements": {
       "analytical": 224,
       "bar": 120,
@@ -672,8 +686,8 @@
       "line_load": 6,
       "line_temperature_variation_load": 120,
       "load": 374,
-      "load_case": 20,
-      "load_combination": 3,
+      "load_case": 21,
+      "load_combination": 4,
       "loads": 1,
       "local_x": 16,
       "local_y": 16,

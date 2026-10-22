@@ -1,5 +1,5 @@
 {
-  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med en faktor for rotationsstivheden, der ignoreres), rotationsstivhed langs udvekslingen mod uret med negativ kraft, knuderne som resultatpunkter og søjle- og kipningslængder over hele radialbjælken.",
+  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med en faktor for rotationsstivheden, der ignoreres), rotationsstivhed langs udvekslingen mod uret med negativ kraft og egen kombination, knuderne som resultatpunkter og søjle- og kipningslængder over hele radialbjælken.",
   "params": {
     "tankDiameter": 20, "resultPoints": true, "numRadial": 16, "ringDiameter": 1.5, "numUdv": 2, "udvRadii": "",
     "roofType": "cone", "slopeMode": "ratio", "slopeValue": 5, "rotationDeg": 10,
