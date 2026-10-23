@@ -1309,6 +1309,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="exportnote" id="exportNote">
         <p>Filen hentes som <span class="mono">.struxml</span>. Åbn den i FEM-Design med Fil › Åbn.</p>
         <p><button type="button" class="btn small" id="btnCopyXml">Kopiér StruXML i stedet</button> <span class="hint">Indsæt i en teksteditor og gem som <span class="mono">tanktag.struxml</span>.</span></p>
+        <p><button type="button" class="btn small" id="btnShell">Hent skalmodel</button> <span class="hint">Ekstra fil til stabilitetsanalyse: radialbjælkerne som skaller (krop og flanger), resten som i den almindelige fil.</span></p>
       </div>
     </section>
   </div>
@@ -3141,6 +3142,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var p = geom.params;
     var loads = opts.loads || computeLoads(geom);
     if (loads.errors.length) throw new Error(loads.errors.join('\n'));
+    var shell = opts.shell || null;   // skalmodel: radialbjælkerne som skaller (TankShell)
     if (loads.comboErrors && loads.comboErrors.length) throw new Error(loads.comboErrors.join('\n'));
 
     var mat = lib.materials[p.material];
@@ -3185,7 +3187,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var L = [];
     var I1 = '\t', I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t', I6 = '\t\t\t\t\t\t';
     L.push('<?xml version="1.0" encoding="UTF-8"?>');
-    L.push('<!-- Genereret af Tanktag-generator ' + VERSION + ' (radialbjælker, ringbjælke, udvekslinger, vindgitter, laster). Parametre: ' + paramsComment(p) + ' -->');
+    L.push('<!-- Genereret af Tanktag-generator ' + VERSION + ' (radialbjælker, ringbjælke, udvekslinger, vindgitter, laster).' +
+      (shell ? ' Skalmodel: ' + shell.note + '.' : '') + ' Parametre: ' + paramsComment(p) + ' -->');   // skalmodel
     L.push('<database struxml_version="01.00.000" source_software="Tanktag-generator ' + VERSION +
       '" start_time="1970-01-01T00:00:00.000" end_time="' + stamp + '" guid="' + newGuid() +
       '" convertid="00000000-0000-0000-0000-000000000000" standard="EC" country="DK" xmlns="urn:strusoft">');
@@ -3193,6 +3196,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
     var complexSections = [];
     geom.members.forEach(function (m) {
+      if (shell && shell.takes(m)) return;   // skalmodel
       var s = secByKey[m.prof || groupProf[m.group]];
       var barGuid = newGuid(), partGuid = newGuid();
       m.partGuid = partGuid;
@@ -3268,6 +3272,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I2 + '</bar>');
     });
 
+    if (shell) shell.write(L, { geom: geom, newGuid: newGuid, stamp: stamp, matGuid: matGuid, fmt: fmt, pt: pt });   // skalmodel
+
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
     if (loads.cases.length) {
       var lcGuids = loads.cases.map(function () { return newGuid(); });
@@ -3320,6 +3326,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       loads.cases.forEach(function (c, ci) {
         c.loads.forEach(function (Ld) {
           if (Ld.kind !== 'temp') return;
+          if (shell && shell.skipLoad(Ld)) return;   // skalmodel
           var m = Ld.member, ex = unit(vsub(m.end, m.start)), ny = localYFor(ex);
           L.push(I3 + '<line_temperature_variation_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added">');
@@ -3455,6 +3462,122 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   else root.TankRoof = api;
 })(typeof window !== 'undefined' ? window : this);
 
+</script>
+<script>
+/* Skalmodel af radialbjælkerne til stabilitetsanalyse (buckling) i FEM-Design.
+   Giver en ekstra StruXML-fil, hvor hver radialbjælke er tre skaller (krop, overflange og underflange) i profilets
+   midterflader i stedet for en stang. Resten af modellen er den samme som i den almindelige fil.
+   Funktionen er holdt for sig selv, så den er let at fjerne: slet denne scriptblok, knappen btnShell med dens
+   handler, linjerne markeret "skalmodel" i buildStruxml, tests/shell.test.js og afsnittet i README. */
+(function (root) {
+  'use strict';
+  function vsub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+  function vadd(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+  function vscale(a, s) { return [a[0] * s, a[1] * s, a[2] * s]; }
+  function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+  function norm(a) { return Math.sqrt(dot(a, a)); }
+  function unit(a) { var l = norm(a); return [a[0] / l, a[1] / l, a[2] / l]; }
+
+  // dobbeltsymmetriske I- og H-profiler med parallelle flanger; tykkelserne læses af tværsnittets omrids
+  var FAMILIES = ['IPE', 'HE-A', 'HE-B', 'HE-M'];
+  function plateDims(TR, lib, key) {
+    var parts = String(key).split('|'), fam = parts[0];
+    if (FAMILIES.indexOf(fam) < 0) {
+      throw new Error('Skalmodellen kan kun lave radialbjælker af ' + FAMILIES.join(', ') + ' – ikke ' + String(key).replace('|', ' ') + '.');
+    }
+    var s = TR.findSection(lib, key);
+    if (!s) throw new Error('Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
+    // vandrette kanter inden for højden er flangernes inderside, den inderste lodrette kant er kroppens side
+    var h = s.h, b = s.b, yIn = 0, xIn = Infinity, ere = /<edge type="line"><point x="([^"]+)" y="([^"]+)"[^>]*><\/point><point x="([^"]+)" y="([^"]+)"/g, em;
+    while ((em = ere.exec(s.xml))) {
+      var x0 = +em[1], y0 = +em[2], x1 = +em[3], y1 = +em[4];
+      if (Math.abs(y0 - y1) < 1e-9 && Math.abs(y0) < h / 2 - 1e-6) yIn = Math.max(yIn, Math.abs(y0));
+      if (Math.abs(x0 - x1) < 1e-9 && Math.abs(y1 - y0) > 1e-6) xIn = Math.min(xIn, Math.abs(x0));
+    }
+    var tf = h / 2 - yIn, tw = 2 * xIn;
+    if (!(tf > 0 && tf < h / 2 && tw > 0 && tw < b)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(key).replace('|', ' ') + '.');
+    return { h: h, b: b, tf: tf, tw: tw };
+  }
+
+  function mm(x) { return String(Math.round(x * 10000) / 10).replace('.', ','); }
+
+  // forbereder skallerne for radialbjælkerne; buildStruxml kalder takes, write og skipLoad (opts.shell)
+  function radialShells(TR, geom, lib, o) {
+    o = o || {};
+    var p = geom.params, dims = plateDims(TR, lib, p.profRadial), d = (dims.h - dims.tf) / 2, bh = dims.b / 2;
+    var radial = geom.members.filter(function (m) { return m.group === 'radial'; });
+    // stykkerne af hver radialbjælke i rækkefølge udefra og ind: nabostykket deler knude og får geringssnit
+    var byIndex = {};
+    radial.forEach(function (m) { (byIndex[m.index] = byIndex[m.index] || []).push(m); });
+    function zOf(m) { var x = unit(vsub(m.end, m.start)); return unit(cross(x, unit(m.localY))); }
+    // retningen af stykkets endekant: lokal z, eller i et knæk halveringslinjen, skaleret så dens z-komposant er 1
+    function miter(m, other) {
+      var z = zOf(m);
+      if (!other) return z;
+      var mh = unit(vadd(z, zOf(other)));
+      return vscale(mh, 1 / dot(mh, z));
+    }
+    var pieces = radial.map(function (m) {
+      var list = byIndex[m.index], k = list.indexOf(m);
+      var prev = k > 0 && norm(vsub(list[k - 1].end, m.start)) < 1e-6 ? list[k - 1] : null;
+      var next = k < list.length - 1 && norm(vsub(list[k + 1].start, m.end)) < 1e-6 ? list[k + 1] : null;
+      var mS = miter(m, prev), mE = miter(m, next), y = unit(m.localY), S = m.start, E = m.end;
+      function at(P, mv, s, t) { return vadd(vadd(P, vscale(mv, s * d)), vscale(y, t * bh)); }
+      return {
+        member: m,
+        plates: [
+          { tag: 'K', type: 'wall', t: dims.tw, pts: [at(S, mS, -1, 0), at(E, mE, -1, 0), at(E, mE, 1, 0), at(S, mS, 1, 0)] },
+          { tag: 'O', type: 'plate', t: dims.tf, pts: [at(S, mS, 1, -1), at(E, mE, 1, -1), at(E, mE, 1, 1), at(S, mS, 1, 1)] },
+          { tag: 'U', type: 'plate', t: dims.tf, pts: [at(S, mS, -1, -1), at(E, mE, -1, -1), at(E, mE, -1, 1), at(S, mS, -1, 1)] }
+        ]
+      };
+    });
+
+    return {
+      dims: dims,
+      pieces: pieces,
+      note: 'radialbjælkerne ' + String(p.profRadial).replace('|', ' ') + ' som skaller (krop ' + mm(dims.tw) + ' mm, flanger ' + mm(dims.tf) + ' mm)',
+      takes: function (m) { return m.group === 'radial'; },
+      // temperaturlasten på stængerne følger ikke med over på skallerne
+      skipLoad: function (Ld) { return Ld.kind === 'temp' && Ld.member.group === 'radial'; },
+      // skriver skallerne og sætter stykkets partGuid til kroppens, så dækkene og resultatpunkterne bærer på kroppen
+      write: function (L, c) {
+        if (c.geom !== geom) throw new Error('Skalmodellen skal dannes med den samme geometri som filen (opts.geometry).');
+        var I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t';
+        pieces.forEach(function (pc) {
+          pc.plates.forEach(function (pl) {
+            var P = pl.pts, lx = unit(vsub(P[1], P[0])), ly = unit(vsub(P[3], P[0]));
+            ly = unit(vsub(ly, vscale(lx, dot(ly, lx))));
+            var nz = cross(lx, ly), name = pc.member.name.replace(/^RB/, 'RB' + pl.tag), partGuid = c.newGuid();
+            if (pl.tag === 'K') pc.member.partGuid = partGuid;
+            L.push(I2 + '<slab name="' + name + '" type="' + pl.type + '" guid="' + c.newGuid() + '" last_change="' + c.stamp + '" action="added">');
+            L.push(I3 + '<slab_part guid="' + partGuid + '" last_change="' + c.stamp + '" action="added" name="' + name + '.1" complex_material="' +
+              c.matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="' +
+              c.fmt(o.meshSize || 0) + '">');
+            L.push(I4 + '<contour>');
+            for (var k = 0; k < P.length; k++) {
+              L.push(I5 + '<edge type="line">' + c.pt('point', P[k]) + c.pt('point', P[(k + 1) % P.length]) + c.pt('normal', nz) + '</edge>');
+            }
+            L.push(I4 + '</contour>');
+            L.push(I4 + '<thickness x="' + c.fmt(P[0][0]) + '" y="' + c.fmt(P[0][1]) + '" z="' + c.fmt(P[0][2]) + '" val="' + c.fmt(pl.t) + '"/>');
+            L.push(I4 + c.pt('local_pos', P[0]));
+            L.push(I4 + c.pt('local_x', lx));
+            L.push(I4 + c.pt('local_y', ly));
+            L.push(I4 + '<end/>');
+            L.push(I3 + '</slab_part>');
+            L.push(I3 + '<end/>');
+            L.push(I2 + '</slab>');
+          });
+        });
+      }
+    };
+  }
+
+  var api = { FAMILIES: FAMILIES, plateDims: plateDims, radialShells: radialShells };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.TankShell = api;
+})(typeof window !== 'undefined' ? window : this);
 </script>
 <script>
 /* Dokumentation af vindlasten på taget: peakhastighedstryk, zoner, formfaktorer og last pr. zone
@@ -6961,6 +7084,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var blocked = g.errors.length > 0 || !LIB || items.some(function (h) { return h.indexOf('msg bad') >= 0 && h.indexOf('data-export') < 0; });
     $('btnExport').disabled = blocked;
     $('btnCopyXml').disabled = blocked;
+    $('btnShell').disabled = blocked;   // skalmodel
   }
   function addStatus(kind, text, html) {
     statusExtra = [ '<div class="msg ' + kind + '" data-export="1">' + (html || esc(text)) + '</div>' ];
@@ -8262,6 +8386,24 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var xml;
     try { xml = buildXml(); } catch (e) { addStatus('bad', 'Filen kunne ikke dannes: ' + e.message); return; }
     copyText(xml, 'StruXML er kopieret. Indsæt i en teksteditor, og gem som tanktag.struxml (UTF-8).');
+  });
+
+  // skalmodel: samme model med radialbjælkerne som skaller (TankShell)
+  $('btnShell').addEventListener('click', function () {
+    if (this.disabled) return;
+    var xml, base = fileBase(TR.normalizeParams(params)) + '_skal', shell;
+    try {
+      var g = TR.computeGeometry(params);
+      if (g.errors.length) throw new Error(g.errors.join(' '));
+      shell = window.TankShell.radialShells(TR, g, LIB);
+      xml = TR.buildStruxml(params, LIB, { geometry: g, loads: TR.computeLoads(g), shell: shell });
+    } catch (e) {
+      addStatus('bad', 'Skalmodellen kunne ikke dannes: ' + (e && e.message ? e.message : e));
+      return;
+    }
+    var info = 'Skalmodel: ' + esc(shell.note) + ', i alt ' + shell.pieces.length * 3 + ' skaller. Temperaturlasten på radialbjælkerne og deres knæklængder er ikke med. Sæt stabilitetsanalysen op i FEM-Design.';
+    if (directDownload(xml, base + '.struxml')) addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. ' + info);
+    else addStatus('bad', '', 'Browseren tillod ikke at gemme filen.');
   });
 
   // ---------- lastkombinationer ----------

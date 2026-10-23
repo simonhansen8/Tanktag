@@ -8,6 +8,14 @@ Under *Søjle- og kipningslængder* angives FEM-Designs β for søjlelængde om 
 
 Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i de øvrige lastkombinationer. Som standard får det sin egen kombination *Rotationsstivhed* med faktor 1 og typen anvendelse, karakteristisk, så det kan regnes ikke-lineært (NLE) i FEM-Design, uden at stålets styrkeeftervisning bruger den. Under Samlinger springes kombinationen over, når kræfterne indlæses.
 
+## Skalmodel af radialbjælkerne
+
+Knappen *Hent skalmodel* under tegningen henter en ekstra StruXML-fil (`…_skal.struxml`) til stabilitetsanalyse i FEM-Design, fx for at udlede knæklængdefaktorer for søjlevirkning og kipning. Filen er den samme model som den almindelige, men hver radialbjælke er tre skaller i profilets midterflader: kroppen som væg og over- og underflangen som plader, med profilets krop- og flangetykkelse. I kuplens knæk er stykkerne skåret på geringen, så skallerne deler kanter. De øvrige stænger og understøtningerne møder kroppen i systemlinjen, og dækkene fører fladelasten ned i kroppen.
+
+Begrænsninger: kun IPE og HE-A/B/M, rodradierne er udeladt, og temperaturlasten og knæklængderne på radialbjælkerne kommer ikke med. Radialbjælkens charnier mod ringbjælken og svøbet findes ikke i skalmodellen; stængerne er forbundet til én knude i kroppen. Stabilitetsanalysen sættes op i FEM-Design.
+
+Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og kan fjernes ved at slette blokken, knappen `btnShell` med dens handler, linjerne markeret `skalmodel` i `buildStruxml`, `tests/shell.test.js` (og dens linje i `tests/load.js` og `package.json`) og dette afsnit.
+
 ## Kom i gang
 
 Værktøjet er én selvstændig HTML-fil uden build-trin.
