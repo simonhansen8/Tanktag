@@ -1,6 +1,6 @@
 'use strict';
-// Skalmodellen (TankShell): radialbjælkerne som skaller. Kontrollerer, at skallerne hænger sammen, at de øvrige
-// stænger og understøtninger møder kroppen, og at resten af filen er den samme som den almindelige StruXML.
+// Skalmodellen af én radialbjælke (TankShell): skallerne hænger sammen, lasterne er enhedslaster i ligevægt,
+// og understøtningerne sidder i enderne og i topflangen ved udvekslingsringene.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
@@ -12,15 +12,17 @@ const CASES_DIR = path.join(__dirname, 'cases');
 const TOL = 1e-6;
 
 function sub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
+function add(a, b) { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
+function scale(a, s) { return [a[0] * s, a[1] * s, a[2] * s]; }
 function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
 function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
-function dist(a, b) { return Math.hypot(...sub(a, b)); }
-function same(a, b) { return dist(a, b) < TOL; }
+function len(a) { return Math.hypot(...a); }
+function same(a, b) { return len(sub(a, b)) < TOL; }
 function sameEdge(e, f) { return (same(e[0], f[0]) && same(e[1], f[1])) || (same(e[0], f[1]) && same(e[1], f[0])); }
 
 // punktet q ligger i den plane firkant P (indenfor eller på kanten)
 function onQuad(q, P) {
-  const n = cross(sub(P[1], P[0]), sub(P[3], P[0])), ln = Math.hypot(...n);
+  const n = cross(sub(P[1], P[0]), sub(P[3], P[0])), ln = len(n);
   if (Math.abs(dot(sub(q, P[0]), n)) / ln > TOL) return false;
   for (let k = 0; k < 4; k++) {
     const a = P[k], b = P[(k + 1) % 4];
@@ -41,96 +43,87 @@ function wellFormed(xml) {
   assert.deepEqual(stack, []);
 }
 
-function build(params, geom, shell) {
-  let guid = 0;
-  return TR.buildStruxml(params, LIB, {
-    geometry: geom,
-    timestamp: '2000-01-01T00:00:00.000',
-    guid: () => '00000000-0000-4000-8000-' + String(++guid).padStart(12, '0'),
-    shell
-  });
-}
-
 fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().forEach((file) => {
   const spec = JSON.parse(fs.readFileSync(path.join(CASES_DIR, file), 'utf8'));
   const params = Object.assign({}, TR.DEFAULTS, spec.params);
   params.combos = TR.normCombos(params.combos);
 
-  test('skalmodel: ' + file, () => {
+  test('skalmodel af RB.1: ' + file, () => {
     const geom = TR.computeGeometry(params);
-    const shell = TS.radialShells(TR, geom, LIB);
-    const xml = build(params, geom, shell);
-    const plain = build(params, TR.computeGeometry(params), null);
-    const radial = geom.members.filter((m) => m.group === 'radial');
-
-    // hver radialbjælke er tre skaller; ingen stænger tilbage for dem
-    assert.equal(shell.pieces.length, radial.length);
-    assert.equal((xml.match(/<slab /g) || []).length, 3 * radial.length);
-    assert.equal((xml.match(/<slab_part /g) || []).length, 3 * radial.length);
-    radial.forEach((m) => assert.ok(!xml.includes('<bar name="' + m.name + '"'), m.name + ' står stadig som stang'));
-    assert.equal((xml.match(/<bar /g) || []).length, (plain.match(/<bar /g) || []).length - radial.length);
-    // elementerne er korrekt indlejret
+    let guid = 0;
+    const res = TS.buildRafterStruxml(TR, geom, LIB, {
+      timestamp: '2000-01-01T00:00:00.000', guid: () => '00000000-0000-4000-8000-' + String(++guid).padStart(12, '0')
+    });
+    const { xml, rafter: R, cases, supports } = res;
+    const radial = geom.members.filter((m) => m.group === 'radial' && m.index === 0);
     wellFormed(xml);
 
-    // laster, kombinationer og understøtninger er de samme som i den almindelige fil
-    ['point_load', 'line_load', 'surface_load', 'load_case', 'load_combination', 'point_support', 'cover'].forEach((tag) => {
-      const re = new RegExp('<' + tag + ' ', 'g');
-      assert.equal((xml.match(re) || []).length, (plain.match(re) || []).length, tag);
-    });
+    // kun skaller: tre pr. stykke af RB.1, ingen stænger eller dæk
+    assert.equal(R.pieces.length, radial.length);
+    assert.equal((xml.match(/<slab /g) || []).length, 3 * radial.length);
+    assert.ok(!xml.includes('<bar ') && !xml.includes('<cover '));
+    assert.equal((xml.match(/<load_case type=/g) || []).length, 3);
+    assert.equal((xml.match(/<load_combination /g) || []).length, 3);
 
-    const webs = shell.pieces.map((pc) => pc.plates[0].pts);
-    shell.pieces.forEach((pc) => {
+    const allPlates = [];
+    R.pieces.forEach((pc) => {
       const [web, top, bot] = pc.plates;
-      assert.equal(web.t, shell.dims.tw);
-      assert.equal(top.t, shell.dims.tf);
-      // kroppen er lodret (skrives som væg), og alle fire hjørner ligger i én plan
+      allPlates.push(web.pts, top.pts, bot.pts);
+      assert.equal(web.t, R.dims.tw);
+      assert.equal(top.t, R.dims.tf);
       const n = cross(sub(web.pts[1], web.pts[0]), sub(web.pts[3], web.pts[0]));
-      assert.ok(Math.abs(n[2]) / Math.hypot(...n) < 1e-9, 'kroppen er ikke lodret');
+      assert.ok(Math.abs(n[2]) / len(n) < 1e-9, 'kroppen er ikke lodret');
       pc.plates.forEach((pl) => {
         const nn = cross(sub(pl.pts[1], pl.pts[0]), sub(pl.pts[3], pl.pts[0]));
-        assert.ok(Math.abs(dot(sub(pl.pts[2], pl.pts[0]), nn)) / Math.hypot(...nn) < 1e-9, 'skallen er ikke plan');
+        assert.ok(Math.abs(dot(sub(pl.pts[2], pl.pts[0]), nn)) / len(nn) < 1e-9, 'skallen er ikke plan');
       });
-      // kroppens over- og underkant ligger midt i flangerne, og systemlinjen midt i kroppen
       assert.ok(onQuad(web.pts[2], top.pts) && onQuad(web.pts[3], top.pts));
       assert.ok(onQuad(web.pts[0], bot.pts) && onQuad(web.pts[1], bot.pts));
-      assert.ok(onQuad(pc.member.start, web.pts) && onQuad(pc.member.end, web.pts));
     });
+    // nabostykkerne deler endekanterne
+    for (let j = 0; j < R.pieces.length - 1; j++) {
+      for (let k = 0; k < 3; k++) {
+        const P = R.pieces[j].plates[k].pts, Q = R.pieces[j + 1].plates[k].pts;
+        assert.ok(sameEdge([P[1], P[2]], [Q[0], Q[3]]), 'stykke ' + (j + 1) + '/' + (j + 2) + ' skal ' + k + ' hænger ikke sammen');
+      }
+    }
+    const onPlate = (q) => allPlates.some((P) => onQuad(q, P));
 
-    // nabostykker af samme radialbjælke deler endekanterne (geringssnit i knækkene)
-    shell.pieces.forEach((pc, i) => {
-      shell.pieces.forEach((qc, j) => {
-        if (i === j || pc.member.index !== qc.member.index || !same(pc.member.end, qc.member.start)) return;
-        for (let k = 0; k < 3; k++) {
-          const P = pc.plates[k].pts, Q = qc.plates[k].pts;
-          assert.ok(sameEdge([P[1], P[2]], [Q[0], Q[3]]), pc.member.name + '/' + qc.member.name + ' skal ' + k + ' hænger ikke sammen');
-        }
+    // trykket: i ligevægt, N = 1 kN ind i hver ende, og hvert stykke får rent normalkraft
+    let F = [0, 0, 0];
+    cases[0].lines.forEach((l) => { F = add(F, scale(l.dir, l.val * len(sub(l.b, l.a)))); });
+    cases[0].points.forEach((q) => { F = add(F, scale(q.dir, q.val)); });
+    assert.ok(len(F) < 1e-9, 'trykket er ikke i ligevægt: ' + F);
+    const first = R.pieces[0];
+    let Nin = 0;
+    cases[0].lines.slice(0, 3).forEach((l) => { Nin += dot(l.dir, first.x) * l.val * len(sub(l.b, l.a)); });
+    assert.ok(Math.abs(Nin - TS.UNIT_N) < 1e-9, 'trykket ved ringbjælken er ' + Nin);
+    assert.equal(cases[0].points.length, R.pieces.length - 1 - R.pieces.filter((pc, j) => j < R.pieces.length - 1 && same(pc.x, R.pieces[j + 1].x)).length);
+    // linjelasterne: samlet q·L lodret, nedad og opad, langs overflangens midte
+    const total = R.pieces.reduce((a, pc) => a + pc.length, 0);
+    [[1, -1], [2, 1]].forEach(([ci, sgn]) => {
+      let Fz = 0;
+      cases[ci].lines.forEach((l) => {
+        Fz += l.dir[2] * l.val * len(sub(l.b, l.a));
+        assert.ok(R.pieces.some((pc) => onQuad(l.a, pc.plates[1].pts) && onQuad(l.b, pc.plates[1].pts)), 'lasten ligger ikke i overflangen');
       });
+      assert.ok(Math.abs(Fz - sgn * TS.UNIT_Q * total) < 1e-9);
     });
+    cases.forEach((c) => c.lines.forEach((l) => assert.ok(onPlate(l.a) && onPlate(l.b), 'en linjelast ligger ikke på en skal')));
+    cases[0].points.forEach((q) => assert.ok(onPlate(q.pos)));
 
-    // de øvrige stænger og understøtningerne, der rører en radialbjælke, ender på dens krop
-    const radialNodes = [];
-    radial.forEach((m) => radialNodes.push(m.start, m.end));
-    const onRadialLine = (q) => radial.some((m) => {
-      const d = sub(m.end, m.start), t = dot(sub(q, m.start), d) / dot(d, d);
-      return t > -TOL && t < 1 + TOL && dist(q, [m.start[0] + t * d[0], m.start[1] + t * d[1], m.start[2] + t * d[2]]) < TOL;
+    // understøtningerne: gaffellejer i begge ender og én sidefastholdelse i topflangen pr. udvekslingsring
+    supports.forEach((s) => assert.ok(onPlate(s.pos), s.name + ' sidder ikke på en skal'));
+    assert.equal(R.holds.length, geom.info.radii.length);
+    R.holds.forEach((h) => {
+      const top = h.piece.plates[1].pts;
+      assert.ok(onQuad(h.pos, top), 'SF.' + h.ring + ' sidder ikke i topflangen');
+      assert.ok(Math.abs(Math.hypot(h.node[0], h.node[1]) - geom.info.radii[h.ring - 1]) < TOL);
     });
-    let touching = 0;
-    geom.members.filter((m) => m.group !== 'radial').forEach((m) => {
-      [m.start, m.end].forEach((q) => {
-        if (!onRadialLine(q)) return;
-        touching++;
-        assert.ok(webs.some((w) => onQuad(q, w)), m.name + ' ender ikke på en krop');
-      });
-    });
-    geom.supports.forEach((s) => { if (onRadialLine(s.pos)) assert.ok(webs.some((w) => onQuad(s.pos, w)), s.name); });
-    assert.ok(touching > 0);
-
-    // dækkene bærer på kroppene og de øvrige stænger: alle henvisninger peger på en del i filen
-    const parts = new Set();
-    (xml.match(/<(bar|slab)_part guid="[^"]+"/g) || []).forEach((t) => parts.add(/guid="([^"]+)"/.exec(t)[1]));
-    const refs = xml.match(/<ref guid="[^"]+"/g) || [];
-    assert.ok(refs.length > 0);
-    refs.forEach((t) => assert.ok(parts.has(/guid="([^"]+)"/.exec(t)[1]), 'dækket henviser til en del, der ikke findes'));
+    const sf = supports.filter((s) => /^SF\./.test(s.name));
+    assert.equal(sf.length, geom.info.radii.length);
+    sf.forEach((s) => assert.deepEqual(s.m, [false, true, false]));
+    assert.equal(supports.filter((s) => s.m[0]).length, 1, 'aksialt fastholdt ét sted');
   });
 });
 

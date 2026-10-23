@@ -1309,7 +1309,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="exportnote" id="exportNote">
         <p>Filen hentes som <span class="mono">.struxml</span>. Åbn den i FEM-Design med Fil › Åbn.</p>
         <p><button type="button" class="btn small" id="btnCopyXml">Kopiér StruXML i stedet</button> <span class="hint">Indsæt i en teksteditor og gem som <span class="mono">tanktag.struxml</span>.</span></p>
-        <p><button type="button" class="btn small" id="btnShell">Hent skalmodel</button> <span class="hint">Ekstra fil til stabilitetsanalyse: radialbjælkerne som skaller (krop og flanger), resten som i den almindelige fil.</span></p>
+        <p><button type="button" class="btn small" id="btnShell">Hent skalmodel</button> <span class="hint">Én radialbjælke som skaller (krop og flanger) med enhedslaster, til stabilitetsanalyse i FEM-Design og søjle- og kipningslængder til den almindelige model.</span></p>
       </div>
     </section>
   </div>
@@ -3142,7 +3142,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var p = geom.params;
     var loads = opts.loads || computeLoads(geom);
     if (loads.errors.length) throw new Error(loads.errors.join('\n'));
-    var shell = opts.shell || null;   // skalmodel: radialbjælkerne som skaller (TankShell)
     if (loads.comboErrors && loads.comboErrors.length) throw new Error(loads.comboErrors.join('\n'));
 
     var mat = lib.materials[p.material];
@@ -3187,8 +3186,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var L = [];
     var I1 = '\t', I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t', I6 = '\t\t\t\t\t\t';
     L.push('<?xml version="1.0" encoding="UTF-8"?>');
-    L.push('<!-- Genereret af Tanktag-generator ' + VERSION + ' (radialbjælker, ringbjælke, udvekslinger, vindgitter, laster).' +
-      (shell ? ' Skalmodel: ' + shell.note + '.' : '') + ' Parametre: ' + paramsComment(p) + ' -->');   // skalmodel
+    L.push('<!-- Genereret af Tanktag-generator ' + VERSION + ' (radialbjælker, ringbjælke, udvekslinger, vindgitter, laster). Parametre: ' + paramsComment(p) + ' -->');
     L.push('<database struxml_version="01.00.000" source_software="Tanktag-generator ' + VERSION +
       '" start_time="1970-01-01T00:00:00.000" end_time="' + stamp + '" guid="' + newGuid() +
       '" convertid="00000000-0000-0000-0000-000000000000" standard="EC" country="DK" xmlns="urn:strusoft">');
@@ -3196,7 +3194,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
     var complexSections = [];
     geom.members.forEach(function (m) {
-      if (shell && shell.takes(m)) return;   // skalmodel
       var s = secByKey[m.prof || groupProf[m.group]];
       var barGuid = newGuid(), partGuid = newGuid();
       m.partGuid = partGuid;
@@ -3272,8 +3269,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I2 + '</bar>');
     });
 
-    if (shell) shell.write(L, { geom: geom, newGuid: newGuid, stamp: stamp, matGuid: matGuid, fmt: fmt, pt: pt });   // skalmodel
-
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
     if (loads.cases.length) {
       var lcGuids = loads.cases.map(function () { return newGuid(); });
@@ -3326,7 +3321,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       loads.cases.forEach(function (c, ci) {
         c.loads.forEach(function (Ld) {
           if (Ld.kind !== 'temp') return;
-          if (shell && shell.skipLoad(Ld)) return;   // skalmodel
           var m = Ld.member, ex = unit(vsub(m.end, m.start)), ny = localYFor(ex);
           L.push(I3 + '<line_temperature_variation_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added">');
@@ -3464,11 +3458,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
 </script>
 <script>
-/* Skalmodel af radialbjælkerne til stabilitetsanalyse (buckling) i FEM-Design.
-   Giver en ekstra StruXML-fil, hvor hver radialbjælke er tre skaller (krop, overflange og underflange) i profilets
-   midterflader i stedet for en stang. Resten af modellen er den samme som i den almindelige fil.
-   Funktionen er holdt for sig selv, så den er let at fjerne: slet denne scriptblok, knappen btnShell med dens
-   handler, linjerne markeret "skalmodel" i buildStruxml, tests/shell.test.js og afsnittet i README. */
+/* Skalmodel af én radialbjælke til stabilitetsanalyse (buckling) i FEM-Design, så søjle- og kipningslængderne til
+   den almindelige model kan udledes af de kritiske laster. Bjælken er krop, overflange og underflange som skaller i
+   profilets midterflader, med gaffellejer i enderne, sidefastholdelse ved udvekslingsringene og tre enhedslaster.
+   Modulet er selvstændigt og let at fjerne: slet denne scriptblok, knappen btnShell med dens handler,
+   tests/shell.test.js (og dens linjer i tests/load.js og package.json) og afsnittet i README. */
 (function (root) {
   'use strict';
   function vsub(a, b) { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
@@ -3478,18 +3472,38 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
   function norm(a) { return Math.sqrt(dot(a, a)); }
   function unit(a) { var l = norm(a); return [a[0] / l, a[1] / l, a[2] / l]; }
+  function fmt(v) {
+    if (!isFinite(v)) throw new Error('Ugyldigt tal: ' + v);
+    if (Math.abs(v) < 5e-10) v = 0;
+    var s = v.toFixed(9).replace(/\.?0+$/, '');
+    return s === '-0' || s === '' ? '0' : s;
+  }
+  function pt(tag, v) { return '<' + tag + ' x="' + fmt(v[0]) + '" y="' + fmt(v[1]) + '" z="' + fmt(v[2]) + '"/>'; }
+  function mm(x) { return String(Math.round(x * 10000) / 10).replace('.', ','); }
+  function randomGuid() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.floor(Math.random() * 16);
+      return (c === 'x' ? r : (r & 3) | 8).toString(16);
+    });
+  }
+
+  // enhedslasterne: N i kN og q i kN/m, så FEM-Designs kritiske lastfaktor er den kritiske last
+  var UNIT_N = 1, UNIT_Q = 1;
+  var FIXED = '10000000000';
 
   // dobbeltsymmetriske I- og H-profiler med parallelle flanger; tykkelserne læses af tværsnittets omrids
   var FAMILIES = ['IPE', 'HE-A', 'HE-B', 'HE-M'];
   function plateDims(TR, lib, key) {
-    var parts = String(key).split('|'), fam = parts[0];
+    var fam = String(key).split('|')[0];
     if (FAMILIES.indexOf(fam) < 0) {
       throw new Error('Skalmodellen kan kun lave radialbjælker af ' + FAMILIES.join(', ') + ' – ikke ' + String(key).replace('|', ' ') + '.');
     }
     var s = TR.findSection(lib, key);
     if (!s) throw new Error('Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
     // vandrette kanter inden for højden er flangernes inderside, den inderste lodrette kant er kroppens side
-    var h = s.h, b = s.b, yIn = 0, xIn = Infinity, ere = /<edge type="line"><point x="([^"]+)" y="([^"]+)"[^>]*><\/point><point x="([^"]+)" y="([^"]+)"/g, em;
+    var h = s.h, b = s.b, yIn = 0, xIn = Infinity, em;
+    var ere = /<edge type="line"><point x="([^"]+)" y="([^"]+)"[^>]*><\/point><point x="([^"]+)" y="([^"]+)"/g;
     while ((em = ere.exec(s.xml))) {
       var x0 = +em[1], y0 = +em[2], x1 = +em[3], y1 = +em[4];
       if (Math.abs(y0 - y1) < 1e-9 && Math.abs(y0) < h / 2 - 1e-6) yIn = Math.max(yIn, Math.abs(y0));
@@ -3500,32 +3514,28 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { h: h, b: b, tf: tf, tw: tw };
   }
 
-  function mm(x) { return String(Math.round(x * 10000) / 10).replace('.', ','); }
-
-  // forbereder skallerne for radialbjælkerne; buildStruxml kalder takes, write og skipLoad (opts.shell)
-  function radialShells(TR, geom, lib, o) {
+  // geometrien: radialbjælke nr. o.index (0 = RB.1) i stykker indefra og ud, hvert med krop og flanger.
+  // I et knæk er endekanterne halveringslinjen mellem stykkernes lokale z, så skallerne deler kanter (geringssnit).
+  function rafter(TR, geom, lib, o) {
     o = o || {};
     var p = geom.params, dims = plateDims(TR, lib, p.profRadial), d = (dims.h - dims.tf) / 2, bh = dims.b / 2;
-    var radial = geom.members.filter(function (m) { return m.group === 'radial'; });
-    // stykkerne af hver radialbjælke i rækkefølge udefra og ind: nabostykket deler knude og får geringssnit
-    var byIndex = {};
-    radial.forEach(function (m) { (byIndex[m.index] = byIndex[m.index] || []).push(m); });
-    function zOf(m) { var x = unit(vsub(m.end, m.start)); return unit(cross(x, unit(m.localY))); }
-    // retningen af stykkets endekant: lokal z, eller i et knæk halveringslinjen, skaleret så dens z-komposant er 1
+    var idx = o.index || 0;
+    var list = geom.members.filter(function (m) { return m.group === 'radial' && m.index === idx; });
+    if (!list.length) throw new Error('Radialbjælke ' + (idx + 1) + ' findes ikke.');
+    function xOf(m) { return unit(vsub(m.end, m.start)); }
+    function zOf(m) { return unit(cross(xOf(m), unit(m.localY))); }
     function miter(m, other) {
       var z = zOf(m);
       if (!other) return z;
       var mh = unit(vadd(z, zOf(other)));
       return vscale(mh, 1 / dot(mh, z));
     }
-    var pieces = radial.map(function (m) {
-      var list = byIndex[m.index], k = list.indexOf(m);
-      var prev = k > 0 && norm(vsub(list[k - 1].end, m.start)) < 1e-6 ? list[k - 1] : null;
-      var next = k < list.length - 1 && norm(vsub(list[k + 1].start, m.end)) < 1e-6 ? list[k + 1] : null;
+    var pieces = list.map(function (m, k) {
+      var prev = k > 0 ? list[k - 1] : null, next = k < list.length - 1 ? list[k + 1] : null;
       var mS = miter(m, prev), mE = miter(m, next), y = unit(m.localY), S = m.start, E = m.end;
       function at(P, mv, s, t) { return vadd(vadd(P, vscale(mv, s * d)), vscale(y, t * bh)); }
       return {
-        member: m,
+        member: m, x: xOf(m), y: y, z: zOf(m), mS: mS, mE: mE, length: norm(vsub(E, S)),
         plates: [
           { tag: 'K', type: 'wall', t: dims.tw, pts: [at(S, mS, -1, 0), at(E, mE, -1, 0), at(E, mE, 1, 0), at(S, mS, 1, 0)] },
           { tag: 'O', type: 'plate', t: dims.tf, pts: [at(S, mS, 1, -1), at(E, mE, 1, -1), at(E, mE, 1, 1), at(S, mS, 1, 1)] },
@@ -3533,48 +3543,172 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         ]
       };
     });
-
-    return {
-      dims: dims,
-      pieces: pieces,
-      note: 'radialbjælkerne ' + String(p.profRadial).replace('|', ' ') + ' som skaller (krop ' + mm(dims.tw) + ' mm, flanger ' + mm(dims.tf) + ' mm)',
-      takes: function (m) { return m.group === 'radial'; },
-      // temperaturlasten på stængerne følger ikke med over på skallerne
-      skipLoad: function (Ld) { return Ld.kind === 'temp' && Ld.member.group === 'radial'; },
-      // skriver skallerne og sætter stykkets partGuid til kroppens, så dækkene og resultatpunkterne bærer på kroppen
-      write: function (L, c) {
-        if (c.geom !== geom) throw new Error('Skalmodellen skal dannes med den samme geometri som filen (opts.geometry).');
-        var I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t';
-        pieces.forEach(function (pc) {
-          pc.plates.forEach(function (pl) {
-            var P = pl.pts, lx = unit(vsub(P[1], P[0])), ly = unit(vsub(P[3], P[0]));
-            ly = unit(vsub(ly, vscale(lx, dot(ly, lx))));
-            var nz = cross(lx, ly), name = pc.member.name.replace(/^RB/, 'RB' + pl.tag), partGuid = c.newGuid();
-            if (pl.tag === 'K') pc.member.partGuid = partGuid;
-            L.push(I2 + '<slab name="' + name + '" type="' + pl.type + '" guid="' + c.newGuid() + '" last_change="' + c.stamp + '" action="added">');
-            L.push(I3 + '<slab_part guid="' + partGuid + '" last_change="' + c.stamp + '" action="added" name="' + name + '.1" complex_material="' +
-              c.matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="' +
-              c.fmt(o.meshSize || 0) + '">');
-            L.push(I4 + '<contour>');
-            for (var k = 0; k < P.length; k++) {
-              L.push(I5 + '<edge type="line">' + c.pt('point', P[k]) + c.pt('point', P[(k + 1) % P.length]) + c.pt('normal', nz) + '</edge>');
-            }
-            L.push(I4 + '</contour>');
-            L.push(I4 + '<thickness x="' + c.fmt(P[0][0]) + '" y="' + c.fmt(P[0][1]) + '" z="' + c.fmt(P[0][2]) + '" val="' + c.fmt(pl.t) + '"/>');
-            L.push(I4 + c.pt('local_pos', P[0]));
-            L.push(I4 + c.pt('local_x', lx));
-            L.push(I4 + c.pt('local_y', ly));
-            L.push(I4 + '<end/>');
-            L.push(I3 + '</slab_part>');
-            L.push(I3 + '<end/>');
-            L.push(I2 + '</slab>');
-          });
-        });
-      }
-    };
+    // udvekslingsringenes knuder langs bjælken (radierne fra geometrien), med stykket de ligger på
+    var first = pieces[0], last = pieces[pieces.length - 1];
+    var r0 = Math.hypot(first.member.start[0], first.member.start[1]), r1 = Math.hypot(last.member.end[0], last.member.end[1]);
+    var holds = [];
+    geom.info.radii.forEach(function (r, k) {
+      pieces.forEach(function (pc) {
+        var a = Math.hypot(pc.member.start[0], pc.member.start[1]), b = Math.hypot(pc.member.end[0], pc.member.end[1]);
+        if (r <= a + 1e-9 || r > b + 1e-9 || holds.some(function (h) { return h.ring === k + 1; })) return;
+        // udvekslingen er monteret i topflangen: fastholdelsen sidder i flangens midte (kroppens overkant)
+        var t = (r - a) / (b - a), up = t > 1 - 1e-9 ? pc.mE : pc.z;
+        var node = vadd(pc.member.start, vscale(vsub(pc.member.end, pc.member.start), t));
+        holds.push({ ring: k + 1, node: node, pos: vadd(node, vscale(up, d)), piece: pc });
+      });
+    });
+    return { dims: dims, d: d, pieces: pieces, holds: holds, rIn: r0, rOut: r1, profile: String(p.profRadial).replace('|', ' ') };
   }
 
-  var api = { FAMILIES: FAMILIES, plateDims: plateDims, radialShells: radialShells };
+  // hele StruXML-filen for den ene bjælke
+  function buildRafterStruxml(TR, geom, lib, o) {
+    o = o || {};
+    var newGuid = o.guid || randomGuid, stamp = o.timestamp || new Date().toISOString().replace('Z', '').slice(0, 23);
+    var p = geom.params, R = rafter(TR, geom, lib, o), dims = R.dims, d = R.d, pieces = R.pieces;
+    var first = pieces[0], last = pieces[pieces.length - 1];
+    var mat = lib.materials[p.material];
+    if (!mat) throw new Error('Materialet "' + p.material + '" findes ikke i biblioteket.');
+    var matGuid = /\sguid="([^"]*)"/.exec(mat)[1];
+    var I1 = '\t', I2 = '\t\t', I3 = '\t\t\t', I4 = '\t\t\t\t', I5 = '\t\t\t\t\t', I6 = '\t\t\t\t\t\t';
+    var L = [];
+    L.push('<?xml version="1.0" encoding="UTF-8"?>');
+    L.push('<!-- Skalmodel af radialbjælke ' + ((o.index || 0) + 1) + ' (' + R.profile + ', krop ' + mm(dims.tw) + ' mm, flanger ' + mm(dims.tf) +
+      ' mm) fra Tanktag-generator ' + TR.VERSION + ' til stabilitetsanalyse. Lasttilfældene er enhedslaster: N = ' + UNIT_N + ' kN og q = ' + UNIT_Q +
+      ' kN/m, så den kritiske lastfaktor er den kritiske last. -->');
+    L.push('<database struxml_version="01.00.000" source_software="Tanktag-generator ' + TR.VERSION +
+      '" start_time="1970-01-01T00:00:00.000" end_time="' + stamp + '" guid="' + newGuid() +
+      '" convertid="00000000-0000-0000-0000-000000000000" standard="EC" country="DK" xmlns="urn:strusoft">');
+    L.push(I1 + '<entities>');
+
+    // skallerne
+    pieces.forEach(function (pc) {
+      pc.plates.forEach(function (pl) {
+        var P = pl.pts, lx = unit(vsub(P[1], P[0])), ly = unit(vsub(P[3], P[0]));
+        ly = unit(vsub(ly, vscale(lx, dot(ly, lx))));
+        var nz = cross(lx, ly), name = pc.member.name.replace(/^RB/, 'RB' + pl.tag);
+        L.push(I2 + '<slab name="' + name + '" type="' + pl.type + '" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
+        L.push(I3 + '<slab_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + name + '.1" complex_material="' +
+          matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="' +
+          fmt(o.meshSize || 0) + '">');
+        L.push(I4 + '<contour>');
+        for (var k = 0; k < P.length; k++) L.push(I5 + '<edge type="line">' + pt('point', P[k]) + pt('point', P[(k + 1) % P.length]) + pt('normal', nz) + '</edge>');
+        L.push(I4 + '</contour>');
+        L.push(I4 + '<thickness x="' + fmt(P[0][0]) + '" y="' + fmt(P[0][1]) + '" z="' + fmt(P[0][2]) + '" val="' + fmt(pl.t) + '"/>');
+        L.push(I4 + pt('local_pos', P[0]));
+        L.push(I4 + pt('local_x', lx));
+        L.push(I4 + pt('local_y', ly));
+        L.push(I4 + '<end/>');
+        L.push(I3 + '</slab_part>');
+        L.push(I3 + '<end/>');
+        L.push(I2 + '</slab>');
+      });
+    });
+
+    // laster: tre lasttilfælde med hver sin kombination
+    var cases = [
+      { name: 'Tryk N', points: [], lines: [] },
+      { name: 'Last ned på overflange', points: [], lines: [] },
+      { name: 'Last op på overflange', points: [], lines: [] }
+    ];
+    // centrisk tryk: jævnt fordelt over endetværsnittet (σ·t langs kanterne), og i knækkene den afbøjningskraft,
+    // der holder trykket i stykkernes akser, så hvert stykke har rent normalkraft N
+    var area = 2 * dims.b * dims.tf + 2 * d * dims.tw;
+    function endLoads(pc, atEnd, dir) {
+      var mv = atEnd ? pc.mE : pc.mS, P0 = atEnd ? pc.member.end : pc.member.start, sig = UNIT_N / area;
+      var top = vadd(P0, vscale(mv, d)), bot = vadd(P0, vscale(mv, -d)), yb = vscale(pc.y, dims.b / 2);
+      // linjelasten på en skrå endekant regnes pr. kantlængde, så summen er σ·t·(vinkelret længde)
+      var k = 1 / norm(mv);
+      cases[0].lines.push({ a: bot, b: top, dir: dir, val: sig * dims.tw * k });
+      cases[0].lines.push({ a: vsub(top, yb), b: vadd(top, yb), dir: dir, val: sig * dims.tf });
+      cases[0].lines.push({ a: vsub(bot, yb), b: vadd(bot, yb), dir: dir, val: sig * dims.tf });
+    }
+    endLoads(first, false, first.x);
+    endLoads(last, true, vscale(last.x, -1));
+    for (var j = 0; j < pieces.length - 1; j++) {
+      var dv = vscale(vsub(pieces[j + 1].x, pieces[j].x), UNIT_N), mag = norm(dv);
+      if (mag > 1e-12) cases[0].points.push({ pos: pieces[j].member.end, dir: vscale(dv, 1 / mag), val: mag });
+    }
+    // jævn lodret last langs overflangens midte (kroppens overkant), nedad og opad
+    pieces.forEach(function (pc) {
+      // geringen gør overkanten en anelse længere eller kortere end systemlinjen; lasten skaleres, så stykket får q·L
+      var a = vadd(pc.member.start, vscale(pc.mS, d)), b = vadd(pc.member.end, vscale(pc.mE, d)), q = UNIT_Q * pc.length / norm(vsub(b, a));
+      cases[1].lines.push({ a: a, b: b, dir: [0, 0, -1], val: q });
+      cases[2].lines.push({ a: a, b: b, dir: [0, 0, 1], val: q });
+    });
+    var lcGuids = cases.map(function () { return newGuid(); });
+    L.push(I2 + '<loads>');
+    cases.forEach(function (c, ci) {
+      c.points.forEach(function (Ld) {
+        L.push(I3 + '<point_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp + '" action="added" load_type="force">');
+        L.push(I4 + pt('direction', Ld.dir));
+        L.push(I4 + '<load x="' + fmt(Ld.pos[0]) + '" y="' + fmt(Ld.pos[1]) + '" z="' + fmt(Ld.pos[2]) + '" val="' + fmt(Ld.val) + '"/>');
+        L.push(I3 + '</point_load>');
+      });
+    });
+    cases.forEach(function (c, ci) {
+      c.lines.forEach(function (Ld) {
+        var ex = unit(vsub(Ld.b, Ld.a)), ny = unit(cross(ex, Math.abs(ex[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0]));
+        L.push(I3 + '<line_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
+          '" action="added" load_dir="constant" load_projection="false" load_type="force">');
+        L.push(I4 + '<edge type="line">' + pt('point', Ld.a) + pt('point', Ld.b) + pt('normal', ny) + '</edge>');
+        L.push(I4 + pt('direction', Ld.dir));
+        L.push(I4 + pt('normal', cross(ex, ny)));
+        [Ld.a, Ld.b].forEach(function (q) {
+          L.push(I4 + '<load x="' + fmt(q[0]) + '" y="' + fmt(q[1]) + '" z="' + fmt(q[2]) + '" val="' + fmt(Ld.val) + '"/>');
+        });
+        L.push(I3 + '</line_load>');
+      });
+    });
+    cases.forEach(function (c, ci) {
+      L.push(I3 + '<load_case type="static" duration_class="permanent" guid="' + lcGuids[ci] + '" last_change="' + stamp +
+        '" action="added" name="' + c.name + '"/>');
+    });
+    cases.forEach(function (c, ci) {
+      L.push(I3 + '<load_combination guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + c.name + '" type="ultimate_ordinary">');
+      L.push(I4 + '<load_case guid="' + lcGuids[ci] + '" gamma="1"/>');
+      L.push(I3 + '</load_combination>');
+    });
+    L.push(I2 + '</loads>');
+
+    // understøtninger: gaffellejer i enderne (kroppens endekant fastholdt i sin retning i midten, over- og underkanten,
+    // så reaktionen fordeles, og over- og underkanten på tværs, så tværsnittet ikke kan vride; fri om den stærke akse
+    // og for hvælving), aksialt kun ved ringbjælken,
+    // og sidefastholdelse i topflangen ved hver udvekslingsring
+    var sups = [];
+    function sup(name, pos, pc, mx, my, mz) { sups.push({ name: name, pos: pos, x: pc.x, y: pc.y, m: [mx, my, mz] }); }
+    sup('GL.R', first.member.start, first, true, false, true);
+    sup('GL.RO', vadd(first.member.start, vscale(first.mS, d)), first, false, true, true);
+    sup('GL.RU', vadd(first.member.start, vscale(first.mS, -d)), first, false, true, true);
+    sup('GL.S', last.member.end, last, false, false, true);
+    sup('GL.SO', vadd(last.member.end, vscale(last.mE, d)), last, false, true, true);
+    sup('GL.SU', vadd(last.member.end, vscale(last.mE, -d)), last, false, true, true);
+    R.holds.forEach(function (h) { sup('SF.' + h.ring, h.pos, h.piece, false, true, false); });
+    L.push(I2 + '<supports>');
+    sups.forEach(function (s) {
+      var m = s.m.map(function (f) { return f ? FIXED : '0'; });
+      L.push(I3 + '<point_support guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + s.name + '">');
+      L.push(I4 + '<group>');
+      L.push(I5 + pt('local_x', s.x));
+      L.push(I5 + pt('local_y', s.y));
+      L.push(I5 + '<rigidity>');
+      L.push(I6 + '<motions x_neg="' + m[0] + '" x_pos="' + m[0] + '" y_neg="' + m[1] + '" y_pos="' + m[1] + '" z_neg="' + m[2] + '" z_pos="' + m[2] + '"/>');
+      L.push(I6 + '<rotations x_neg="0" x_pos="0" y_neg="0" y_pos="0" z_neg="0" z_pos="0"/>');
+      L.push(I5 + '</rigidity>');
+      L.push(I4 + '</group>');
+      L.push(I4 + pt('position', s.pos));
+      L.push(I3 + '</point_support>');
+    });
+    L.push(I2 + '</supports>');
+    L.push(I1 + '</entities>');
+    L.push(I1 + '<materials>');
+    L.push(I2 + mat);
+    L.push(I1 + '</materials>');
+    L.push(I1 + '<end/>');
+    L.push('</database>');
+    return { xml: L.join('\n') + '\n', rafter: R, cases: cases, supports: sups };
+  }
+
+  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
 })(typeof window !== 'undefined' ? window : this);
@@ -8388,21 +8522,22 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     copyText(xml, 'StruXML er kopieret. Indsæt i en teksteditor, og gem som tanktag.struxml (UTF-8).');
   });
 
-  // skalmodel: samme model med radialbjælkerne som skaller (TankShell)
+  // skalmodel: én radialbjælke som skaller med enhedslaster til stabilitetsanalyse (TankShell)
   $('btnShell').addEventListener('click', function () {
     if (this.disabled) return;
-    var xml, base = fileBase(TR.normalizeParams(params)) + '_skal', shell;
+    var res, base = fileBase(TR.normalizeParams(params)) + '_skal_RB1';
     try {
       var g = TR.computeGeometry(params);
       if (g.errors.length) throw new Error(g.errors.join(' '));
-      shell = window.TankShell.radialShells(TR, g, LIB);
-      xml = TR.buildStruxml(params, LIB, { geometry: g, loads: TR.computeLoads(g), shell: shell });
+      res = window.TankShell.buildRafterStruxml(TR, g, LIB);
     } catch (e) {
       addStatus('bad', 'Skalmodellen kunne ikke dannes: ' + (e && e.message ? e.message : e));
       return;
     }
-    var info = 'Skalmodel: ' + esc(shell.note) + ', i alt ' + shell.pieces.length * 3 + ' skaller. Temperaturlasten på radialbjælkerne og deres knæklængder er ikke med. Sæt stabilitetsanalysen op i FEM-Design.';
-    if (directDownload(xml, base + '.struxml')) addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. ' + info);
+    var R = res.rafter, lens = R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ');
+    var info = 'RB.1 (' + esc(R.profile) + ') med gaffellejer i enderne og sidefastholdelse i topflangen ved udvekslingsringene. ' +
+      'Lasttilfældene er enhedslaster (N = 1 kN, q = 1 kN/m), så den kritiske lastfaktor er den kritiske last. Stykkernes længder: ' + lens + ' m.';
+    if (directDownload(res.xml, base + '.struxml')) addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. ' + info);
     else addStatus('bad', '', 'Browseren tillod ikke at gemme filen.');
   });
 
