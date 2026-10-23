@@ -341,6 +341,23 @@ test('vindgitteret skrives med knudenavnene fra FEM-Design, og den gamle form "2
   assert.deepEqual(fejl.braceErrors, ['Vindgitter: "KSL.1" peger ud over svøbet.']);
 });
 
+test('vindgitteret kun i træk får den tilladte trykkraft som sprød grænse, og 0 er standard', () => {
+  const xmlFor = (o) => {
+    const params = TR.normalizeParams(Object.assign({}, TR.DEFAULTS, o));
+    return TR.buildStruxml(params, LIB, { geometry: TR.computeGeometry(params) });
+  };
+  const limits = (xml) => (xml.match(/<limit_force value="[^"]*"\/>/g) || []);
+  assert.equal(limits(xmlFor({})).length, 0);
+  const nul = limits(xmlFor({ braceTensionOnly: true }));
+  assert.equal(nul.length, 18 * 9);
+  assert.ok(nul.every((x) => x === '<limit_force value="0"/>'));
+  const fem = limits(xmlFor({ braceTensionOnly: true, braceCompLimit: '12.5' }));
+  assert.equal(fem.length, 18 * 9);
+  assert.ok(fem.every((x) => x === '<limit_force value="12.5"/>'));
+  const neg = TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { braceTensionOnly: true, braceCompLimit: -1 })));
+  assert.deepEqual(neg.braceErrors, ['Vindgitter: den tilladte trykkraft skal være 0 eller større.']);
+});
+
 test('sne på kuppeltag følger 5.3.5: μ3 = 0,2 + 10 h/b og trekanterne i fig. 5.6 i hvert snit gennem toppen', () => {
   const p = TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { asymDir: 30 }));
   const L = TR.computeLoads(TR.computeGeometry(p));

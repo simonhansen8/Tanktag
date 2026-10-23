@@ -1131,8 +1131,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <select id="profBrace-size" aria-label="Profilstørrelse, vindgitter"></select>
           </div>
         </div>
-        <label class="check"><input type="checkbox" id="braceTensionOnly" data-key="braceTensionOnly"> <span>Kun træk – trykkapacitet 0</span></label>
-        <p class="hint">Trykkapaciteten sættes til 0 (sprød) og er den samme for alle beregninger. FEM-Design slår trykdiagonalerne fra i lastkombinationer, der regnes ikke-lineært elastisk – sæt flueben i NLE ved kombinationerne under beregningen. Lasttilfældene regnes altid lineært, så der tager diagonalerne stadig tryk.</p>
+        <label class="check"><input type="checkbox" id="braceTensionOnly" data-key="braceTensionOnly"> <span>Kun træk – begrænset trykkapacitet</span></label>
+        <div class="field">
+          <label class="lbl" for="braceCompLimit">Tilladt trykkraft <span class="unit">kN</span></label>
+          <input class="num" type="text" inputmode="decimal" id="braceCompLimit" data-key="braceCompLimit">
+        </div>
+        <p class="hint">Trykkapaciteten sættes til den tilladte trykkraft (sprød, 0 = kun træk) og er den samme for alle beregninger. Stænger, der får mere tryk, slås fra. FEM-Design slår trykdiagonalerne fra i lastkombinationer, der regnes ikke-lineært elastisk – sæt flueben i NLE ved kombinationerne under beregningen. Lasttilfældene regnes altid lineært, så der tager diagonalerne stadig tryk.</p>
         <p class="hint">Stængerne skrives som gitterstænger (truss members): de optager kun normalkraft, har altid charnier i enderne og forbindes kun med de bjælker, de ender på. Egenvægten føres ud til endeknuderne og kommer med i Egenlast, og temperaturlasten følger tagbjælkerne.</p>
       </section>
 
@@ -1437,7 +1441,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     bracing: 'KS.23-K3.22; KS.22-K3.23; K3.22-K2.23; K2.23-K1.22; K1.23-K2.22; K2.22-K3.23', // vindgitter, tegnes i fanen Vindgitter: "KS.1-K4.2; K4.2-K3.1" (K + ring.RB, R = ringbjælke, S = svøb, M/L = midt til næste RB/ring)
     bracingRepeat: 3,          // mønstret gentages så mange gange rundt om taget (1 = ingen gentagelse)
     profBrace: 'LE|70*7',      // vindgitteret skrives som gitterstænger (truss members): kun normalkraft, altid charnier
-    braceTensionOnly: false,   // kun træk: trykkapacitet 0 (sprød), ens for alle beregninger – virker i NLE-kombinationer
+    braceTensionOnly: false,   // kun træk: trykkapacitet braceCompLimit (sprød), ens for alle beregninger – virker i NLE-kombinationer
+    braceCompLimit: 0,         // tilladt trykkraft [kN] ved braceTensionOnly (0 = intet tryk)
     resultPoints: false,       // knuderne skrives som navngivne resultatpunkter (KS.11 …), så samlingerne kan findes i FEM-Design
 
     // --- laster (lægges som fladelaster på lastfordelingsfladerne) ---
@@ -1847,7 +1852,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.bracingRepeat = toNum(q.bracingRepeat);
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
-      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF']
+      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'braceCompLimit']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
       'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'braceTensionOnly', 'resultPoints']
@@ -2160,6 +2165,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       lineRefs.push([A, B]);
     });
     var rep = 1, braceValid = lineRefs.filter(function (x) { return x; }).length;
+    if (p.braceTensionOnly && !(p.braceCompLimit >= 0)) braceErrors.push('Vindgitter: den tilladte trykkraft skal være 0 eller større.');
     if (braceValid) {
       var rq = p.bracingRepeat;
       if (!(rq >= 1 && rq <= n && rq === Math.floor(rq))) braceErrors.push('Vindgitter: antal gentagelser skal være et helt tal fra 1 til ' + n + '.');
@@ -2179,7 +2185,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var pa = refPos(A2), pb = refPos(B2);
         nBrace++;
         addMember('brace', 'VG.' + nBrace, pa, pb, localYFor(vsub(pb, pa)), 'hinged', 'hinged',
-          { line: li, copy: tb, refs: [ka, kb], truss: true, tensionOnly: p.braceTensionOnly });
+          { line: li, copy: tb, refs: [ka, kb], truss: true, tensionOnly: p.braceTensionOnly, compLimit: p.braceCompLimit });
       });
     }
     // stænger der set oppefra krydser eller ligger langs en bjælke uden fælles knude
@@ -3206,10 +3212,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I3 + '</bar_part>');
         L.push(I3 + '<truss_behaviour>');
         if (m.tensionOnly) {
-          // kun træk: sprød med trykkapacitet 0 i alle ni beregningstyper ("Same for all calculations")
+          // kun træk: sprød med den tilladte trykkraft i alle ni beregningstyper ("Same for all calculations")
           L.push(I4 + '<compression>');
           L.push(I5 + '<brittle>');
-          for (var lf = 0; lf < 9; lf++) L.push(I6 + '<limit_force value="0"/>');
+          for (var lf = 0; lf < 9; lf++) L.push(I6 + '<limit_force value="' + fmt(m.compLimit || 0) + '"/>');
           L.push(I5 + '</brittle>');
           L.push(I4 + '</compression>');
         } else L.push(I4 + '<compression><elastic/></compression>');
@@ -5908,6 +5914,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('pressFields').disabled = !(on && p.pressOn);
     $('tempFields').disabled = !(on && p.tempOn);
     $('rotTestFields').disabled = !(on && p.rotTestOn);
+    $('braceCompLimit').disabled = !p.braceTensionOnly;
     var dome = p.roofType === 'dome';
     $('asymDir').disabled = !(on && ((p.snowOn && (p.snowAsym || (dome && p.snowHalf))) || (p.liveOn && p.liveHalf)));
     $('snowAsymMu').disabled = !(on && p.snowOn && (dome ? p.snowHalf : p.snowAsym));
@@ -7792,7 +7799,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       g.members.forEach(function (m) { if (m.group === 'brace') len += Math.sqrt(Math.pow(m.end[0] - m.start[0], 2) + Math.pow(m.end[1] - m.start[1], 2) + Math.pow(m.end[2] - m.start[2], 2)); });
       calc = info.valid + (info.valid === 1 ? ' stang tegnet' : ' stænger tegnet') +
         (info.repeat > 1 ? ' · gentaget ' + info.repeat + ' gange = ' + info.members + ' stænger' : '') +
-        ' · ' + nf(len, 1) + ' m' + (q && q.kgpm !== null ? ' · ' + nf(q.mass, 0) + ' kg' : '') + (g.params.braceTensionOnly ? ' · kun træk' : '');
+        ' · ' + nf(len, 1) + ' m' + (q && q.kgpm !== null ? ' · ' + nf(q.mass, 0) + ' kg' : '') + (g.params.braceTensionOnly ? (g.params.braceCompLimit > 0 ? ' · tryk ≤ ' + nf(g.params.braceCompLimit, 1) + ' kN' : ' · kun træk') : '');
     } else if (ok) calc = 'Ingen stænger endnu.';
     $('braceCalc').textContent = calc;
     $('braceFix').hidden = !(ok && g.braceLineOk && g.braceLineOk.some(function (x) { return !x; }));
