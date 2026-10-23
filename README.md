@@ -8,13 +8,17 @@ Under *Søjle- og kipningslængder* angives FEM-Designs β for søjlelængde om 
 
 Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i de øvrige lastkombinationer. Som standard får det sin egen kombination *Rotationsstivhed* med faktor 1 og typen anvendelse, karakteristisk, så det kan regnes ikke-lineært (NLE) i FEM-Design, uden at stålets styrkeeftervisning bruger den. Under Samlinger springes kombinationen over, når kræfterne indlæses.
 
-## Skalmodel af radialbjælkerne
+## Skalmodel af én radialbjælke
 
-Knappen *Hent skalmodel* under tegningen henter en ekstra StruXML-fil (`…_skal.struxml`) til stabilitetsanalyse i FEM-Design, fx for at udlede knæklængdefaktorer for søjlevirkning og kipning. Filen er den samme model som den almindelige, men hver radialbjælke er tre skaller i profilets midterflader: kroppen som væg og over- og underflangen som plader, med profilets krop- og flangetykkelse. I kuplens knæk er stykkerne skåret på geringen, så skallerne deler kanter. De øvrige stænger og understøtningerne møder kroppen i systemlinjen, og dækkene fører fladelasten ned i kroppen.
+Knappen *Hent skalmodel* under tegningen henter en lille StruXML-fil (`…_skal_RB1.struxml`) med radialbjælke RB.1 alene, til stabilitetsanalyse i FEM-Design. Ud fra de kritiske laster kan søjle- og kipningslængderne til den almindelige model udledes.
 
-Begrænsninger: kun IPE og HE-A/B/M, rodradierne er udeladt, og temperaturlasten og knæklængderne på radialbjælkerne kommer ikke med. Radialbjælkens charnier mod ringbjælken og svøbet findes ikke i skalmodellen; stængerne er forbundet til én knude i kroppen. Stabilitetsanalysen sættes op i FEM-Design.
+- **Bjælken**: krop, overflange og underflange som skaller i profilets midterflader, med profilets krop- og flangetykkelse. Den deles som i taget, og i kuplens knæk er stykkerne skåret på geringen, så skallerne deler kanter. Kun IPE og HE-A/B/M, og rodradierne er udeladt.
+- **Understøtninger**: gaffellejer i begge ender. Kroppens endekant er fastholdt i sin retning (i midten, over- og underkanten), og over- og underkanten er fastholdt på tværs, så tværsnittet ikke kan vride. Bjælken er fri om den stærke akse og for hvælving og kun fastholdt aksialt ved ringbjælken. Ved hver udvekslingsring er topflangen fastholdt på tværs, fordi udvekslingerne er monteret der.
+- **Laster**: tre enhedslaster, hver med sin egen kombination: *Tryk N* (1 kN jævnt fordelt over endetværsnittene, og i knækkene afbøjningskraften, så hvert stykke har rent normalkraft), *Last ned på overflange* og *Last op på overflange* (1 kN/m lodret langs overflangens midte pr. meter bjælke). FEM-Designs kritiske lastfaktor er derfor den kritiske last i kN eller kN/m.
 
-Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og kan fjernes ved at slette blokken, knappen `btnShell` med dens handler, linjerne markeret `skalmodel` i `buildStruxml`, `tests/shell.test.js` (og dens linje i `tests/load.js` og `package.json`) og dette afsnit.
+β for søjlevirkning følger af N_cr = π²EI/(βL)², hvor L er stykkets længde (står i statuslinjen, når filen hentes). For kipning sammenlignes M_cr fra lasten nedad (trykket overflange) og opad (trykket underflange) med FEM-Designs kipningsformel for den samme bjælke.
+
+Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og bruger ikke den almindelige eksport. Den fjernes ved at slette blokken, knappen `btnShell` med dens handler og linjen, der slår den fra, `tests/shell.test.js` (og dens linjer i `tests/load.js` og `package.json`) og dette afsnit.
 
 ## Kom i gang
 
