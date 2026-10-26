@@ -1333,6 +1333,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="doc-tools">
         <button type="button" class="btn small" id="loadDocSave">Hent som HTML</button>
         <button type="button" class="btn small" id="loadDocCopy">Kopiér tekst</button>
+        <button type="button" class="btn small" id="btnDsc" title="Skabelon til FEM-Designs dokumentation: Documentation → Templates → Open eller Append">Hent rapportskabelon (.dsc)</button>
         <span class="doc-msg" id="loadDocMsg" aria-live="polite"></span>
       </div>
       <div class="doc-body" id="loadDocBody"></div>
@@ -3711,6 +3712,87 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
+})(typeof window !== 'undefined' ? window : this);
+</script>
+<script>
+/* Rapportskabelon (.dsc) til FEM-Designs dokumentationsmodul. En .dsc er et FEM-Design-script (XML) med kommandoer
+   for afsnit, tekstbokse, figurer og tabeller. Modulet omsætter lastdokumentationen til afsnit og tekstbokse og sætter
+   dem ind sidst i grundskabelonen BASE_DSC (en skabelon gemt fra FEM-Design), eller i en tom skabelon, hvis den mangler.
+   I FEM-Design: beregn modellen, gå til Documentation, og vælg Templates → Open (eller Append) med filen.
+   Modulet er selvstændigt og let at fjerne: slet denne scriptblok, knappen btnDsc med dens handler,
+   tests/dsc.test.js (og dens linjer i tests/load.js og package.json) og afsnittet i README. */
+(function (root) {
+  'use strict';
+  // skabelon gemt fra FEM-Design (Documentation → Templates → Save as); tom streng = kun værktøjets egne afsnit
+  var BASE_DSC = '';
+  var WIDTH = 170;   // tekstboksenes bredde i mm (A4 minus margener)
+  var FONT = '<font><name>Arial</name><type>ANSI_CHARSET</type><size>0.003</size><width>1</width><slant>0</slant></font>';
+
+  function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  // FEM-Design formaterer teksten som printf, så % skrives %%; linjeskift som CR LF
+  function fdText(s) { return xmlEsc(String(s).replace(/%/g, '%%')).replace(/\r?\n/g, '&#13;&#10;'); }
+
+  function chapter(title, level) {
+    return '<cmddocchapter command="; CXL DOC CHAPTER"><docchapter><title>' + fdText(title) + '</title><level>' + level + '</level></docchapter></cmddocchapter>';
+  }
+  function textbox(text) {
+    return '<cmddoctextbox command="; CXL DOC TEXTBOX"><doctextbox>' + FONT + '<alignment>0</alignment><width>' + WIDTH + '</width>' +
+      '<text>' + fdText(text) + '</text><title></title><fTitle>false</fTitle><fFitWidth>false</fFitWidth></doctextbox></cmddoctextbox>';
+  }
+
+  // tekstdokumentationen (overskrifter understreget med = eller -, tabeller med tabulatorer) som overskrifter, afsnit og tabeller
+  function parseText(text) {
+    var lines = String(text).replace(/\r/g, '').split('\n'), out = [], block = [];
+    function flush() {
+      if (!block.length) return;
+      var table = block.every(function (l) { return l.indexOf('\t') >= 0; });
+      out.push(table ? { type: 'table', text: block.join('\n') } : { type: 'para', text: block.join('\n') });
+      block = [];
+    }
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i], next = lines[i + 1];
+      if (l.trim() && next !== undefined && /^(=+|-+)$/.test(next.trim()) && next.trim().length >= 3) {
+        flush();
+        var num = /^(\d+(?:\.\d+)*)\.?\s/.exec(l), depth = num ? num[1].split('.').length : 0;
+        out.push({ type: 'heading', title: l.trim(), level: next.trim()[0] === '=' ? 1 : Math.max(2, Math.min(3, depth)) });
+        i++;
+        continue;
+      }
+      if (!l.trim()) flush(); else block.push(l);
+    }
+    flush();
+    return out;
+  }
+
+  // parts: [{ title, text }]; hvert part bliver et hovedafsnit (niveau 0) med tekstens overskrifter under sig
+  function commands(parts) {
+    var L = [];
+    parts.forEach(function (p) {
+      L.push(chapter(p.title, 0));
+      parseText(p.text).forEach(function (b) {
+        L.push(b.type === 'heading' ? chapter(b.title, b.level) : textbox(b.text));
+      });
+    });
+    return L.join('');
+  }
+
+  function buildDsc(parts, base) {
+    var cmds = commands(parts);
+    base = base === undefined ? BASE_DSC : base;
+    if (base && base.trim()) {
+      var at = base.search(/<cmdendsession\s*\/>|<\/fdscript>/);
+      if (at < 0) throw new Error('Grundskabelonen er ikke et FEM-Design-script (mangler </fdscript>).');
+      return base.slice(0, at) + cmds + base.slice(at);
+    }
+    return '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<fdscript xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="fdscript.xsd">' +
+      '<fdscriptheader><title>FEM-Design documentation script</title><version>2300</version><module>sframe</module><logfile>doc.log</logfile></fdscriptheader>' +
+      cmds + '<cmdendsession/></fdscript>';
+  }
+
+  var api = { parseText: parseText, commands: commands, buildDsc: buildDsc, hasBase: function () { return !!BASE_DSC.trim(); } };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.TankDsc = api;
 })(typeof window !== 'undefined' ? window : this);
 </script>
 <script>
@@ -8925,6 +9007,18 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   $('loadDocCopy').addEventListener('click', function () {
     var data = loadDocData();
     if (data) copyDoc(LD.text(data), LD.clipboardHtml(data), ldMsg, 'loadDocArea');
+  });
+
+  // rapportskabelon (.dsc) til FEM-Designs dokumentationsmodul med lastdokumentationen som afsnit (TankDsc)
+  $('btnDsc').addEventListener('click', function () {
+    var data = loadDocData();
+    if (!data || !window.TankDsc) return;
+    var name = 'rapport_' + fileBase(TR.normalizeParams(params)) + '.dsc', dsc;
+    try { dsc = window.TankDsc.buildDsc([{ title: 'Laster på tanktaget', text: LD.text(data) }]); }
+    catch (e) { ldMsg('Skabelonen kunne ikke dannes: ' + esc(e && e.message ? e.message : e), true); return; }
+    if (directDownload(dsc, name, 'application/xml')) ldMsg('Henter <span class="mono">' + esc(name) + '</span>. Beregn modellen i FEM-Design, gå til Documentation, og vælg Templates → ' +
+      (window.TankDsc.hasBase() ? 'Open' : 'Append, så lasterne kommer efter din egen rapport') + '. Gem derefter som .docx.');
+    else ldMsg('Browseren tillod ikke at gemme filen.', true);
   });
 
   // ---------- indlæs ----------

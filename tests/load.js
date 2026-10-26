@@ -35,10 +35,11 @@ function load() {
   const WD = runModule(find('root.TankWindDoc = api'), 'index.html#TankWindDoc');
   const TC = runModule(find('root.TankConn = api'), 'index.html#TankConn');
   const TS = runModule(find('root.TankShell = api'), 'index.html#TankShell');
+  const TD = runModule(find('root.TankDsc = api'), 'index.html#TankDsc');
   const lm = /const LIB_B64 = "([^"]+)"/.exec(html);
   if (!lm) throw new Error('Fandt ikke LIB_B64 i index.html');
   const LIB = JSON.parse(zlib.inflateSync(Buffer.from(lm[1], 'base64')).toString('utf8'));
-  return { TR, WD, TC, TS, LIB };
+  return { TR, WD, TC, TS, TD, LIB };
 }
 
 module.exports = { load };
