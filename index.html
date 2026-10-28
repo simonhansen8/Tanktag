@@ -3483,6 +3483,26 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     L.push(I1 + '<materials>');
     L.push(I2 + mat);
     L.push(I1 + '</materials>');
+    // brugerdefinerede filtre (højst 15 tegn i navnet): én pr. stangtype og én pr. udvekslingsring,
+    // så hver type kan vises eller skjules for sig i FEM-Design. Medlemmerne er bar_part-guids.
+    var filters = [], filterOf = {};
+    function addToFilter(name, guid) {
+      var f = filterOf[name];
+      if (!f) { f = filterOf[name] = { name: name, guids: [] }; filters.push(f); }
+      f.guids.push(guid);
+    }
+    var filterNames = { radial: 'Radialbjælker', sec: 'Sektionsspær', ring: 'Ringbjælke', udv: 'Udvekslinger', edge: 'Kantring', brace: 'Vindgitter' };
+    Object.keys(filterNames).forEach(function (g) {
+      geom.members.forEach(function (m) { if (m.group === g) addToFilter(filterNames[g], m.partGuid); });
+    });
+    if (geom.info.radii.length > 1) {
+      geom.members.forEach(function (m) { if (m.group === 'udv') addToFilter('Udveksling ' + m.ringNo, m.partGuid); });
+    }
+    filters.forEach(function (f) {
+      L.push(I1 + '<user_defined_filter name="' + f.name + '">');
+      L.push(I2 + '<members>' + f.guids.join(' ') + '</members>');
+      L.push(I1 + '</user_defined_filter>');
+    });
     L.push(I1 + '<end/>');
     L.push('</database>');
     return L.join('\n') + '\n';
