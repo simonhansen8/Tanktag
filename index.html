@@ -1391,8 +1391,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <button type="button" class="btn small" id="shellDefaults">Standardværdier</button>
           <button type="button" class="btn primary" id="btnShellPane">Hent skalmodel</button>
           <button type="button" class="btn" id="btnBetaXlsx">Hent β-kalibreringsark</button>
+          <button type="button" class="btn" id="btnBetaRead">Indlæs kalibreringsark</button>
+          <input type="file" id="betaFile" class="visually-hidden" accept=".xlsx" tabindex="-1">
         </div>
-        <p class="hint">β-kalibreringsarket (Excel) er udfyldt for bjælken her: antal sektioner, længder, styrende sektion (stykket midt på spæret), start-β fra modellens kipningslængder og lasttilfældenes navne. Kritisk lastfaktor α<sub>cr</sub> og M<sub>Ed,max</sub> udfyldes selv, og kalibreringen køres i arket.</p>
+        <p class="hint">β-kalibreringsarket (Excel) er udfyldt for bjælken her: antal sektioner, længder, styrende sektion (stykket midt på spæret), start-β fra modellens kipningslængder og lasttilfældenes navne. Kritisk lastfaktor α<sub>cr</sub> og M<sub>Ed,max</sub> udfyldes selv, og kalibreringen køres i arket. <i>Indlæs kalibreringsark</i> læser det gemte ark og sætter radialbjælkernes kipning (fanen Model) til β = L<sub>cr</sub> / hele bjælkens længde med »Hele«, så hvert stykke i filen får β = L<sub>cr</sub> / L<sub>sektion</sub> som i arket.</p>
       </section>
       </div>
     </form>
@@ -4086,8 +4088,38 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { files: out, sections: N, lengths: lens, Ltot: Ltot, governing: gov, betaTop: betas[2], betaBottom: betas[3], cases: [down, up] };
   }
 
+  // det udfyldte og gemte regneark læses tilbage: dimensionerende L_cr for over- og underflange (arket Sektioner),
+  // antal sektioner og L_tot (arket Kalibrering). Værdierne er de resultater, Excel gemte i formelcellerne.
+  function sheetPath(files, name) {
+    var wb = files['xl/workbook.xml'] || '', rels = files['xl/_rels/workbook.xml.rels'] || '';
+    var tag = new RegExp('<sheet\\b[^>]*\\bname="' + name + '"[^>]*>').exec(wb);
+    var id = tag && /\br:id="([^"]+)"/.exec(tag[0]);
+    var rel = id && new RegExp('<Relationship\\b[^>]*\\bId="' + id[1] + '"[^>]*>').exec(rels);
+    var tg = rel && /\bTarget="([^"]+)"/.exec(rel[0]);
+    if (!tg) return null;
+    return tg[1].charAt(0) === '/' ? tg[1].slice(1) : 'xl/' + tg[1].replace(/^\.\//, '');
+  }
+  function cellValue(xml, ref) {
+    var m = new RegExp('<c r="' + ref + '"([^>]*?)(?:/>|>([\\s\\S]*?)</c>)').exec(xml || '');
+    if (!m || !m[2]) return null;
+    var v = /<v>([^<]*)<\/v>/.exec(m[2]), t = /\bt="([^"]+)"/.exec(m[1]);
+    if (t && t[1] === 'inlineStr') { var it = /<t[^>]*>([^<]*)<\/t>/.exec(m[2]); return it ? it[1] : null; }
+    if (!v) return null;
+    return !t || t[1] === 'n' ? Number(v[1]) : (t[1] === 's' ? null : v[1]);
+  }
+  function readBetaWorkbook(files) {
+    var kal = files[sheetPath(files, 'Kalibrering')], sek = files[sheetPath(files, 'Sektioner')];
+    if (!kal || !sek) throw new Error('Filen er ikke et β-kalibreringsark (arkene Kalibrering og Sektioner mangler).');
+    var num = function (v) { return typeof v === 'number' && isFinite(v) && v > 0 ? v : null; };
+    return {
+      lcrTop: num(cellValue(sek, 'C6')), lcrBottom: num(cellValue(sek, 'C7')),
+      statusTop: cellValue(sek, 'F6'), statusBottom: cellValue(sek, 'F7'),
+      sections: num(cellValue(kal, 'C5')), Ltot: num(cellValue(kal, 'C6'))
+    };
+  }
+
   var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml,
-    betaWorkbook: betaWorkbook, setCell: setCell };
+    betaWorkbook: betaWorkbook, setCell: setCell, readBetaWorkbook: readBetaWorkbook };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
 })(typeof window !== 'undefined' ? window : this);
@@ -9010,6 +9042,44 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   $('btnShell').addEventListener('click', function () { if (!this.disabled) exportShell(); });
   $('btnShellPane').addEventListener('click', function () { if (!this.disabled) exportShell(); });
+  // det kalibrerede regneark læses tilbage: L_cr pr. flange bliver β af hele radialbjælken med »Hele«
+  $('btnBetaRead').addEventListener('click', function () { $('betaFile').click(); });
+  $('betaFile').addEventListener('change', function () {
+    var file = this.files && this.files[0];
+    this.value = '';
+    if (!file) return;
+    file.arrayBuffer().then(function (buf) {
+      var parts = TC.unzip(buf), names = Object.keys(parts).filter(function (n) { return /^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|worksheets\/sheet\d+\.xml)$/.test(n); });
+      var dec = new TextDecoder();
+      return Promise.all(names.map(function (n) { return TC.inflate(parts[n]); })).then(function (data) {
+        var files = {};
+        names.forEach(function (n, k) { files[n] = dec.decode(data[k]); });
+        return window.TankShell.readBetaWorkbook(files);
+      });
+    }).then(function (r) {
+      var g = TR.computeGeometry(params);
+      if (g.errors.length) throw new Error('taget har fejl – ret dem først');
+      var ms = g.members.filter(function (mb) { return mb.group === 'radial' && mb.index === 0; }), full = ms[0].fullLength;
+      if (!r.lcrTop && !r.lcrBottom) throw new Error('arket har ingen kalibreret L_cr endnu. Er det gemt i Excel efter kalibreringen?');
+      var done = [], warn = [];
+      [['Top', r.lcrTop, r.statusTop, 'overflange'], ['Bottom', r.lcrBottom, r.statusBottom, 'underflange']].forEach(function (x) {
+        if (!x[1]) return;
+        var beta = Math.round(x[1] / full * 10000) / 10000;
+        params['bkRadial' + x[0]] = beta;
+        params['bkRadial' + x[0] + 'Full'] = true;
+        done.push(x[3] + ': L<sub>cr</sub> = ' + esc(String(Math.round(x[1] * 1000) / 1000).replace('.', ',')) + ' m → β = ' + esc(String(beta).replace('.', ',')) + ' af hele bjælken' +
+          (x[2] && x[2] !== 'Konvergeret' ? ' (' + esc(x[2]) + ')' : ''));
+      });
+      if (r.sections && r.sections !== ms.length) warn.push('arket har ' + r.sections + ' sektioner, modellen ' + ms.length);
+      if (r.Ltot && Math.abs(r.Ltot - full) > 0.005) warn.push('arkets L<sub>tot</sub> er ' + esc(String(r.Ltot).replace('.', ',')) + ' m, modellens ' + esc(String(Math.round(full * 1000) / 1000).replace('.', ',')) + ' m');
+      fillForm();
+      statusExtra = [];
+      storeParams();
+      render();
+      addStatus(warn.length ? '' : 'ok', '', 'Kipningslængder indlæst fra <span class="mono">' + esc(file.name) + '</span> for radialbjælkerne – ' + done.join('; ') + '.' +
+        (warn.length ? ' <b>Kontrollér:</b> ' + warn.join(', ') + '.' : ''));
+    }).catch(function (e) { addStatus('bad', 'Kalibreringsarket kunne ikke indlæses: ' + (e && e.message ? e.message : e)); });
+  });
   // regnearket til kalibrering af kipnings-β, udfyldt for bjælken på fanen Skalmodel
   $('btnBetaXlsx').addEventListener('click', function () {
     var op, g, base = fileBase(TR.normalizeParams(params));
