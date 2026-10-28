@@ -22,6 +22,16 @@ Knappen *Hent skalmodel* under tegningen henter en lille StruXML-fil (`…_skal_
 
 Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og bruger ikke den almindelige eksport. Den fjernes ved at slette blokken, knappen `btnShell` med dens handler og linjen, der slår den fra, `tests/shell.test.js` (og dens linjer i `tests/load.js` og `package.json`) og dette afsnit.
 
+## Rapportskabelon til FEM-Design
+
+Knappen *Hent rapportskabelon (.dsc)* under *Dokumentation af lasterne* henter en skabelon til FEM-Designs dokumentationsmodul med lastdokumentationen som afsnit og tekstbokse. En .dsc er et FEM-Design-script i XML med kommandoer for afsnit, tekstbokse, figurer og tabeller.
+
+I FEM-Design: åbn StruXML-filen, beregn, gå til *Documentation*, og vælg *Templates → Open* (eller *Append*, så afsnittene kommer efter den rapport, der allerede er sat op). Gem derefter som .docx.
+
+Afsnittene sættes ind sidst i grundskabelonen `BASE_DSC` i scriptblokken `TankDsc`. Den skal være en skabelon gemt fra FEM-Design (*Control Panel → Templates → Save as*) med de figurer og resultattabeller, rapporten altid skal have. Er den tom, indeholder filen kun værktøjets egne afsnit.
+
+Funktionen fjernes ved at slette scriptblokken `TankDsc` i `index.html`, knappen `btnDsc` med dens handler, `tests/dsc.test.js` (og dens linjer i `tests/load.js` og `package.json`) og dette afsnit.
+
 ## Kom i gang
 
 Værktøjet er én selvstændig HTML-fil uden build-trin.

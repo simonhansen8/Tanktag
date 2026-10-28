@@ -3,8 +3,8 @@
   "private": true,
   "description": "Tanktag til FEM-Design – regressionstest af beregningskernen i index.html",
   "scripts": {
-    "test": "node --test tests/regression.test.js tests/conn.test.js tests/shell.test.js",
-    "test:update": "UPDATE_SNAPSHOTS=1 node --test tests/regression.test.js tests/conn.test.js tests/shell.test.js"
+    "test": "node --test tests/regression.test.js tests/conn.test.js tests/shell.test.js tests/dsc.test.js",
+    "test:update": "UPDATE_SNAPSHOTS=1 node --test tests/regression.test.js tests/conn.test.js tests/shell.test.js tests/dsc.test.js"
   },
   "engines": { "node": ">=18" }
 }
