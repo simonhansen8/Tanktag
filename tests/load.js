@@ -38,7 +38,10 @@ function load() {
   const lm = /const LIB_B64 = "([^"]+)"/.exec(html);
   if (!lm) throw new Error('Fandt ikke LIB_B64 i index.html');
   const LIB = JSON.parse(zlib.inflateSync(Buffer.from(lm[1], 'base64')).toString('utf8'));
-  return { TR, WD, TC, TS, LIB };
+  const bm = /const BETA_XLSX_B64 = "([^"]+)"/.exec(html);
+  if (!bm) throw new Error('Fandt ikke BETA_XLSX_B64 i index.html');
+  const BETA_XLSX = Buffer.from(bm[1], 'base64');
+  return { TR, WD, TC, TS, LIB, BETA_XLSX };
 }
 
 module.exports = { load };

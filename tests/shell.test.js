@@ -208,3 +208,56 @@ test('skalmodel: indstillingerne fra fanen Skalmodel', () => {
   const bad = TS.options({ beam: 99, meshSize: -1, holdRings: '7', holdStiff: '-2', caseN: false, caseDown: false, caseUp: false, beamOffset: '-1' }, geom);
   assert.equal(bad.errors.length, 6, bad.errors.join(' | '));
 });
+
+// regnearket til kalibrering af kipnings-β: skabelonen udfyldes for den valgte radialbjælke
+test('skalmodel: regnearket til kalibrering af kipnings-β udfyldes', async () => {
+  const { BETA_XLSX, TC } = load();
+  const params = Object.assign({}, TR.DEFAULTS, { bkRadialTop: 0.8, bkRadialBottom: 1.2 });
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const ab = BETA_XLSX.buffer.slice(BETA_XLSX.byteOffset, BETA_XLSX.byteOffset + BETA_XLSX.length);
+  const parts = TC.unzip(ab), files = {}, dec = new TextDecoder();
+  for (const k of Object.keys(parts)) files[k] = dec.decode(await TC.inflate(parts[k]));
+  const op = TS.options({ beam: 2 }, geom);
+  const res = TS.betaWorkbook(TR, geom, LIB, op.o, files);
+  const R = TS.rafter(TR, geom, LIB, op.o);
+  const cell = (xml, ref) => { const m = new RegExp('<c r="' + ref + '"[^>]*?(?:/>|>([\\s\\S]*?)</c>)').exec(xml); assert.ok(m, ref); return m[1] || ''; };
+  const num = (xml, ref) => Number(/<v>([^<]*)<\/v>/.exec(cell(xml, ref))[1]);
+  const txt = (xml, ref) => (/<t[^>]*>([^<]*)<\/t>/.exec(cell(xml, ref)) || [])[1];
+  const K = res.files['xl/worksheets/sheet2.xml'], S = res.files['xl/worksheets/sheet3.xml'], L = res.files['xl/worksheets/sheet4.xml'];
+  wellFormed(K); wellFormed(S); wellFormed(L);
+  // antal sektioner, længder og styrende sektion (midt på spæret)
+  assert.equal(num(K, 'C5'), R.pieces.length);
+  assert.equal(res.sections, R.pieces.length);
+  const lens = R.pieces.map((pc) => pc.length), tot = lens.reduce((a, l) => a + l, 0);
+  assert.ok(Math.abs(num(K, 'C6') - tot) < 1e-3);
+  assert.equal(txt(K, 'C7'), 'Nej');
+  lens.forEach((l, j) => assert.ok(Math.abs(num(S, 'C' + (11 + j)) - l) < 1e-3));
+  assert.equal(cell(S, 'C' + (11 + lens.length)), '');
+  let x = 0, gov = 0;
+  while (x + lens[gov] < tot / 2) x += lens[gov++];
+  assert.equal(num(K, 'C14'), gov + 1);
+  assert.equal(num(K, 'C42'), gov + 1);
+  // start-β fra modellens kipnings-β, og α_cr og M_Ed,max står tomme til brugeren
+  assert.equal(num(K, 'C16'), 0.8);
+  assert.equal(num(K, 'C44'), 1.2);
+  ['C11', 'C12', 'C39', 'C40', 'F19', 'F21', 'D20', 'F47', 'F50'].forEach((r) => assert.equal(cell(K, r), '', r));
+  assert.match(txt(K, 'E5'), /^RB\.2, IPE 330: \d+ sektioner/);
+  assert.match(txt(K, 'E11'), /Last ned på overflange/);
+  // formlerne og formaterne er urørte
+  assert.match(K, /<c r="C13" s="\d+"[^>]*><f>IF\(OR\(C11="",C12=""\),"",C11\*C12\)<\/f>/);
+  assert.match(K, /<c r="C16" s="17"><v>0.8<\/v><\/c>/);
+  // lastformerne: eksemplerne er væk, de to lasttilfælde står klar
+  assert.equal(txt(L, 'C6'), 'Last ned på overflange');
+  assert.equal(txt(L, 'D7'), 'Bund');
+  ['E6', 'F6', 'H6', 'I6', 'E7'].forEach((r) => assert.equal(cell(L, r), '', r));
+  assert.ok(cell(L, 'G6').includes('<f'));
+  assert.match(res.files['xl/workbook.xml'], /<calcPr[^>]*fullCalcOnLoad="1"\/>/);
+  // skabelonens gemte resultater og beregningskæde er fjernet
+  assert.ok(!/<\/f><v>/.test(K) && !/<\/f><v>/.test(S) && !/<\/f><v>/.test(L));
+  assert.ok(!res.files['xl/calcChain.xml'] && !res.files['[Content_Types].xml'].includes('calcChain') && !res.files['xl/_rels/workbook.xml.rels'].includes('calcChain'));
+  // kan pakkes som zip igen
+  const z = await TC.zip(res.files);
+  const back = TC.unzip(z.buffer);
+  assert.deepEqual(Object.keys(back).sort(), Object.keys(files).filter((k) => k !== 'xl/calcChain.xml').sort());
+});
