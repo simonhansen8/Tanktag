@@ -572,3 +572,43 @@ test('søjle- og kipningslængder skrives som buckling_data på radialbjælker o
   const bad = TR.computeGeometry(Object.assign({}, params, { bkRadialWeak: 0 }));
   assert.ok(bad.errors.some((e) => /Søjle, svag akse for radialbjælkerne/.test(e)));
 });
+
+// egen kipnings-β for hvert stykke af radialbjælkerne (fx kalibreret mod en skalmodel) går forud for den fælles værdi
+test('egen kipnings-β pr. stykke af radialbjælkerne for over- og underflange', () => {
+  const params = Object.assign({}, TR.DEFAULTS, {
+    bkRadialTop: 0.9, bkRadialTopFull: true, bkRadialTopSeg: '0,8; ; 1.25', bkRadialBottomSeg: ' ; 0,6'
+  });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  assert.deepEqual(g.errors, []);
+  assert.deepEqual(g.warnings.filter((w) => /Egen kipnings/.test(w)), []);
+  const len = (m) => Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
+  const rb = g.members.filter((m) => m.group === 'radial' && m.index === 3);
+  assert.ok(rb.length >= 3);
+  const full = rb.reduce((a, m) => a + len(m), 0);
+  const b = rb.map((m) => TR.bucklingBetas(g.params, m));
+  // egen β gælder stykkets egen længde, også når »Hele« er sat for den fælles værdi
+  assert.equal(b[0][2], 0.8);
+  assert.ok(Math.abs(b[1][2] * len(rb[1]) - 0.9 * full) < 1e-9, 'tom plads følger den fælles værdi over hele bjælken');
+  assert.equal(b[2][2], 1.25);
+  assert.deepEqual(b.map((x) => x[3]), rb.map((m, j) => (j === 1 ? 0.6 : 1)));
+  // søjlelængderne og sektionsspærene er uændrede
+  b.forEach((x) => assert.deepEqual(x.slice(0, 2), [1, 1]));
+  g.members.filter((m) => m.group === 'sec').forEach((m) => assert.deepEqual(TR.bucklingBetas(g.params, m), [1, 1, 1, 1]));
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  const rb43 = xml.split('<bar ').find((x) => x.startsWith('name="RB4.3"'));
+  assert.match(rb43, /<buckling_length type="pressured_flange" beta="1.25" load_position="top"/);
+
+  // ugyldig β og flere værdier end stykker
+  const bad = TR.computeGeometry(Object.assign({}, params, { bkRadialBottomSeg: '1; 0' }));
+  assert.ok(bad.errors.some((e) => /Kipning, trykket underflange for stykke 2 af radialbjælkerne/.test(e)));
+  const many = TR.computeGeometry(Object.assign({}, params, { bkRadialTopSeg: Array(rb.length + 2).fill('1').join('; ') }));
+  assert.deepEqual(many.errors, []);
+  assert.ok(many.warnings.some((w) => /overflangen er angivet for 2 stykker mere/.test(w)));
+  // en radialbjælke i ét stykke bruger første værdi
+  const one = TR.computeGeometry(Object.assign({}, TR.DEFAULTS, { roofType: 'cone', splitRadial: false, bkRadialTopSeg: '0.7; 2' }));
+  assert.deepEqual(one.errors, []);
+  const rbOne = one.members.find((m) => m.group === 'radial');
+  assert.equal(TR.bucklingBetas(one.params, rbOne)[2], 0.7);
+  assert.ok(one.warnings.some((w) => /1 stykke mere, end radialbjælkerne har \(1\)/.test(w)));
+});
