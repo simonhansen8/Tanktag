@@ -58,12 +58,15 @@ fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().forEach((fil
     const radial = geom.members.filter((m) => m.group === 'radial' && m.index === 0);
     wellFormed(xml);
 
-    // kun skaller: tre pr. stykke af RB.1, ingen stænger eller dæk
+    // tre skaller pr. stykke af RB.1, og bjælkemodellen ved siden af med én stang pr. stykke; ingen dæk
     assert.equal(R.pieces.length, radial.length);
     assert.equal((xml.match(/<slab /g) || []).length, 3 * radial.length);
-    assert.ok(!xml.includes('<bar ') && !xml.includes('<cover '));
-    assert.equal((xml.match(/<load_case type=/g) || []).length, 3);
-    assert.equal((xml.match(/<load_combination /g) || []).length, 3);
+    assert.equal((xml.match(/<bar /g) || []).length, radial.length);
+    assert.ok(!xml.includes('<cover '));
+    assert.equal((xml.match(/<load_case type=/g) || []).length, 6);
+    assert.equal((xml.match(/<load_combination /g) || []).length, 6);
+    assert.ok(xml.indexOf('<bar ') < xml.indexOf('<slab '), 'stængerne skal stå før skallerne');
+    assert.ok(xml.includes('<sections>') && xml.indexOf('</entities>') < xml.indexOf('<sections>'));
 
     const allPlates = [];
     R.pieces.forEach((pc) => {
@@ -113,7 +116,29 @@ fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().forEach((fil
     cases[0].points.forEach((q) => assert.ok(onPlate(q.pos)));
 
     // understøtningerne: gaffellejer i begge ender og én sidefastholdelse i topflangen pr. udvekslingsring
-    supports.forEach((s) => assert.ok(onPlate(s.pos), s.name + ' sidder ikke på en skal'));
+    supports.filter((s) => !/^B\./.test(s.name)).forEach((s) => assert.ok(onPlate(s.pos), s.name + ' sidder ikke på en skal'));
+
+    // bjælkemodellen: 3 m vandret på tværs, samme laster i egne tilfælde, lejer i knuderne
+    const ov = scale(R.pieces[0].y, 3);
+    assert.ok(Math.abs(R.pieces[0].y[2]) < 1e-12);
+    const bars = [...xml.matchAll(/<bar name="(RBB[^"]+)"[\s\S]*?<curve type="line">\s*<point x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>\s*<point x="([^"]+)" y="([^"]+)" z="([^"]+)"\/>/g)];
+    assert.equal(bars.length, R.pieces.length);
+    bars.forEach((b, j) => {
+      assert.ok(same([+b[2], +b[3], +b[4]], add(R.pieces[j].member.start, ov)) && same([+b[5], +b[6], +b[7]], add(R.pieces[j].member.end, ov)));
+    });
+    const bc = res.beamCases;
+    assert.deepEqual(bc.map((c) => c.name), ['Tryk N – bjælkemodel', 'Last ned – bjælkemodel', 'Last op – bjælkemodel']);
+    let FB = [0, 0, 0];
+    bc[0].points.forEach((q) => { FB = add(FB, scale(q.dir, q.val)); });
+    assert.ok(len(FB) < 1e-9);
+    let FzB = 0;
+    bc[1].lines.forEach((l) => { FzB += l.dir[2] * l.val * len(sub(l.b, l.a)); });
+    assert.ok(Math.abs(FzB + TS.UNIT_Q * total) < 1e-9);
+    const bs = supports.filter((s) => /^B\./.test(s.name));
+    assert.equal(bs.length, 2 + R.holds.length);
+    assert.deepEqual(bs.find((s) => s.name === 'B.GL.R').m, [true, true, true]);
+    assert.deepEqual(bs.find((s) => s.name === 'B.GL.R').r, [true, false, false]);
+    R.holds.forEach((h) => assert.ok(bs.some((s) => s.name === 'B.SF.' + h.ring && same(s.pos, add(h.node, ov)))));
     assert.equal(R.holds.length, geom.info.radii.length);
     R.holds.forEach((h) => {
       const top = h.piece.plates[1].pts;
@@ -123,7 +148,7 @@ fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().forEach((fil
     const sf = supports.filter((s) => /^SF\./.test(s.name));
     assert.equal(sf.length, geom.info.radii.length);
     sf.forEach((s) => assert.deepEqual(s.m, [false, true, false]));
-    assert.equal(supports.filter((s) => s.m[0]).length, 1, 'aksialt fastholdt ét sted');
+    assert.equal(supports.filter((s) => s.m[0] && !/^B\./.test(s.name)).length, 1, 'aksialt fastholdt ét sted');
   });
 });
 
@@ -154,7 +179,7 @@ test('skalmodel: indstillingerne fra fanen Skalmodel', () => {
   assert.ok(/mesh_size="0.05"/.test(xml));
   R.endPlates.forEach((pl) => assert.ok(supports.filter((s) => /^GL\./.test(s.name)).some((s) => onQuad(s.pos, pl.pts))));
   // aksialt ved svøbet, sidefastholdelse som fjeder i systemlinjen ved ring 1 og 3
-  assert.deepEqual(supports.filter((s) => s.m[0] === true).map((s) => s.name), ['GL.S']);
+  assert.deepEqual(supports.filter((s) => s.m[0] === true).map((s) => s.name), ['GL.S', 'B.GL.S']);
   assert.deepEqual(R.holds.map((h) => h.ring), [1, 3]);
   R.holds.forEach((h) => assert.ok(same(h.pos, h.node)));
   supports.filter((s) => /^SF\./.test(s.name)).forEach((s) => assert.deepEqual(s.m, [false, 500, false]));
@@ -171,14 +196,15 @@ test('skalmodel: indstillingerne fra fanen Skalmodel', () => {
     assert.ok(R.pieces.some((pc) => onQuad(l.a, pc.plates[2].pts) && onQuad(l.b, pc.plates[2].pts)), 'lasten ligger ikke i underflangen');
   });
   assert.ok(Math.abs(Fz + 2.5 * total) < 1e-9);
-  assert.equal((xml.match(/<load_combination /g) || []).length, 2);
+  assert.equal((xml.match(/<load_combination /g) || []).length, 4);
 
-  // ingen sidefastholdelse
-  const none = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ holdPos: 'none' }, geom).o);
+  // ingen sidefastholdelse og ingen bjælkemodel
+  const none = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ holdPos: 'none', beamOffset: '0' }, geom).o);
   assert.equal(none.rafter.holds.length, 0);
-  assert.ok(!none.xml.includes('name="SF.'));
+  assert.ok(!none.xml.includes('name="SF.') && !none.xml.includes('<bar ') && !none.xml.includes('<sections>'));
+  assert.equal(none.beamCases.length, 0);
 
   // fejl i indstillingerne
-  const bad = TS.options({ beam: 99, meshSize: -1, holdRings: '7', holdStiff: '-2', caseN: false, caseDown: false, caseUp: false }, geom);
-  assert.equal(bad.errors.length, 5, bad.errors.join(' | '));
+  const bad = TS.options({ beam: 99, meshSize: -1, holdRings: '7', holdStiff: '-2', caseN: false, caseDown: false, caseUp: false, beamOffset: '-1' }, geom);
+  assert.equal(bad.errors.length, 6, bad.errors.join(' | '));
 });

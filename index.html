@@ -1375,6 +1375,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <p class="hint">Hvert lasttilfælde får sin egen lastkombination. Med N = 1 kN og q = 1 kN/m er FEM-Designs kritiske lastfaktor direkte den kritiske last. q regnes pr. meter bjælke.</p>
       </section>
 
+      <section class="group" aria-labelledby="g-shell-beam">
+        <h2 id="g-shell-beam">Bjælkemodel ved siden af</h2>
+        <div class="field">
+          <label class="lbl" for="shellBeamOffset">Afstand fra skalmodellen <span class="unit">m</span></label>
+          <input class="num" type="text" inputmode="decimal" id="shellBeamOffset" data-shell="beamOffset">
+        </div>
+        <p class="hint">Samme spær som almindelige stænger, forskudt vandret på tværs af spæret, med de samme lejer og laster, så momentet kan aflæses på stængerne. Den får egne lasttilfælde og kombinationer (»… – bjælkemodel«), så dens egenformer ikke blandes med skallens. Linjelasten og sidefastholdelsen sidder i systemlinjen, fordi en stang ikke har flanger. 0 = ingen bjælkemodel.</p>
+      </section>
+
       <section class="group" aria-labelledby="g-shell-out">
         <h2 id="g-shell-out">Hent</h2>
         <p class="calc" id="shellInfo"></p>
@@ -3665,7 +3674,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     caseN: true, caseDown: true, caseUp: true,
     N: UNIT_N,          // trykket i kN
     q: UNIT_Q,          // linjelasten i kN/m pr. meter bjælke
-    qPos: 'top'         // linjelastens angrebspunkt: 'top', 'centre' eller 'bottom'
+    qPos: 'top',        // linjelastens angrebspunkt: 'top', 'centre' eller 'bottom'
+    beamOffset: 3       // bjælkemodellen af samme spær ved siden af skalmodellen: afstand i m, 0 = ingen
   };
   var HOLD_SIDE = { top: 1, centre: 0, bottom: -1 };
   var POS_NAME = { top: 'overflange', centre: 'systemlinjen', bottom: 'underflange' };
@@ -3678,7 +3688,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function options(raw, geom) {
     var r = Object.assign({}, DEFAULTS, raw || {}), e = [], n = geom && geom.params ? geom.params.numRadial : Infinity;
     var nr = geom && geom.info ? geom.info.radii.length : Infinity;
-    var beam = num(r.beam), mesh = num(r.meshSize), plate = num(r.endPlate), N = num(r.N), q = num(r.q);
+    var beam = num(r.beam), mesh = num(r.meshSize), plate = num(r.endPlate), N = num(r.N), q = num(r.q), off = num(r.beamOffset);
+    if (!(off >= 0)) e.push('Bjælkemodellens afstand skal være 0 (ingen) eller større.');
     if (!(beam >= 1 && beam <= n && Math.round(beam) === beam)) e.push('Radialbjælken skal være et helt tal fra 1 til ' + n + '.');
     if (!(mesh >= 0)) e.push('Elementstørrelsen skal være 0 (automatisk) eller større.');
     if (!(plate >= 0)) e.push('Endepladernes tykkelse skal være 0 (ingen) eller større.');
@@ -3698,7 +3709,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return {
       errors: e,
       o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
-        holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos }
+        holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
   }
 
@@ -3792,6 +3803,43 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       '" convertid="00000000-0000-0000-0000-000000000000" standard="EC" country="DK" xmlns="urn:strusoft">');
     L.push(I1 + '<entities>');
 
+    // bjælkemodellen af samme spær, forskudt på tværs (vandret, vinkelret på spæret), så momentet kan aflæses på stængerne.
+    // Stykkerne er stive mod hinanden; tværsnittet ligger med tyngdepunktet på systemlinjen som i den almindelige model.
+    var off = o.beamOffset === undefined ? DEFAULTS.beamOffset : o.beamOffset, ov = vscale(first.y, off), sections = [];
+    R.beamOffset = off;
+    if (off > 0) {
+      var sec = TR.findSection(lib, p.profRadial), secGuid = /\sguid="([^"]*)"/.exec(sec.xml)[1], csGuid = newGuid();
+      var made = /fd-mat="1"/.test(sec.xml) ? 'cold_worked' : (/fd-mat="2"/.test(sec.xml) ? 'welded' : 'rolled');
+      sections.push(sec.xml);
+      sections.push('<complex_section guid="' + csGuid + '" last_change="1970-01-01T00:00:00.000" action="added">' +
+        '<section pos="0" guid="' + secGuid + '"><ecc x="0" y="0" z="0"/><end/></section>' +
+        '<section pos="1" guid="' + secGuid + '"><ecc x="0" y="0" z="0"/><end/></section></complex_section>');
+      var rigid = '<connectivity m_x="true" m_y="true" m_z="true" r_x="true" r_y="true" r_z="true"/>';
+      pieces.forEach(function (pc) {
+        var name = pc.member.name.replace(/^RB/, 'RBB');
+        L.push(I2 + '<bar name="' + name + '" type="beam" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
+        L.push(I3 + '<bar_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + name + '.1" complex_material="' +
+          matGuid + '" made="' + made + '" complex_section="' + csGuid + '" ecc_calc="true">');
+        L.push(I4 + '<curve type="line">');
+        L.push(I5 + pt('point', vadd(pc.member.start, ov)));
+        L.push(I5 + pt('point', vadd(pc.member.end, ov)));
+        L.push(I4 + '</curve>');
+        L.push(I4 + pt('local-y', pc.member.localY));
+        L.push(I4 + rigid);
+        L.push(I4 + rigid);
+        L.push(I4 + '<eccentricity use_default_physical_alignment="false">');
+        L.push(I5 + '<analytical x="0" y="0" z="0"/>');
+        L.push(I5 + '<analytical x="0" y="0" z="0"/>');
+        L.push(I5 + '<physical x="0" y="0" z="0"/>');
+        L.push(I5 + '<physical x="0" y="0" z="0"/>');
+        L.push(I4 + '</eccentricity>');
+        L.push(I4 + '<end/>');
+        L.push(I3 + '</bar_part>');
+        L.push(I3 + '<end/>');
+        L.push(I2 + '</bar>');
+      });
+    }
+
     // skallerne, og endepladerne som en skal over hele endetværsnittet
     var slabs = [];
     pieces.forEach(function (pc) { pc.plates.forEach(function (pl) { slabs.push({ pc: pc, pl: pl, name: pc.member.name.replace(/^RB/, 'RB' + pl.tag) }); }); });
@@ -3862,6 +3910,23 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       cases[2].lines.push({ a: a, b: b, dir: [0, 0, 1], val: q });
     });
     cases = cases.filter(function (c) { return use[c.key]; });
+    // bjælkemodellen får de samme laster i egne lasttilfælde og kombinationer, så dens egenformer ikke blandes med skallens:
+    // trykket som punktlaster i enderne og knækkene, linjelasten langs systemlinjen (stænger har ikke et angrebspunkt i flangen)
+    var beamCases = off > 0 ? cases.map(function (c) {
+      var bc = { key: c.key, name: c.name.replace(/ på \S+$/, '') + ' – bjælkemodel', points: [], lines: [], beam: true };
+      if (c.key === 'N') {
+        bc.points.push({ pos: vadd(first.member.start, ov), dir: first.x, val: N });
+        bc.points.push({ pos: vadd(last.member.end, ov), dir: vscale(last.x, -1), val: N });
+        c.points.forEach(function (Ld) { bc.points.push({ pos: vadd(Ld.pos, ov), dir: Ld.dir, val: Ld.val }); });
+      } else {
+        pieces.forEach(function (pc) {
+          bc.lines.push({ a: vadd(pc.member.start, ov), b: vadd(pc.member.end, ov), dir: c.key === 'down' ? [0, 0, -1] : [0, 0, 1], val: Q });
+        });
+      }
+      return bc;
+    }) : [];
+    var shellCases = cases;
+    cases = cases.concat(beamCases);
     var lcGuids = cases.map(function () { return newGuid(); });
     L.push(I2 + '<loads>');
     cases.forEach(function (c, ci) {
@@ -3902,7 +3967,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // og for hvælving), aksialt ét sted (som standard ved ringbjælken),
     // og sidefastholdelse ved udvekslingsringene (som standard i topflangen, fast)
     var sups = [];
-    function sup(name, pos, pc, mx, my, mz) { sups.push({ name: name, pos: pos, x: pc.x, y: pc.y, m: [mx, my, mz] }); }
+    function sup(name, pos, pc, mx, my, mz, rot) { sups.push({ name: name, pos: pos, x: pc.x, y: pc.y, m: [mx, my, mz], r: rot || [false, false, false] }); }
     var axShell = o.axialAt === 'shell';
     sup('GL.R', first.member.start, first, !axShell, false, true);
     sup('GL.RO', vadd(first.member.start, vscale(first.mS, d)), first, false, true, true);
@@ -3912,6 +3977,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     sup('GL.SU', vadd(last.member.end, vscale(last.mE, -d)), last, false, true, true);
     var hold = o.holdStiff === null || o.holdStiff === undefined ? true : o.holdStiff;
     R.holds.forEach(function (h) { sup('SF.' + h.ring, h.pos, h.piece, false, hold, false); });
+    // bjælkemodellen: gaffellejer som fastholdte flytninger og vridning i endeknuderne, sidefastholdelse i knuderne
+    if (off > 0) {
+      sup('B.GL.R', vadd(first.member.start, ov), first, !axShell, true, true, [true, false, false]);
+      sup('B.GL.S', vadd(last.member.end, ov), last, axShell, true, true, [true, false, false]);
+      R.holds.forEach(function (h) { sup('B.SF.' + h.ring, vadd(h.node, ov), h.piece, false, hold, false); });
+    }
     L.push(I2 + '<supports>');
     sups.forEach(function (s) {
       var m = s.m.map(function (f) { return f === true ? FIXED : (typeof f === 'number' ? fmt(f) : '0'); });
@@ -3921,7 +3992,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I5 + pt('local_y', s.y));
       L.push(I5 + '<rigidity>');
       L.push(I6 + '<motions x_neg="' + m[0] + '" x_pos="' + m[0] + '" y_neg="' + m[1] + '" y_pos="' + m[1] + '" z_neg="' + m[2] + '" z_pos="' + m[2] + '"/>');
-      L.push(I6 + '<rotations x_neg="0" x_pos="0" y_neg="0" y_pos="0" z_neg="0" z_pos="0"/>');
+      var rr = s.r.map(function (f) { return f ? FIXED : '0'; });
+      L.push(I6 + '<rotations x_neg="' + rr[0] + '" x_pos="' + rr[0] + '" y_neg="' + rr[1] + '" y_pos="' + rr[1] + '" z_neg="' + rr[2] + '" z_pos="' + rr[2] + '"/>');
       L.push(I5 + '</rigidity>');
       L.push(I4 + '</group>');
       L.push(I4 + pt('position', s.pos));
@@ -3929,12 +4001,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     L.push(I2 + '</supports>');
     L.push(I1 + '</entities>');
+    if (sections.length) {
+      L.push(I1 + '<sections>');
+      sections.forEach(function (x) { L.push(I2 + x); });
+      L.push(I1 + '</sections>');
+    }
     L.push(I1 + '<materials>');
     L.push(I2 + mat);
     L.push(I1 + '</materials>');
     L.push(I1 + '<end/>');
     L.push('</database>');
-    return { xml: L.join('\n') + '\n', rafter: R, cases: cases, supports: sups };
+    return { xml: L.join('\n') + '\n', rafter: R, cases: shellCases, beamCases: beamCases, supports: sups };
   }
 
   var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
@@ -8812,7 +8889,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         esc(String(Math.round(R.dims.tf * 10000) / 10).replace('.', ',')) + ' mm, ' + R.pieces.length + ' stykke' + (R.pieces.length > 1 ? 'r' : '') + ' på ' +
         R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ') + ' m (i alt ' +
         R.pieces.reduce(function (a, pc) { return a + pc.length; }, 0).toFixed(3).replace('.', ',') + ' m). Sidefastholdelse ved ' +
-        (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen udvekslingsringe') + '.';
+        (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen udvekslingsringe') + '.' +
+        (op.o.beamOffset > 0 ? ' Bjælkemodellen ligger ' + esc(String(op.o.beamOffset).replace('.', ',')) + ' m ved siden af.' : '');
     } catch (e) { el.innerHTML = '<b>Skalmodellen kan ikke dannes:</b> ' + esc(e && e.message ? e.message : String(e)); }
   }
   function onShellChange(e) {
@@ -8849,7 +8927,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var R = res.rafter, lens = R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ');
     var info = 'RB.' + (op.o.index + 1) + ' (' + esc(R.profile) + ') med gaffellejer i enderne og ' +
       (R.holds.length ? 'sidefastholdelse ved udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen sidefastholdelse') + '. ' +
-      'Lasttilfælde: ' + res.cases.map(function (c) { return esc(c.name); }).join(', ') + '. Stykkernes længder: ' + lens + ' m.';
+      'Lasttilfælde: ' + res.cases.map(function (c) { return esc(c.name); }).join(', ') + '. ' +
+      (res.beamCases.length ? 'Bjælkemodellen ligger ' + esc(String(R.beamOffset).replace('.', ',')) + ' m ved siden af med egne kombinationer (»… – bjælkemodel«). ' : '') +
+      'Stykkernes længder: ' + lens + ' m.';
     if (directDownload(res.xml, base + '.struxml')) addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. ' + info);
     else addStatus('bad', '', 'Browseren tillod ikke at gemme filen.');
   }
