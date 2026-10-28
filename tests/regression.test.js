@@ -572,3 +572,36 @@ test('søjle- og kipningslængder skrives som buckling_data på radialbjælker o
   const bad = TR.computeGeometry(Object.assign({}, params, { bkRadialWeak: 0 }));
   assert.ok(bad.errors.some((e) => /Søjle, svag akse for radialbjælkerne/.test(e)));
 });
+
+// kipningen kan skrives som kipningslængde i meter: β = L_cr / stykkets længde, uafhængigt af »Hele«
+test('kipningslængde i meter for over- og underflange', () => {
+  const params = Object.assign({}, TR.DEFAULTS, {
+    bkRadialTop: '2,79', bkRadialTopUnit: 'm', bkRadialTopFull: true, bkRadialBottom: 8.9, bkRadialBottomUnit: 'm',
+    bkSecBottom: 3, bkSecBottomUnit: 'm'
+  });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  assert.deepEqual(g.errors, []);
+  const len = (m) => Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
+  g.members.filter((m) => m.group === 'radial' && m.index === 0).forEach((m) => {
+    const b = TR.bucklingBetas(g.params, m);
+    assert.ok(Math.abs(b[2] * len(m) - 2.79) < 1e-9, m.name + ': overflange');
+    assert.ok(Math.abs(b[3] * len(m) - 8.9) < 1e-9, m.name + ': underflange');
+    assert.deepEqual(b.slice(0, 2), [1, 1]);
+  });
+  g.members.filter((m) => m.group === 'sec' && m.index === 0).forEach((m) => {
+    const b = TR.bucklingBetas(g.params, m);
+    assert.equal(b[2], 1);
+    assert.ok(Math.abs(b[3] * len(m) - 3) < 1e-9);
+  });
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  const rb11 = xml.split('<bar ').find((b) => b.startsWith('name="RB1.1"'));
+  const m11 = g.members.find((m) => m.name === 'RB1.1');
+  assert.match(rb11, new RegExp('type="pressured_flange" beta="' + (Math.round(2.79 / len(m11) * 1e6) / 1e6).toString().slice(0, 6)));
+  // ukendt enhed læses som β, og en længde på 0 er en fejl
+  assert.equal(TR.normalizeParams({ bkRadialTopUnit: 'x' }).bkRadialTopUnit, 'beta');
+  const bad = TR.computeGeometry(Object.assign({}, params, { bkRadialTop: 0 }));
+  assert.ok(bad.errors.some((e) => /kipningslængden skal være større end 0 m/.test(e)));
+  // en lang kipningslængde er tilladt, selv om den er over 100 som β
+  assert.deepEqual(TR.computeGeometry(Object.assign({}, params, { bkRadialTop: 150 })).errors, []);
+});

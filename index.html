@@ -187,6 +187,7 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .bkgrid .lbl { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; }
 .bklbl { font-size: 0.85rem; line-height: 1.25; }
 .bkcell { display: grid; grid-template-columns: 48px auto; gap: 6px; align-items: center; }
+.bkcell .bkunit { grid-column: 1; min-height: 26px; padding: 1px 4px; font-size: 0.8rem; }
 .bkcell input[type="text"] { min-height: 32px; padding: 4px 7px; }
 .bkcell .check { font-size: 0.8rem; }
 .bkgrid .bksec.off { opacity: 0.45; }
@@ -717,23 +718,27 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <div class="bkcell">
             <input class="num" type="text" inputmode="decimal" id="bkRadialTop" data-key="bkRadialTop" aria-label="β, kipningslængde med trykket overflange, radialbjælker">
             <label class="check"><input type="checkbox" id="bkRadialTopFull" data-key="bkRadialTopFull" aria-label="Hele bjælkens længde, kipningslængde med trykket overflange, radialbjælker"> <span>Hele</span></label>
+            <select class="bkunit" id="bkRadialTopUnit" data-key="bkRadialTopUnit" aria-label="Enhed: β eller kipningslængde i m, kipning med trykket overflange, radialbjælker"><option value="beta">β</option><option value="m">m</option></select>
           </div>
           <div class="bkcell bksec">
             <input class="num" type="text" inputmode="decimal" id="bkSecTop" data-key="bkSecTop" aria-label="β, kipningslængde med trykket overflange, sektionsspær">
             <label class="check"><input type="checkbox" id="bkSecTopFull" data-key="bkSecTopFull" aria-label="Hele bjælkens længde, kipningslængde med trykket overflange, sektionsspær"> <span>Hele</span></label>
+            <select class="bkunit" id="bkSecTopUnit" data-key="bkSecTopUnit" aria-label="Enhed: β eller kipningslængde i m, kipning med trykket overflange, sektionsspær"><option value="beta">β</option><option value="m">m</option></select>
           </div>
           <span class="bklbl">Kipning, underflange</span>
           <div class="bkcell">
             <input class="num" type="text" inputmode="decimal" id="bkRadialBottom" data-key="bkRadialBottom" aria-label="β, kipningslængde med trykket underflange, radialbjælker">
             <label class="check"><input type="checkbox" id="bkRadialBottomFull" data-key="bkRadialBottomFull" aria-label="Hele bjælkens længde, kipningslængde med trykket underflange, radialbjælker"> <span>Hele</span></label>
+            <select class="bkunit" id="bkRadialBottomUnit" data-key="bkRadialBottomUnit" aria-label="Enhed: β eller kipningslængde i m, kipning med trykket underflange, radialbjælker"><option value="beta">β</option><option value="m">m</option></select>
           </div>
           <div class="bkcell bksec">
             <input class="num" type="text" inputmode="decimal" id="bkSecBottom" data-key="bkSecBottom" aria-label="β, kipningslængde med trykket underflange, sektionsspær">
             <label class="check"><input type="checkbox" id="bkSecBottomFull" data-key="bkSecBottomFull" aria-label="Hele bjælkens længde, kipningslængde med trykket underflange, sektionsspær"> <span>Hele</span></label>
+            <select class="bkunit" id="bkSecBottomUnit" data-key="bkSecBottomUnit" aria-label="Enhed: β eller kipningslængde i m, kipning med trykket underflange, sektionsspær"><option value="beta">β</option><option value="m">m</option></select>
           </div>
         </div>
         <p class="calc" id="bkCalc"></p>
-        <p class="hint">Tallene er FEM-Designs β: knæklængden er β gange længden. Uden flueben gælder β for hvert stykke, som bjælken er delt i ved udvekslingsringene (RB1.1, RB1.2 … og SEK1.1, SEK1.2 …), og med »Hele« for hele radialbjælken eller hele sektionsspæret fra den inderste til den yderste ende. β omregnes så til det enkelte stykke i filen. Kipning skrives som FEM-Designs trykket overflange og trykket underflange, med lasten på overflangen.</p>
+        <p class="hint">Tallene er FEM-Designs β: knæklængden er β gange længden. Uden flueben gælder β for hvert stykke, som bjælken er delt i ved udvekslingsringene (RB1.1, RB1.2 … og SEK1.1, SEK1.2 …), og med »Hele« for hele radialbjælken eller hele sektionsspæret fra den inderste til den yderste ende. β omregnes så til det enkelte stykke i filen. Kipning skrives som FEM-Designs trykket overflange og trykket underflange, med lasten på overflangen. For kipning kan enheden sættes til m, så tallet er kipningslængden L<sub>cr</sub> i meter, fx fra β-kalibreringsarket; hvert stykke får så β = L<sub>cr</sub> / stykkets længde.</p>
       </section>
 
       <section class="group" aria-labelledby="g-conn">
@@ -1557,6 +1562,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     bkRadialTop: 1, bkRadialTopFull: false, bkRadialBottom: 1, bkRadialBottomFull: false,
     bkSecStiff: 1, bkSecStiffFull: false, bkSecWeak: 1, bkSecWeakFull: false,
     bkSecTop: 1, bkSecTopFull: false, bkSecBottom: 1, bkSecBottomFull: false,
+    // kipningen kan i stedet skrives som kipningslængde i meter (…Unit = 'm'): β = L_cr / stykkets længde
+    bkRadialTopUnit: 'beta', bkRadialBottomUnit: 'beta', bkSecTopUnit: 'beta', bkSecBottomUnit: 'beta',
     connRadialRing: 'rigid',   // 'rigid' | 'hinged' – radialbjælke mod ringbjælke
     connRadialShell: 'hinged', // 'rigid' | 'hinged' – radialbjælke mod kantring (kun med kantring)
     connUdv: 'hinged',         // 'rigid' | 'hinged' – udvekslingernes ender
@@ -1948,6 +1955,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     { key: 'Bottom', type: 'pressured_bottom_flange', name: 'Kipning, trykket underflange' }
   ];
   var BUCKLING_GROUPS = { radial: 'bkRadial', sec: 'bkSec' };
+  // kipning kan skrives som β eller som kipningslængde i meter
+  var BUCKLING_UNIT = ['Top', 'Bottom'];
+  function bucklingInMeters(p, pre, key) { return BUCKLING_UNIT.indexOf(key) >= 0 && p[pre + key + 'Unit'] === 'm'; }
   // β for stang m, som den skrives i filen: med »hele længden« omregnes β til stykkets egen længde
   function bucklingBetas(p, m) {
     var pre = BUCKLING_GROUPS[m.group];
@@ -1955,6 +1965,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var len = norm(vsub(m.end, m.start));
     return BUCKLING.map(function (b) {
       var beta = p[pre + b.key];
+      if (bucklingInMeters(p, pre, b.key)) return beta / len;
       return p[pre + b.key + 'Full'] && m.fullLength ? beta * m.fullLength / len : beta;
     });
   }
@@ -1997,6 +2008,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var k = BUCKLING_GROUPS[g] + b.key;
         q[k] = toNum(q[k]);
         q[k + 'Full'] = q[k + 'Full'] === true || q[k + 'Full'] === 'true';
+        if (BUCKLING_UNIT.indexOf(b.key) >= 0) q[k + 'Unit'] = q[k + 'Unit'] === 'm' ? 'm' : 'beta';
       });
     });
     q.combos = normCombos(q.combos);
@@ -2082,7 +2094,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (g[0] === 'sec' && !p.secOn) return;
       BUCKLING.forEach(function (b) {
         var v = p[BUCKLING_GROUPS[g[0]] + b.key];
-        if (!(v > 0 && v <= 100)) errors.push(b.name + ' for ' + g[1] + ': β skal være større end 0 og højst 100.');
+        if (bucklingInMeters(p, BUCKLING_GROUPS[g[0]], b.key)) {
+          if (!(v > 0)) errors.push(b.name + ' for ' + g[1] + ': kipningslængden skal være større end 0 m.');
+        } else if (!(v > 0 && v <= 100)) errors.push(b.name + ' for ' + g[1] + ': β skal være større end 0 og højst 100.');
       });
     });
     // udvekslingernes profil kan drejes i hele kvarte omgange om stangaksen
@@ -3622,7 +3636,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
     weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections,
-    BUCKLING: BUCKLING, bucklingBetas: bucklingBetas
+    BUCKLING: BUCKLING, BUCKLING_UNIT: BUCKLING_UNIT, bucklingBetas: bucklingBetas
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -6542,7 +6556,13 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('secFields').disabled = !p.secOn;
     form.querySelectorAll('.bksec').forEach(function (el) {
       el.classList.toggle('off', !p.secOn);
-      el.querySelectorAll('input').forEach(function (i) { i.disabled = !p.secOn; });
+      el.querySelectorAll('input, select').forEach(function (i) { i.disabled = !p.secOn; });
+    });
+    // kipningslængde i meter gælder hvert stykke for sig: »Hele« bruges ikke
+    ['bkRadial', 'bkSec'].forEach(function (pre) {
+      TR.BUCKLING_UNIT.forEach(function (k) {
+        $(pre + k + 'Full').disabled = p[pre + k + 'Unit'] === 'm' || (pre === 'bkSec' && !p.secOn);
+      });
     });
     $('rotLabel').textContent = p.secOn && p.secAxes ? 'Vinkel for SEK1' : 'Vinkel for RB.1';
     $('springField').hidden = p.support !== 'radialSpring';
@@ -7995,6 +8015,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         // knæklængder: ens for alle stykker med »hele«, ellers fra korteste til længste stykke
         var Ls = TR.BUCKLING.map(function (b) {
           var beta = p[gr[1] + b.key];
+          if (TR.BUCKLING_UNIT.indexOf(b.key) >= 0 && p[gr[1] + b.key + 'Unit'] === 'm') return nf(beta, 2);
           if (p[gr[1] + b.key + 'Full'] || ms.length === 1) return nf(beta * full, 2);
           var lo = Math.min.apply(null, lens) * beta, hi = Math.max.apply(null, lens) * beta;
           return nf(lo, 2) + (hi - lo > 0.005 ? '–' + nf(hi, 2) : '');
