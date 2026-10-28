@@ -1,5 +1,5 @@
 {
-  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med en faktor for rotationsstivheden, der ignoreres), rotationsstivhed langs udvekslingen mod uret med negativ kraft og egen kombination, knuderne som resultatpunkter og søjle- og kipningslængder over hele radialbjælken.",
+  "description": "Konisk tag 1:5, D = 20 m, 16 radialbjælker delt ved udvekslingerne, fladestørrelse 'alle', radial fjeder, konstant c_pe med angivet q_p i to vindretninger, nyttelast med halv last, kun-træk-vindgitter, egne kombinationer (ANV 1 med faktorer for rotationsstivheden og kipningslasten, der ignoreres), kipningslast på den delte RB.5, rotationsstivhed langs udvekslingen mod uret med negativ kraft og egen kombination, knuderne som resultatpunkter og søjle- og kipningslængder over hele radialbjælken.",
   "params": {
     "tankDiameter": 20, "resultPoints": true, "numRadial": 16, "ringDiameter": 1.5, "numUdv": 2, "udvRadii": "",
     "roofType": "cone", "slopeMode": "ratio", "slopeValue": 5, "rotationDeg": 10,
@@ -14,11 +14,12 @@
     "pressOver": 0, "pressVac": 5,
     "tempRoof": 30, "tempShell": 40,
     "walkRB": 3, "walkRin": "2", "walkRout": "9", "walkG": 0.8, "walkQ": 3, "walkB": 1,
+    "kipOn": true, "kipRB": 5, "kipQ": 1.5,
     "rotTestOn": true, "rotTestNodes": "K2.1, k2m.9", "rotTestF": -4, "rotTestDir": "ccw",
     "combos": [
       { "name": "BRUD 1", "type": "ultimate_ordinary", "f": { "dead": "1,0", "snowUniform": "1,5", "walkLive": "0,45" } },
       { "name": "BRUD 2", "type": "ultimate_ordinary", "f": { "dead": "0,9", "wind0": "1,5", "pressVac": "1,5" } },
-      { "name": "ANV 1", "type": "serviceability_characteristic", "f": { "dead": "1", "snowAsym": "1", "rotTest": "1" } }
+      { "name": "ANV 1", "type": "serviceability_characteristic", "f": { "dead": "1", "snowAsym": "1", "rotTest": "1", "kip": "1" } }
     ]
   }
 }
