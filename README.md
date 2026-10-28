@@ -8,6 +8,8 @@ Under *Søjle- og kipningslængder* angives FEM-Designs β for søjlelængde om 
 
 Under Laster kan lasttilfældet *Rotationsstivhed* slås til: en prøvelast med vandrette punktlaster i valgte knuder langs udvekslingen i knuden, så taget drejer i sit eget plan om centrum. Knuderne skrives med navnene fra planen eller vælges ved at klikke i planen. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i de øvrige lastkombinationer. Som standard får det sin egen kombination *Rotationsstivhed* med faktor 1 og typen anvendelse, karakteristisk, så det kan regnes ikke-lineært (NLE) i FEM-Design, uden at stålets styrkeeftervisning bruger den. Under Samlinger springes kombinationen over, når kræfterne indlæses.
 
+Under Laster kan lasttilfældet *Kipning* også slås til: en prøvelast med en lodret linjelast på hele den valgte radialbjælke fra ringbjælken til svøbet, standard 1 kN/m på den skrå længde, så momentkurven kan aflæses, når kipningslængderne sættes (fx M<sub>max</sub> til skalmodellens regneark). Lasten kan ændres, og en negativ værdi løfter spæret. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i nogen lastkombination.
+
 ## Skalmodel af én radialbjælke
 
 Knappen *Hent skalmodel* under tegningen henter en lille StruXML-fil (`…_skal_RB1.struxml`) med radialbjælke RB.1 alene, til stabilitetsanalyse i FEM-Design. Ud fra de kritiske laster kan søjle- og kipningslængderne til den almindelige model udledes.

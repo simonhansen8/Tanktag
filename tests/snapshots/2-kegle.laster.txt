@@ -19,6 +19,7 @@ Vind 45°	Øjeblikkelig	48	−182,65	0,00
 Undertryk	Korttids	48	152,21	0,00
 Temperatur	Langtids	136	0,00	0,00
 Rotationsstivhed	Øjeblikkelig	2	0,00	0,00
+Kipning	Korttids	3	14,15	0,00
 
 2. Egenlast
 ===========
@@ -275,8 +276,15 @@ Tagets frie udvidelse	u_tag = 12·10⁻⁶ · ΔT_tag · R	2,40 mm
 
 Bjælkerne får ΔT ens over højden. Svøbets udvidelse ved hver understøtnings radius lægges som radial flytning af 16 understøtninger, så kun forskellen mellem tag og svøb giver tvang.
 
-9. Rotationsstivhed
-===================
+9. Kipning
+==========
+Prøvelast til at aflæse momentkurven på RB.5, når kipningslængderne sættes. Lasten er en lodret linjelast på 1,500 kN/m nedad på hele bjælken fra r = 0,750 m til r = 10,000 m og virker på den skrå længde 9,433 m (RB5.1, RB5.2, RB5.3). Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination.
+
+Lasttilfælde	Last	Lodret, kN	Kontrol, kN
+Kipning	q = 1,5 kN/m på den skrå længde	14,15	q · L = 14,15
+
+10. Rotationsstivhed
+====================
 Prøvelast til at bestemme tagets stivhed mod drejning i sit eget plan om centrum. Hver valgt knude får en vandret punktlast på 4,00 kN langs bjælken på siden mod uret, så taget drejer med uret set oppefra. Lasttilfældet står i StruXML-filen med sin egen kombination "Rotationsstivhed" (faktor 1, anvendelse, karakteristisk), så det kan regnes ikke-lineært uden at indgå i styrkeeftervisningen, og det er ikke med i de øvrige kombinationer. Drejningsstivheden er M_z divideret med tagets drejning i FEM-Design.
 
 Knude	Bjælke	Retning, °	M_z, kNm
@@ -286,7 +294,7 @@ I alt			−54,27
 
 Vandret resultant: 0,00 kN. Er den ikke 0, tager understøtningerne også en vandret kraft; vælg knuder symmetrisk om centrum for et rent moment.
 
-10. Lastkombinationer
+11. Lastkombinationer
 =====================
 Kombinationerne står i StruXML-filen med disse faktorer. Den lodrette resultant er summen af lasttilfældenes resultanter gange faktorerne.
 
