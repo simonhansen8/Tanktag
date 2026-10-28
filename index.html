@@ -506,6 +506,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <button type="button" role="tab" id="ftab-brace" aria-controls="pane-brace" aria-selected="false">Vindgitter</button>
         <button type="button" role="tab" id="ftab-combo" aria-controls="pane-combo" aria-selected="false">Kombinationer</button>
         <button type="button" role="tab" id="ftab-conn" aria-controls="pane-conn" aria-selected="false">Samlinger</button>
+        <button type="button" role="tab" id="ftab-shell" aria-controls="pane-shell" aria-selected="false">Skalmodel</button>
       </div>
       <div class="pane" id="pane-geo" role="tabpanel" aria-labelledby="ftab-geo">
       <section class="group" aria-labelledby="g-geo">
@@ -1289,6 +1290,100 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </div>
       </section>
       </div>
+
+      <!-- skalmodel: fanen med skalmodellens indstillinger (TankShell) -->
+      <div class="pane" id="pane-shell" role="tabpanel" aria-labelledby="ftab-shell" hidden>
+      <section class="group" aria-labelledby="g-shell">
+        <h2 id="g-shell">Skalmodel af én radialbjælke</h2>
+        <p class="hint">Radialbjælken som skaller (krop og flanger) til stabilitetsanalyse i FEM-Design, så søjle- og kipningslængderne til den almindelige model kan udledes af de kritiske laster. Indstillingerne her gælder kun skalmodellen og gemmes for sig.</p>
+        <div class="row">
+          <div class="field">
+            <label class="lbl" for="shellBeam">Radialbjælke nr.</label>
+            <input class="num" type="number" min="1" step="1" id="shellBeam" data-shell="beam">
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellMesh">Elementstørrelse <span class="unit">mm</span></label>
+            <input class="num" type="text" inputmode="decimal" id="shellMesh" data-shell="meshSize">
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellEndPlate">Endeplader <span class="unit">mm</span></label>
+            <input class="num" type="text" inputmode="decimal" id="shellEndPlate" data-shell="endPlate">
+          </div>
+        </div>
+        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne.</p>
+      </section>
+
+      <section class="group" aria-labelledby="g-shell-sup">
+        <h2 id="g-shell-sup">Lejer</h2>
+        <p class="hint">Gaffellejer i begge ender: kroppens endekant er fastholdt i sin retning, og over- og underkanten på tværs, så tværsnittet ikke kan vride. Bjælken er fri om den stærke akse og for hvælving.</p>
+        <div class="field">
+          <span class="lbl">Aksialt fastholdt</span>
+          <div class="seg" role="radiogroup" aria-label="Aksialt fastholdt">
+            <label><input type="radio" name="shellAxial" value="ring" data-shell="axialAt"><span>Ved ringbjælken</span></label>
+            <label><input type="radio" name="shellAxial" value="shell" data-shell="axialAt"><span>Ved svøbet</span></label>
+          </div>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="g-shell-hold">
+        <h2 id="g-shell-hold">Sidefastholdelse ved udvekslingerne</h2>
+        <div class="row">
+          <div class="field">
+            <label class="lbl" for="shellHoldPos">Placering</label>
+            <select id="shellHoldPos" data-shell="holdPos">
+              <option value="top">Topflangen</option>
+              <option value="centre">Systemlinjen</option>
+              <option value="bottom">Bundflangen</option>
+              <option value="none">Ingen</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellHoldRings">Udvekslingsringe</label>
+            <input type="text" id="shellHoldRings" data-shell="holdRings" placeholder="alle">
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellHoldStiff">Stivhed <span class="unit">kN/m</span></label>
+            <input class="num" type="text" inputmode="decimal" id="shellHoldStiff" data-shell="holdStiff" placeholder="fast">
+          </div>
+        </div>
+        <p class="hint">Udvekslingerne er monteret i topflangen. Skriv ringene som fx 1; 3, eller lad feltet stå tomt for alle. En tom stivhed betyder fast; ellers er fastholdelsen en fjeder på tværs af bjælken.</p>
+      </section>
+
+      <section class="group" aria-labelledby="g-shell-load">
+        <h2 id="g-shell-load">Laster</h2>
+        <label class="check"><input type="checkbox" id="shellCaseN" data-shell="caseN"> <span>Tryk N – jævnt over endetværsnittene, rent normalkraft i hvert stykke</span></label>
+        <label class="check"><input type="checkbox" id="shellCaseDown" data-shell="caseDown"> <span>Lodret linjelast nedad</span></label>
+        <label class="check"><input type="checkbox" id="shellCaseUp" data-shell="caseUp"> <span>Lodret linjelast opad</span></label>
+        <div class="row">
+          <div class="field">
+            <label class="lbl" for="shellN">Tryk N <span class="unit">kN</span></label>
+            <input class="num" type="text" inputmode="decimal" id="shellN" data-shell="N">
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellQ">Linjelast q <span class="unit">kN/m</span></label>
+            <input class="num" type="text" inputmode="decimal" id="shellQ" data-shell="q">
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellQPos">Linjelasten angriber</label>
+            <select id="shellQPos" data-shell="qPos">
+              <option value="top">Overflangen</option>
+              <option value="centre">Systemlinjen</option>
+              <option value="bottom">Underflangen</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint">Hvert lasttilfælde får sin egen lastkombination. Med N = 1 kN og q = 1 kN/m er FEM-Designs kritiske lastfaktor direkte den kritiske last. q regnes pr. meter bjælke.</p>
+      </section>
+
+      <section class="group" aria-labelledby="g-shell-out">
+        <h2 id="g-shell-out">Hent</h2>
+        <p class="calc" id="shellInfo"></p>
+        <div class="tools">
+          <button type="button" class="btn small" id="shellDefaults">Standardværdier</button>
+          <button type="button" class="btn primary" id="btnShellPane">Hent skalmodel</button>
+        </div>
+      </section>
+      </div>
     </form>
 
     <section class="sheet" aria-label="Tegning og eksport">
@@ -1331,7 +1426,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <div class="exportnote" id="exportNote">
         <p>Filen hentes som <span class="mono">.struxml</span>. Åbn den i FEM-Design med Fil › Åbn.</p>
         <p><button type="button" class="btn small" id="btnCopyXml">Kopiér StruXML i stedet</button> <span class="hint">Indsæt i en teksteditor og gem som <span class="mono">tanktag.struxml</span>.</span></p>
-        <p><button type="button" class="btn small" id="btnShell">Hent skalmodel</button> <span class="hint">Én radialbjælke som skaller (krop og flanger) med enhedslaster, til stabilitetsanalyse i FEM-Design og søjle- og kipningslængder til den almindelige model.</span></p>
+        <p><button type="button" class="btn small" id="btnShell">Hent skalmodel</button> <span class="hint">Én radialbjælke som skaller (krop og flanger) til stabilitetsanalyse i FEM-Design og søjle- og kipningslængder til den almindelige model. Indstillingerne står på fanen Skalmodel.</span></p>
       </div>
     </section>
   </div>
@@ -3558,6 +3653,55 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   var UNIT_N = 1, UNIT_Q = 1;
   var FIXED = '10000000000';
 
+  // indstillingerne på fanen Skalmodel (gemmes for sig, uden for tagets parametre)
+  var DEFAULTS = {
+    beam: 1,            // radialbjælke nr. (1 = RB.1)
+    meshSize: 0,        // elementstørrelse i mm, 0 = automatisk
+    endPlate: 0,        // endepladernes tykkelse i mm, 0 = ingen
+    axialAt: 'ring',    // aksial fastholdelse: 'ring' (ved ringbjælken) eller 'shell' (ved svøbet)
+    holdPos: 'top',     // sidefastholdelse ved udvekslingerne: 'top', 'centre', 'bottom' eller 'none'
+    holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle
+    holdStiff: '',      // stivhed i kN/m – tom = fast
+    caseN: true, caseDown: true, caseUp: true,
+    N: UNIT_N,          // trykket i kN
+    q: UNIT_Q,          // linjelasten i kN/m pr. meter bjælke
+    qPos: 'top'         // linjelastens angrebspunkt: 'top', 'centre' eller 'bottom'
+  };
+  var HOLD_SIDE = { top: 1, centre: 0, bottom: -1 };
+  var POS_NAME = { top: 'overflange', centre: 'systemlinjen', bottom: 'underflange' };
+  function num(v) {
+    if (typeof v === 'number') return v;
+    var t = String(v === undefined || v === null ? '' : v).trim().replace(',', '.');
+    return t === '' ? NaN : Number(t);
+  }
+  // indstillingerne læst og kontrolleret: { o, errors }, hvor o er klar til rafter og buildRafterStruxml (index fra 0, m)
+  function options(raw, geom) {
+    var r = Object.assign({}, DEFAULTS, raw || {}), e = [], n = geom && geom.params ? geom.params.numRadial : Infinity;
+    var nr = geom && geom.info ? geom.info.radii.length : Infinity;
+    var beam = num(r.beam), mesh = num(r.meshSize), plate = num(r.endPlate), N = num(r.N), q = num(r.q);
+    if (!(beam >= 1 && beam <= n && Math.round(beam) === beam)) e.push('Radialbjælken skal være et helt tal fra 1 til ' + n + '.');
+    if (!(mesh >= 0)) e.push('Elementstørrelsen skal være 0 (automatisk) eller større.');
+    if (!(plate >= 0)) e.push('Endepladernes tykkelse skal være 0 (ingen) eller større.');
+    if (['ring', 'shell'].indexOf(r.axialAt) < 0) e.push('Ukendt aksial fastholdelse.');
+    if (['top', 'centre', 'bottom', 'none'].indexOf(r.holdPos) < 0) e.push('Ukendt placering af sidefastholdelsen.');
+    if (['top', 'centre', 'bottom'].indexOf(r.qPos) < 0) e.push('Ukendt angrebspunkt for linjelasten.');
+    var rings = null, txt = String(r.holdRings || '').trim();
+    if (txt) {
+      rings = txt.split(/[;\s]+/).filter(Boolean).map(num);
+      if (rings.some(function (k) { return !(k >= 1 && k <= nr && Math.round(k) === k); })) e.push('Udvekslingsringene skal være hele tal fra 1 til ' + nr + ', adskilt af semikolon.');
+    }
+    var stiff = String(r.holdStiff === undefined || r.holdStiff === null ? '' : r.holdStiff).trim() === '' ? null : num(r.holdStiff);
+    if (stiff !== null && !(stiff >= 0)) e.push('Sidefastholdelsens stivhed skal være 0 eller større – eller tom for fast.');
+    if (!r.caseN && !r.caseDown && !r.caseUp) e.push('Vælg mindst ét lasttilfælde.');
+    if (r.caseN && !(N > 0)) e.push('Trykket N skal være større end 0.');
+    if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
+    return {
+      errors: e,
+      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
+        holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos }
+    };
+  }
+
   // dobbeltsymmetriske I- og H-profiler med parallelle flanger; tykkelserne læses af tværsnittets omrids
   var FAMILIES = ['IPE', 'HE-A', 'HE-B', 'HE-M'];
   function plateDims(TR, lib, key) {
@@ -3612,15 +3756,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // udvekslingsringenes knuder langs bjælken (radierne fra geometrien), med stykket de ligger på
     var first = pieces[0], last = pieces[pieces.length - 1];
     var r0 = Math.hypot(first.member.start[0], first.member.start[1]), r1 = Math.hypot(last.member.end[0], last.member.end[1]);
-    var holds = [];
+    var holds = [], holdPos = o.holdPos || 'top';
     geom.info.radii.forEach(function (r, k) {
       pieces.forEach(function (pc) {
         var a = Math.hypot(pc.member.start[0], pc.member.start[1]), b = Math.hypot(pc.member.end[0], pc.member.end[1]);
         if (r <= a + 1e-9 || r > b + 1e-9 || holds.some(function (h) { return h.ring === k + 1; })) return;
-        // udvekslingen er monteret i topflangen: fastholdelsen sidder i flangens midte (kroppens overkant)
+        if (holdPos === 'none' || (o.holdRings && o.holdRings.indexOf(k + 1) < 0)) return;
+        // udvekslingen er monteret i topflangen: som standard sidder fastholdelsen i flangens midte (kroppens overkant)
         var t = (r - a) / (b - a), up = t > 1 - 1e-9 ? pc.mE : pc.z;
         var node = vadd(pc.member.start, vscale(vsub(pc.member.end, pc.member.start), t));
-        holds.push({ ring: k + 1, node: node, pos: vadd(node, vscale(up, d)), piece: pc });
+        holds.push({ ring: k + 1, node: node, pos: vadd(node, vscale(up, d * HOLD_SIDE[holdPos])), piece: pc });
       });
     });
     return { dims: dims, d: d, pieces: pieces, holds: holds, rIn: r0, rOut: r1, profile: String(p.profRadial).replace('|', ' ') };
@@ -3632,6 +3777,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var newGuid = o.guid || randomGuid, stamp = o.timestamp || new Date().toISOString().replace('Z', '').slice(0, 23);
     var p = geom.params, R = rafter(TR, geom, lib, o), dims = R.dims, d = R.d, pieces = R.pieces;
     var first = pieces[0], last = pieces[pieces.length - 1];
+    var N = o.N || UNIT_N, Q = o.q || UNIT_Q, qPos = o.qPos || 'top', use = o.cases || { N: true, down: true, up: true };
     var mat = lib.materials[p.material];
     if (!mat) throw new Error('Materialet "' + p.material + '" findes ikke i biblioteket.');
     var matGuid = /\sguid="([^"]*)"/.exec(mat)[1];
@@ -3639,19 +3785,32 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var L = [];
     L.push('<?xml version="1.0" encoding="UTF-8"?>');
     L.push('<!-- Skalmodel af radialbjælke ' + ((o.index || 0) + 1) + ' (' + R.profile + ', krop ' + mm(dims.tw) + ' mm, flanger ' + mm(dims.tf) +
-      ' mm) fra Tanktag-generator ' + TR.VERSION + ' til stabilitetsanalyse. Lasttilfældene er enhedslaster: N = ' + UNIT_N + ' kN og q = ' + UNIT_Q +
-      ' kN/m, så den kritiske lastfaktor er den kritiske last. -->');
+      ' mm) fra Tanktag-generator ' + TR.VERSION + ' til stabilitetsanalyse. Lasterne er N = ' + fmt(N) + ' kN og q = ' + fmt(Q) +
+      ' kN/m, så den kritiske last er den kritiske lastfaktor gange dem. -->');
     L.push('<database struxml_version="01.00.000" source_software="Tanktag-generator ' + TR.VERSION +
       '" start_time="1970-01-01T00:00:00.000" end_time="' + stamp + '" guid="' + newGuid() +
       '" convertid="00000000-0000-0000-0000-000000000000" standard="EC" country="DK" xmlns="urn:strusoft">');
     L.push(I1 + '<entities>');
 
-    // skallerne
-    pieces.forEach(function (pc) {
-      pc.plates.forEach(function (pl) {
+    // skallerne, og endepladerne som en skal over hele endetværsnittet
+    var slabs = [];
+    pieces.forEach(function (pc) { pc.plates.forEach(function (pl) { slabs.push({ pc: pc, pl: pl, name: pc.member.name.replace(/^RB/, 'RB' + pl.tag) }); }); });
+    R.endPlates = [];
+    if (o.endPlate > 0) {
+      [[first, false], [last, true]].forEach(function (e, k) {
+        var pc = e[0], mv = e[1] ? pc.mE : pc.mS, P0 = e[1] ? pc.member.end : pc.member.start, yb = vscale(pc.y, dims.b / 2);
+        var bot = vadd(P0, vscale(mv, -d)), top = vadd(P0, vscale(mv, d));
+        var pts = [vsub(bot, yb), vadd(bot, yb), vadd(top, yb), vsub(top, yb)], nz = cross(vsub(pts[1], pts[0]), vsub(pts[3], pts[0]));
+        var pl = { tag: 'E', type: Math.abs(unit(nz)[2]) < 1e-9 ? 'wall' : 'plate', t: o.endPlate, pts: pts };
+        R.endPlates.push(pl);
+        slabs.push({ pc: pc, pl: pl, name: 'RBE' + ((o.index || 0) + 1) + '.' + (k + 1) });
+      });
+    }
+    slabs.forEach(function (sl) {
+      (function (pc, pl, name) {
         var P = pl.pts, lx = unit(vsub(P[1], P[0])), ly = unit(vsub(P[3], P[0]));
         ly = unit(vsub(ly, vscale(lx, dot(ly, lx))));
-        var nz = cross(lx, ly), name = pc.member.name.replace(/^RB/, 'RB' + pl.tag);
+        var nz = cross(lx, ly);
         L.push(I2 + '<slab name="' + name + '" type="' + pl.type + '" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
         L.push(I3 + '<slab_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + name + '.1" complex_material="' +
           matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="' +
@@ -3667,20 +3826,20 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I3 + '</slab_part>');
         L.push(I3 + '<end/>');
         L.push(I2 + '</slab>');
-      });
+      })(sl.pc, sl.pl, sl.name);
     });
 
-    // laster: tre lasttilfælde med hver sin kombination
+    // laster: op til tre lasttilfælde med hver sin kombination
     var cases = [
-      { name: 'Tryk N', points: [], lines: [] },
-      { name: 'Last ned på overflange', points: [], lines: [] },
-      { name: 'Last op på overflange', points: [], lines: [] }
+      { key: 'N', name: 'Tryk N', points: [], lines: [] },
+      { key: 'down', name: 'Last ned på ' + POS_NAME[qPos], points: [], lines: [] },
+      { key: 'up', name: 'Last op på ' + POS_NAME[qPos], points: [], lines: [] }
     ];
     // centrisk tryk: jævnt fordelt over endetværsnittet (σ·t langs kanterne), og i knækkene den afbøjningskraft,
     // der holder trykket i stykkernes akser, så hvert stykke har rent normalkraft N
     var area = 2 * dims.b * dims.tf + 2 * d * dims.tw;
     function endLoads(pc, atEnd, dir) {
-      var mv = atEnd ? pc.mE : pc.mS, P0 = atEnd ? pc.member.end : pc.member.start, sig = UNIT_N / area;
+      var mv = atEnd ? pc.mE : pc.mS, P0 = atEnd ? pc.member.end : pc.member.start, sig = N / area;
       var top = vadd(P0, vscale(mv, d)), bot = vadd(P0, vscale(mv, -d)), yb = vscale(pc.y, dims.b / 2);
       // linjelasten på en skrå endekant regnes pr. kantlængde, så summen er σ·t·(vinkelret længde)
       var k = 1 / norm(mv);
@@ -3691,16 +3850,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     endLoads(first, false, first.x);
     endLoads(last, true, vscale(last.x, -1));
     for (var j = 0; j < pieces.length - 1; j++) {
-      var dv = vscale(vsub(pieces[j + 1].x, pieces[j].x), UNIT_N), mag = norm(dv);
+      var dv = vscale(vsub(pieces[j + 1].x, pieces[j].x), N), mag = norm(dv);
       if (mag > 1e-12) cases[0].points.push({ pos: pieces[j].member.end, dir: vscale(dv, 1 / mag), val: mag });
     }
-    // jævn lodret last langs overflangens midte (kroppens overkant), nedad og opad
+    // jævn lodret last langs overflangens midte (kroppens overkant), systemlinjen eller underflangens midte, nedad og opad
+    var side = HOLD_SIDE[qPos];
     pieces.forEach(function (pc) {
-      // geringen gør overkanten en anelse længere eller kortere end systemlinjen; lasten skaleres, så stykket får q·L
-      var a = vadd(pc.member.start, vscale(pc.mS, d)), b = vadd(pc.member.end, vscale(pc.mE, d)), q = UNIT_Q * pc.length / norm(vsub(b, a));
+      // geringen gør over- og underkanten en anelse længere eller kortere end systemlinjen; lasten skaleres, så stykket får q·L
+      var a = vadd(pc.member.start, vscale(pc.mS, side * d)), b = vadd(pc.member.end, vscale(pc.mE, side * d)), q = Q * pc.length / norm(vsub(b, a));
       cases[1].lines.push({ a: a, b: b, dir: [0, 0, -1], val: q });
       cases[2].lines.push({ a: a, b: b, dir: [0, 0, 1], val: q });
     });
+    cases = cases.filter(function (c) { return use[c.key]; });
     var lcGuids = cases.map(function () { return newGuid(); });
     L.push(I2 + '<loads>');
     cases.forEach(function (c, ci) {
@@ -3738,20 +3899,22 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
     // understøtninger: gaffellejer i enderne (kroppens endekant fastholdt i sin retning i midten, over- og underkanten,
     // så reaktionen fordeles, og over- og underkanten på tværs, så tværsnittet ikke kan vride; fri om den stærke akse
-    // og for hvælving), aksialt kun ved ringbjælken,
-    // og sidefastholdelse i topflangen ved hver udvekslingsring
+    // og for hvælving), aksialt ét sted (som standard ved ringbjælken),
+    // og sidefastholdelse ved udvekslingsringene (som standard i topflangen, fast)
     var sups = [];
     function sup(name, pos, pc, mx, my, mz) { sups.push({ name: name, pos: pos, x: pc.x, y: pc.y, m: [mx, my, mz] }); }
-    sup('GL.R', first.member.start, first, true, false, true);
+    var axShell = o.axialAt === 'shell';
+    sup('GL.R', first.member.start, first, !axShell, false, true);
     sup('GL.RO', vadd(first.member.start, vscale(first.mS, d)), first, false, true, true);
     sup('GL.RU', vadd(first.member.start, vscale(first.mS, -d)), first, false, true, true);
-    sup('GL.S', last.member.end, last, false, false, true);
+    sup('GL.S', last.member.end, last, axShell, false, true);
     sup('GL.SO', vadd(last.member.end, vscale(last.mE, d)), last, false, true, true);
     sup('GL.SU', vadd(last.member.end, vscale(last.mE, -d)), last, false, true, true);
-    R.holds.forEach(function (h) { sup('SF.' + h.ring, h.pos, h.piece, false, true, false); });
+    var hold = o.holdStiff === null || o.holdStiff === undefined ? true : o.holdStiff;
+    R.holds.forEach(function (h) { sup('SF.' + h.ring, h.pos, h.piece, false, hold, false); });
     L.push(I2 + '<supports>');
     sups.forEach(function (s) {
-      var m = s.m.map(function (f) { return f ? FIXED : '0'; });
+      var m = s.m.map(function (f) { return f === true ? FIXED : (typeof f === 'number' ? fmt(f) : '0'); });
       L.push(I3 + '<point_support guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + s.name + '">');
       L.push(I4 + '<group>');
       L.push(I5 + pt('local_x', s.x));
@@ -3774,7 +3937,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { xml: L.join('\n') + '\n', rafter: R, cases: cases, supports: sups };
   }
 
-  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
+  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
 })(typeof window !== 'undefined' ? window : this);
@@ -7305,6 +7468,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('btnExport').disabled = blocked;
     $('btnCopyXml').disabled = blocked;
     $('btnShell').disabled = blocked;   // skalmodel
+    $('btnShellPane').disabled = blocked;   // skalmodel
   }
   function addStatus(kind, text, html) {
     statusExtra = [ '<div class="msg ' + kind + '" data-export="1">' + (html || esc(text)) + '</div>' ];
@@ -7796,7 +7960,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   function setFormTab(tab) {
     var was = formTab;
     formTab = tab;
-    ['geo', 'loads', 'brace', 'combo', 'conn'].forEach(function (t) {
+    ['geo', 'loads', 'brace', 'combo', 'conn', 'shell'].forEach(function (t) {
       $('ftab-' + t).setAttribute('aria-selected', String(t === tab));
       $('pane-' + t).hidden = t !== tab;
     });
@@ -7819,6 +7983,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   $('ftab-geo').addEventListener('click', function () { setFormTab('geo'); });
   $('ftab-loads').addEventListener('click', function () { setFormTab('loads'); });
   $('ftab-combo').addEventListener('click', function () { setFormTab('combo'); });
+  $('ftab-shell').addEventListener('click', function () { setFormTab('shell'); updateShellInfo(); });   // skalmodel
   $('ftab-conn').addEventListener('click', function () {
     setFormTab('conn');
     if (window.matchMedia && window.matchMedia('(max-width: 1039px)').matches) {
@@ -8623,24 +8788,73 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     copyText(xml, 'StruXML er kopieret. Indsæt i en teksteditor, og gem som tanktag.struxml (UTF-8).');
   });
 
-  // skalmodel: én radialbjælke som skaller med enhedslaster til stabilitetsanalyse (TankShell)
-  $('btnShell').addEventListener('click', function () {
-    if (this.disabled) return;
-    var res, base = fileBase(TR.normalizeParams(params)) + '_skal_RB1';
+  // skalmodel: én radialbjælke som skaller til stabilitetsanalyse (TankShell), med indstillingerne fra fanen Skalmodel
+  var SHELL_KEY = STORE_KEY + '-skal', shellSet = {};
+  try { shellSet = JSON.parse(window.localStorage.getItem(SHELL_KEY) || '{}') || {}; } catch (e) { shellSet = {}; }
+  shellSet = Object.assign({}, window.TankShell.DEFAULTS, shellSet);
+  function fillShell() {
+    form.querySelectorAll('[data-shell]').forEach(function (el) {
+      var v = shellSet[el.dataset.shell];
+      if (el.type === 'radio') el.checked = String(v) === el.value;
+      else if (el.type === 'checkbox') el.checked = !!v;
+      else el.value = el.classList.contains('num') ? inputText(v) : String(v === undefined || v === null ? '' : v);
+    });
+  }
+  function shellOptions(g) { return window.TankShell.options(shellSet, g); }
+  function updateShellInfo() {
+    var g = TR.computeGeometry(params), el = $('shellInfo');
+    if (g.errors.length) { el.textContent = 'Taget har fejl – ret dem først.'; return; }
+    var op = shellOptions(g);
+    if (op.errors.length) { el.innerHTML = '<b>Ret først:</b> ' + op.errors.map(esc).join(' '); return; }
+    try {
+      var R = window.TankShell.rafter(TR, g, LIB, op.o);
+      el.innerHTML = 'RB.' + (op.o.index + 1) + ', ' + esc(R.profile) + ': krop ' + esc(String(Math.round(R.dims.tw * 10000) / 10).replace('.', ',')) + ' mm og flanger ' +
+        esc(String(Math.round(R.dims.tf * 10000) / 10).replace('.', ',')) + ' mm, ' + R.pieces.length + ' stykke' + (R.pieces.length > 1 ? 'r' : '') + ' på ' +
+        R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ') + ' m (i alt ' +
+        R.pieces.reduce(function (a, pc) { return a + pc.length; }, 0).toFixed(3).replace('.', ',') + ' m). Sidefastholdelse ved ' +
+        (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen udvekslingsringe') + '.';
+    } catch (e) { el.innerHTML = '<b>Skalmodellen kan ikke dannes:</b> ' + esc(e && e.message ? e.message : String(e)); }
+  }
+  function onShellChange(e) {
+    var el = e.target, k = el.dataset && el.dataset.shell;
+    if (!k) return;
+    if (el.type === 'radio') { if (!el.checked) return; shellSet[k] = el.value; }
+    else if (el.type === 'checkbox') shellSet[k] = el.checked;
+    else shellSet[k] = el.value;
+    try { window.localStorage.setItem(SHELL_KEY, JSON.stringify(shellSet)); } catch (err) { /* kun i hukommelsen */ }
+    updateShellInfo();
+  }
+  form.addEventListener('input', onShellChange);
+  form.addEventListener('change', onShellChange);
+  $('shellDefaults').addEventListener('click', function () {
+    shellSet = Object.assign({}, window.TankShell.DEFAULTS);
+    try { window.localStorage.removeItem(SHELL_KEY); } catch (err) { /* ok */ }
+    fillShell();
+    updateShellInfo();
+  });
+  fillShell();
+  function exportShell() {
+    var res, op, base = fileBase(TR.normalizeParams(params));
     try {
       var g = TR.computeGeometry(params);
       if (g.errors.length) throw new Error(g.errors.join(' '));
-      res = window.TankShell.buildRafterStruxml(TR, g, LIB);
+      op = shellOptions(g);
+      if (op.errors.length) throw new Error(op.errors.join(' ') + ' (fanen Skalmodel)');
+      res = window.TankShell.buildRafterStruxml(TR, g, LIB, op.o);
     } catch (e) {
       addStatus('bad', 'Skalmodellen kunne ikke dannes: ' + (e && e.message ? e.message : e));
       return;
     }
+    base += '_skal_RB' + (op.o.index + 1);
     var R = res.rafter, lens = R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ');
-    var info = 'RB.1 (' + esc(R.profile) + ') med gaffellejer i enderne og sidefastholdelse i topflangen ved udvekslingsringene. ' +
-      'Lasttilfældene er enhedslaster (N = 1 kN, q = 1 kN/m), så den kritiske lastfaktor er den kritiske last. Stykkernes længder: ' + lens + ' m.';
+    var info = 'RB.' + (op.o.index + 1) + ' (' + esc(R.profile) + ') med gaffellejer i enderne og ' +
+      (R.holds.length ? 'sidefastholdelse ved udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen sidefastholdelse') + '. ' +
+      'Lasttilfælde: ' + res.cases.map(function (c) { return esc(c.name); }).join(', ') + '. Stykkernes længder: ' + lens + ' m.';
     if (directDownload(res.xml, base + '.struxml')) addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.struxml</span>. ' + info);
     else addStatus('bad', '', 'Browseren tillod ikke at gemme filen.');
-  });
+  }
+  $('btnShell').addEventListener('click', function () { if (!this.disabled) exportShell(); });
+  $('btnShellPane').addEventListener('click', function () { if (!this.disabled) exportShell(); });
 
   // ---------- lastkombinationer ----------
   var COMBO_TYPE_LABEL = {
