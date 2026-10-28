@@ -1102,6 +1102,28 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <p class="hint">Skriv knuderne med navnene fra planen, adskilt af komma, eller vis lasttilfældet i planen og klik på knuderne. K2.3 er RB.3 ved udvekslingsring 2, og K2M.3 ligger midt på udvekslingen efter RB.3; knuder på ringbjælken (KR) og kantringen (KS) kan også bruges. En positiv kraft drejer taget mod uret set oppefra. I en knude ved en radialbjælke mødes to udvekslinger med en lille vinkel: Tangentielt lægger lasten midt imellem dem (vinkelret på radius), mens de to andre lægger den præcis langs udvekslingen på den ene side. Momentet om centrum står ovenfor, så drejningsstivheden er M divideret med tagets drejning fra FEM-Design.</p>
         </fieldset>
       </section>
+
+      <section class="group" aria-labelledby="g-kip">
+        <div class="toggle">
+          <h2 id="g-kip">Kipning</h2>
+          <label class="check"><input type="checkbox" id="kipOn" data-key="kipOn"> <span>Med</span></label>
+        </div>
+        <fieldset class="sub" id="kipFields">
+          <p class="hint">Prøvelast til at aflæse momentkurven på et spær, når kipningslængderne skal sættes – fx M<sub>max</sub> fra q = 1 kN/m til skalmodellens regneark. Lasten er en lodret linjelast på hele radialbjælken fra ringbjælken til svøbet og virker på den skrå længde. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i nogen lastkombination.</p>
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="kipRB">Radialbjælke</label>
+              <select id="kipRB" data-key="kipRB"></select>
+            </div>
+            <div class="field">
+              <label class="lbl nocase" for="kipQ">q <span class="unit">kN/m, nedad</span></label>
+              <input class="num" type="text" inputmode="decimal" id="kipQ" data-key="kipQ">
+            </div>
+          </div>
+          <p class="calc" id="kipCalc"></p>
+          <p class="hint">En negativ værdi løfter spæret, så underflangen bliver trykket.</p>
+        </fieldset>
+      </section>
       </div>
 
       <div class="pane" id="pane-brace" role="tabpanel" aria-labelledby="ftab-brace" hidden>
@@ -1500,6 +1522,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     rotTestNodes: 'K1.1',      // knuderne med navnene fra planen, fx "K2.1, K2.13" (udveksling, ringbjælke eller kantring)
     rotTestF: 10,              // kraft pr. knude [kN]; positiv drejer taget mod uret set oppefra
     rotTestDir: 'mean',        // 'mean' (tangentielt, middel af bjælkerne i knuden) | 'ccw' | 'cw' (langs bjælken mod/med uret)
+    kipOn: false,              // lasttilfældet "Kipning": prøvelast til at aflæse momenter, ikke i kombinationerne
+    kipRB: 1,                  // radialbjælken med kipningslasten (1…antal)
+    kipQ: 1,                   // lodret linjelast [kN/m] på den skrå længde; positiv nedad
     rotTestCombo: true,        // egen kombination "Rotationsstivhed" med faktor 1 som anvendelse, karakteristisk (til NLE i FEM-Design)
 
     // --- lastkombinationer: [{ name: 'KB1', type: 'ultimate_ordinary', f: { dead: '1,2', snowUniform: '1,5' } }] ---
@@ -1518,7 +1543,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   var CASE_NAMES = { dead: 'Egenlast', live: 'Nyttelast', liveHalf: 'Nyttelast, halv', livePoint: 'Nyttelast, punkt',
     walkDead: 'Gangbro, egenlast', walkLive: 'Gangbro, nyttelast',
     snowUniform: 'Sne, jævn', snowAsym: 'Sne, ensidig', snowHalf: 'Sne, halvt tag', pressOver: 'Overtryk',
-    pressVac: 'Undertryk', temp: 'Temperatur', rotTest: 'Rotationsstivhed' };
+    pressVac: 'Undertryk', temp: 'Temperatur', rotTest: 'Rotationsstivhed', kip: 'Kipning' };
   // "A", "B" og "C" – navne på lasttilfælde indeholder selv kommaer
   function quoteList(a) {
     var q = a.map(function (s) { return '"' + s + '"'; });
@@ -1853,10 +1878,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.bracingRepeat = toNum(q.bracingRepeat);
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
-      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'braceCompLimit']
+      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'kipRB', 'kipQ', 'braceCompLimit']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
-      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'braceTensionOnly', 'resultPoints']
+      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'kipOn', 'braceTensionOnly', 'resultPoints']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
     ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
@@ -2538,12 +2563,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function computeLoads(geom) {
     var res = {
       cases: [], errors: [], warnings: [], panels: [], dead: null, snow: null, wind: null, press: null, temp: null,
-      walk: null, rot: null, combos: [], comboErrors: [],
+      walk: null, rot: null, kip: null, combos: [], comboErrors: [],
       any: false, dirs: []
     };
     if (!geom || (geom.errors && geom.errors.length)) return res;
     var p = geom.params, info = geom.info, E = res.errors, W = res.warnings;
-    res.any = p.loadsOn && (p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn || p.tempOn || p.walkOn || p.rotTestOn);
+    res.any = p.loadsOn && (p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn || p.tempOn || p.walkOn || p.rotTestOn || p.kipOn);
     if (!res.any) return res;
     function chk(ok, msg) { if (!ok) E.push(msg); }
     if (p.deadOn) {
@@ -2553,6 +2578,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (p.liveOn) {
       chk(p.liveQ >= 0 && p.liveQ <= 100, 'Nyttelasten q_k skal ligge mellem 0 og 100 kN/m².');
       chk(p.livePointQ >= 0 && p.livePointQ <= 1000, 'Punktlasten Q_k skal ligge mellem 0 og 1000 kN.');
+    }
+    if (p.kipOn) {
+      chk(p.kipRB >= 1 && p.kipRB <= p.numRadial && p.kipRB === Math.floor(p.kipRB), 'Kipningslasten skal ligge på en radialbjælke fra 1 til ' + p.numRadial + '.');
+      chk(isFinite(p.kipQ) && Math.abs(p.kipQ) <= 1000, 'Kipningslasten skal være et tal mellem −1000 og 1000 kN/m.');
     }
     // gangbro: radialbjælke og ender (vandret radius; tomt felt = ringbjælken eller svøbet)
     var wr0 = info.rc, wr1 = info.R;
@@ -2915,6 +2944,23 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!rl.length) W.push('Rotationsstivhed har ingen laster endnu: skriv knuderne, eller klik på dem i planen, og giv en kraft forskellig fra 0.');
       addCase('rotTest', 'Rotationsstivhed', 'static', 'instantaneous', rl, { values: zeros(), rot: res.rot, noCombo: true }, true);
     }
+    // kipning: prøvelast til at aflæse momenter på ét spær, når kipningslængderne sættes. Lodret linjelast på hele
+    // radialbjælken på den skrå længde (som enhedslasten i skalmodellen). Kommer ikke med i nogen lastkombination.
+    if (p.kipOn) {
+      var kSegs = [], kLen = 0, kPlan = 0;
+      geom.members.forEach(function (m) {
+        if (m.group !== 'radial' || m.index !== p.kipRB - 1) return;
+        kSegs.push({ member: m, a: m.start, b: m.end });
+        kLen += norm(vsub(m.end, m.start));
+        kPlan += Math.abs(Math.hypot(m.end[0], m.end[1]) - Math.hypot(m.start[0], m.start[1]));
+      });
+      res.kip = { rb: p.kipRB, rIn: info.rc, rOut: info.R, length: kLen, plan: kPlan, q: p.kipQ, segs: kSegs };
+      if (p.kipQ === 0) W.push('Kipning har ingen last endnu: giv q en værdi forskellig fra 0.');
+      var kl = p.kipQ === 0 ? [] : kSegs.map(function (sg) {
+        return { kind: 'line', member: sg.member, a: sg.a, b: sg.b, dir: p.kipQ > 0 ? DOWN : [0, 0, 1], val: Math.abs(p.kipQ), projected: false };
+      });
+      addCase('kip', 'Kipning', 'static', 'short-term', kl, { values: zeros(), line: res.kip, noCombo: true }, true);
+    }
     // lastkombinationer: faktor pr. lasttilfælde; tomt felt eller 0 = ikke med
     var CE = res.comboErrors, caseIdx = {}, nameCount = {}, nameReported = {};
     res.cases.forEach(function (c, ci) { caseIdx[c.key] = ci; });
@@ -2953,7 +2999,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       o.export = o.ok && o.items.length > 0;
       if (o.ok && !o.items.length) W.push('Lastkombinationen ' + label + ' har ingen lasttilfælde med en faktor og kommer ikke med i filen.');
       if (o.missing.length) W.push('Lastkombinationen ' + label + ' har faktorer for ' + quoteList(o.missing) + ', som ikke findes lige nu og derfor ikke kommer med.');
-      if (o.ignored.length) W.push('Lastkombinationen ' + label + ' har en faktor for ' + quoteList(o.ignored) + ', som ikke kommer med i de almindelige lastkombinationer – brug fluebenet under Rotationsstivhed i stedet.');
+      if (o.ignored.length) W.push('Lastkombinationen ' + label + ' har en faktor for ' + quoteList(o.ignored) + ', som ikke kommer med i de almindelige lastkombinationer' + (o.ignored.indexOf('Rotationsstivhed') >= 0 ? ' – brug fluebenet under Rotationsstivhed i stedet.' : '.'));
       res.combos.push(o);
     });
     // rotationsstivheden får sin egen kombination med faktor 1, så den kan regnes ikke-lineært (NLE) i FEM-Design.
@@ -5011,6 +5057,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           : 'Understøtningerne er radialt frie, så svøbets udvidelse giver ikke tvang.')) });
     }
 
+    if (p.kipOn && L.kip && K.kip) {
+      h('Kipning');
+      var kd = L.kip;
+      B.push({ p: 'Prøvelast til at aflæse momentkurven på RB.' + kd.rb + ', når kipningslængderne sættes. Lasten er en lodret linjelast på ' +
+        num(Math.abs(kd.q), 3) + ' kN/m ' + (kd.q >= 0 ? 'nedad' : 'opad') + ' på hele bjælken fra r = ' + num(kd.rIn, 3) + ' m til r = ' + num(kd.rOut, 3) +
+        ' m og virker på den skrå længde ' + num(kd.length, 3) + ' m (' + esc(kd.segs.map(function (s) { return s.member.name; }).join(', ')) + '). ' +
+        'Lasttilfældet står i StruXML-filen, men kommer ikke med i nogen lastkombination.' });
+      B.push({ table: { head: ['Lasttilfælde', 'Last', 'Lodret, kN', 'Kontrol, kN'], num: [false, false, true, true], keep: true,
+        rows: [['Kipning', 'q = ' + trim(kd.q, 3) + ' kN/m på den skrå længde', num(caseFz(K.kip), 2), 'q · L = ' + num(kd.q * kd.length, 2)]] } });
+    }
+
     if (p.rotTestOn && L.rot && K.rotTest) {
       h('Rotationsstivhed');
       var RT = L.rot, RDIR = { mean: 'tangentielt, midt mellem bjælkerne i knuden', ccw: 'langs bjælken på siden mod uret', cw: 'langs bjælken på siden med uret' };
@@ -6104,6 +6161,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     render();
     if (el.dataset.key && /^walk/.test(el.dataset.key) && formTab === 'loads') showWalkCase();
     if (el.dataset.key && /^rotTest/.test(el.dataset.key) && formTab === 'loads') showRotCase();
+    if (el.dataset.key && /^kip/.test(el.dataset.key) && formTab === 'loads') showKipCase();
   }
   form.addEventListener('input', onFieldChange);
   form.addEventListener('change', onFieldChange);
@@ -6182,7 +6240,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('slopeUnit').textContent = lab[1];
     // laster
     var on = p.loadsOn;
-    ['deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn'].forEach(function (k) { $(k).disabled = !on; });
+    ['deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn', 'kipOn'].forEach(function (k) { $(k).disabled = !on; });
     $('deadFields').disabled = !(on && p.deadOn);
     $('liveFields').disabled = !(on && p.liveOn);
     $('walkFields').disabled = !(on && p.walkOn);
@@ -6191,6 +6249,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('pressFields').disabled = !(on && p.pressOn);
     $('tempFields').disabled = !(on && p.tempOn);
     $('rotTestFields').disabled = !(on && p.rotTestOn);
+    $('kipFields').disabled = !(on && p.kipOn);
     $('braceCompLimit').disabled = !p.braceTensionOnly;
     var dome = p.roofType === 'dome';
     $('asymDir').disabled = !(on && ((p.snowOn && (p.snowAsym || (dome && p.snowHalf))) || (p.liveOn && p.liveHalf)));
@@ -6337,6 +6396,13 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         (rc ? ' · vandret resultant ' + nf(rc.Fh, 2) + ' kN' : '');
     }
     $('rotTestCalc').innerHTML = rot;
+    var kip = '';
+    if (ok && L.kip && L.kip.segs.length) {
+      var kp = L.kip;
+      kip = 'RB.' + kp.rb + ' fra r = ' + nf(kp.rIn, 2) + ' til ' + nf(kp.rOut, 2) + ' m · ' + nf(kp.length, 2) + ' m langs taget<br>' +
+        'q = ' + nf(kp.q, 2) + ' kN/m · i alt ' + nf(kp.q * kp.length, 1) + ' kN';
+    }
+    $('kipCalc').innerHTML = kip;
     $('pressCalc').innerHTML = press;
     $('tempCalc').innerHTML = temp.replace(/ΔT_tag/g, 'ΔT<sub>tag</sub>').replace(/ΔT_svøb/g, 'ΔT<sub>svøb</sub>');
     $('deadCalc').innerHTML = dead;
@@ -6570,7 +6636,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       if (py > 0) { px = -px; py = -py; }
       var anchor = Math.abs(px) > 0.5 ? (px > 0 ? 'start' : 'end') : 'middle';
       var lx = c + ux3 * rmw + px * 12 * k, ly = c + uy3 * rmw + py * 12 * k + (anchor === 'middle' ? -fs * 0.1 : fs * 0.35);
-      var wtxt = (lc.key === 'walkDead' ? 'g = ' : 'q = ') + nf(lc.loads[0].val, 2) + ' kN/m';
+      var wtxt = (lc.key === 'walkDead' ? 'g = ' : 'q = ') + nf(lc.key === 'kip' ? lc.line.q : lc.loads[0].val, 2) + ' kN/m';
       // baggrund bag teksten, så bjælkerne ikke streger den over (skriften er monospace: 0,6 em pr. tegn)
       var tw = wtxt.length * fs * 0.6, pad = 4 * k, bx = anchor === 'start' ? lx : (anchor === 'end' ? lx - tw : lx - tw / 2);
       out.push('<rect class="d-lblbg" x="' + (bx - pad).toFixed(1) + '" y="' + (ly - fs * 0.95).toFixed(1) + '" width="' + (tw + 2 * pad).toFixed(1) +
@@ -7624,8 +7690,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   // gangbro: valg af radialbjælke med bjælkens vinkel
   function updateWalkUI(g) {
+    fillRadialSelect(g, 'walkRB');
+    fillRadialSelect(g, 'kipRB');
+  }
+  function fillRadialSelect(g, key) {
     var p = g.params, ok = !g.errors.length, n = ok ? p.numRadial : (p.numRadial >= 3 && p.numRadial <= 360 ? p.numRadial : 0);
-    var sel = $('walkRB'), cur = String(params.walkRB), vals = [], opts = [];
+    var sel = $(key), cur = String(params[key]), vals = [], opts = [];
     for (var i = 1; i <= n; i++) {
       var deg = ok ? ((g.info.thetas[i - 1] * 180 / Math.PI) % 360 + 360) % 360 : null;
       if (deg !== null && deg > 359.9995) deg = 0;
@@ -7643,6 +7713,15 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var wc = loads.cases.filter(function (c) { return /^walk/.test(c.key); });
     if (!wc.length) return;
     loadView = wc[wc.length - 1].key;
+    updateLoadPicker();
+    if (view === 'section') setView('plan');
+    else { updateLegend(geom); renderDrawing(); }
+  }
+  // vis kipningslasten i planen, mens man retter i felterne
+  function showKipCase() {
+    if (!loads || loads.errors.length || loadView === 'kip') return;
+    if (!loads.cases.some(function (c) { return c.key === 'kip'; })) return;
+    loadView = 'kip';
     updateLoadPicker();
     if (view === 'section') setView('plan');
     else { updateLegend(geom); renderDrawing(); }
@@ -7688,6 +7767,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var lcv = activeCase();
     $('caption').textContent = view === 'plan'
       ? (lcv ? (lcv.temp ? 'Temperaturlasten ligger på bjælkerne' + (lcv.temp.motions ? ', og pilene viser, hvordan svøbet flytter understøtningerne.' : '.')
+        : lcv.key === 'kip' ? 'Den tykke streg viser kipningslasten på RB.' + lcv.line.rb + '; den virker på den skrå længde og kommer ikke med i lastkombinationerne.'
         : lcv.line ? 'Den tykke streg viser gangbroens linjelast på RB.' + lcv.line.rb + (lcv.key === 'walkDead' ? '; egenlasten virker på den skrå længde.' : '; nyttelasten virker på den vandrette projektion.')
         : lcv.rot ? 'Pilene viser rotationsstivhedens punktlaster, der drejer taget ' + (lcv.rot.F >= 0 ? 'mod' : 'med') + ' uret. Klik på knuderne for at vælge dem eller fravælge dem.'
         : lcv.point ? 'Cirklen viser punktlasten midt på RB.1.'
@@ -7700,6 +7780,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
             : ' Understøtningerne er rullende lejer: lodret fastholdt og radialt ' + (geom.params.support === 'radialSpring' ? 'med fjeder.' : 'fri.') +
               (geom.params.support === 'vertical' ? ' De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.' : '')) : '')
         : (lcv ? (lcv.temp ? (lcv.temp.motions ? 'Pilene viser svøbets flytning af understøtningerne ved temperatur.' : 'Temperaturen ligger på bjælkerne og vises ikke i 3D.')
+            : lcv.key === 'kip' ? 'Pilene viser kipningslasten på RB.' + lcv.line.rb + '.'
             : lcv.line ? 'Pilene viser gangbroens linjelast på RB.' + lcv.line.rb + '.'
             : lcv.rot ? 'Pilene viser rotationsstivhedens vandrette punktlaster.'
             : lcv.point ? 'Pilen viser punktlasten midt på RB.1.'
@@ -8610,7 +8691,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var skip = okLoads ? loads.cases.filter(function (c) { return c.noCombo; }) : [];
     if (!note && skip.length) {
       note = TR.quoteList(skip.map(function (c) { return c.name; })) + ' er en prøvelast og kommer ikke med i kombinationerne her.' +
-        (loads.combos.some(function (c) { return c.auto; }) ? ' Den får sin egen kombination "Rotationsstivhed" i filen (faktor 1, anvendelse, karakteristisk).' : '');
+        (loads.combos.some(function (c) { return c.auto; }) ? ' Rotationsstivheden får sin egen kombination "Rotationsstivhed" i filen (faktor 1, anvendelse, karakteristisk).' : '');
     }
     $('comboNote').textContent = note;
     $('comboClear').disabled = !combos.length;

@@ -171,7 +171,7 @@
   "loads": {
     "warnings": [
       "Der er ingen flade inden for ringbjælken, så last på centerpladen kommer ikke med.",
-      "Lastkombinationen \"ANV 1\" har en faktor for \"Rotationsstivhed\", som ikke kommer med i de almindelige lastkombinationer – brug fluebenet under Rotationsstivhed i stedet."
+      "Lastkombinationen \"ANV 1\" har en faktor for \"Rotationsstivhed\" og \"Kipning\", som ikke kommer med i de almindelige lastkombinationer – brug fluebenet under Rotationsstivhed i stedet."
     ],
     "panels": 48,
     "totalPanelArea": 310.689597,
@@ -343,6 +343,20 @@
           0,
           0,
           0
+        ]
+      },
+      {
+        "key": "kip",
+        "name": "Kipning",
+        "type": "static",
+        "duration": "short-term",
+        "loads": {
+          "line": 3
+        },
+        "F": [
+          0,
+          0,
+          -14.149779
         ]
       }
     ],
@@ -656,8 +670,8 @@
     ]
   },
   "struxml": {
-    "sha256": "6170750d325a646dd0093b7b06f50e06c59a83cc7df43b7771c2fdbb618bc5ec",
-    "lines": 10046,
+    "sha256": "94ee7aa8e471aba874275d1499d27650fec859c84b70b40e6402c983034c86c1",
+    "lines": 10068,
     "elements": {
       "analytical": 224,
       "bar": 120,
@@ -672,21 +686,21 @@
       "cover": 48,
       "curve": 120,
       "database": 1,
-      "direction": 504,
+      "direction": 507,
       "displacement": 16,
       "ecc": 224,
       "eccentricity": 120,
-      "edge": 1829,
+      "edge": 1832,
       "elastic": 8,
       "end": 470,
       "entities": 1,
       "font": 64,
       "group": 16,
       "limit_force": 72,
-      "line_load": 6,
+      "line_load": 9,
       "line_temperature_variation_load": 120,
-      "load": 374,
-      "load_case": 21,
+      "load": 380,
+      "load_case": 22,
       "load_combination": 4,
       "loads": 1,
       "local_x": 16,
@@ -695,9 +709,9 @@
       "materials": 1,
       "members": 7,
       "motions": 16,
-      "normal": 1955,
+      "normal": 1961,
       "physical": 240,
-      "point": 3877,
+      "point": 3883,
       "point_load": 2,
       "point_support": 16,
       "point_support_motion_load": 16,
