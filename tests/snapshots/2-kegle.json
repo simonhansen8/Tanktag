@@ -656,8 +656,8 @@
     ]
   },
   "struxml": {
-    "sha256": "7604282b59ba5e628835e17cd3ba3ecb873565485aff6ff107396ac06eef3334",
-    "lines": 10025,
+    "sha256": "6170750d325a646dd0093b7b06f50e06c59a83cc7df43b7771c2fdbb618bc5ec",
+    "lines": 10046,
     "elements": {
       "analytical": 224,
       "bar": 120,
@@ -693,6 +693,7 @@
       "local_y": 16,
       "material": 1,
       "materials": 1,
+      "members": 7,
       "motions": 16,
       "normal": 1955,
       "physical": 240,
@@ -717,6 +718,7 @@
       "temperature": 240,
       "tension": 8,
       "truss_behaviour": 8,
+      "user_defined_filter": 7,
       "x_axis": 21
     }
   }

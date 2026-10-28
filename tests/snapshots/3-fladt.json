@@ -382,8 +382,8 @@
     ]
   },
   "struxml": {
-    "sha256": "c23882d34a0652d40371b34518ed334e57751cc2ba5b5263de9b1454f967a361",
-    "lines": 2768,
+    "sha256": "cc02a8e3cde28cd3a6c03034c7dc030d40b944ce7c0b5675750c6f6436b96333",
+    "lines": 2777,
     "elements": {
       "analytical": 72,
       "bar": 36,
@@ -410,6 +410,7 @@
       "local_y": 12,
       "material": 1,
       "materials": 1,
+      "members": 3,
       "motions": 12,
       "normal": 584,
       "physical": 72,
@@ -428,6 +429,7 @@
       "supporting_structures": 25,
       "supports": 1,
       "surface_load": 100,
+      "user_defined_filter": 3,
       "x_axis": 12
     }
   }
