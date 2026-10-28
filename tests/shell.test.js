@@ -208,3 +208,40 @@ test('skalmodel: indstillingerne fra fanen Skalmodel', () => {
   const bad = TS.options({ beam: 99, meshSize: -1, holdRings: '7', holdStiff: '-2', caseN: false, caseDown: false, caseUp: false, beamOffset: '-1' }, geom);
   assert.equal(bad.errors.length, 6, bad.errors.join(' | '));
 });
+
+// bjælkemodellen får søjle- og kipningslængder som den almindelige model, og egne kipnings-β pr. stykke til kalibreringen
+test('skalmodel: kipnings-β i bjælkemodellen', () => {
+  const params = Object.assign({}, TR.DEFAULTS, { bkRadialWeak: 0.5, bkRadialTopSeg: '0,9; 0,8', bkRadialBottomSeg: '; 0,7' });
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  assert.deepEqual(geom.errors, []);
+  const bar = (xml, name) => xml.split('<bar ').find((b) => b.startsWith('name="' + name + '"'));
+  const beta = (b, type) => Number(new RegExp('type="' + type + '" beta="([^"]+)"').exec(b)[1]);
+
+  // uden egne værdier: som i den almindelige model
+  const plain = TS.buildRafterStruxml(TR, geom, LIB, TS.options({}, geom).o).xml;
+  wellFormed(plain);
+  const b11 = bar(plain, 'RBB1.1'), b12 = bar(plain, 'RBB1.2'), b13 = bar(plain, 'RBB1.3');
+  assert.deepEqual([beta(b11, 'flexural_stiff'), beta(b11, 'flexural_weak'), beta(b11, 'pressured_flange'), beta(b11, 'pressured_bottom_flange')], [1, 0.5, 0.9, 1]);
+  assert.deepEqual([beta(b12, 'pressured_flange'), beta(b12, 'pressured_bottom_flange')], [0.8, 0.7]);
+  assert.match(b11, /<\/eccentricity>\s*<buckling_data>[\s\S]*load_position="top" continously_restrained="false"[\s\S]*<\/buckling_data>\s*<end\/>/);
+
+  // egne værdier fra fanen Skalmodel går forud; tomme pladser følger den almindelige model
+  const op = TS.options({ bkTopSeg: ' ; ; 1,3', bkBottomSeg: '0,6', qPos: 'centre' }, geom);
+  assert.deepEqual(op.errors, []);
+  const own = TS.buildRafterStruxml(TR, geom, LIB, op.o).xml;
+  assert.deepEqual([beta(bar(own, 'RBB1.1'), 'pressured_flange'), beta(bar(own, 'RBB1.2'), 'pressured_flange'), beta(bar(own, 'RBB1.3'), 'pressured_flange')], [0.9, 0.8, 1.3]);
+  assert.deepEqual([beta(bar(own, 'RBB1.1'), 'pressured_bottom_flange'), beta(bar(own, 'RBB1.2'), 'pressured_bottom_flange')], [0.6, 0.7]);
+  assert.equal(beta(bar(own, 'RBB1.3'), 'pressured_bottom_flange'), beta(b13, 'pressured_bottom_flange'));
+  // lastens angrebspunkt følger skalmodellens linjelast
+  assert.ok(bar(own, 'RBB1.1').includes('load_position="center"'));
+  // kun bjælkemodellen ændres: den almindelige models parametre er de samme
+  assert.equal(geom.params.bkRadialTopSeg, '0,9; 0,8');
+  const bp = TS.beamParams(TR, geom.params, op.o);
+  assert.equal(bp.bkRadialTopSeg, '0,9; 0,8; 1,3');
+  assert.equal(bp.bkRadialBottomSeg, '0,6; 0,7');
+
+  // ugyldige værdier
+  const bad = TS.options({ bkTopSeg: '0; 1', bkBottomSeg: 'x' }, geom);
+  assert.equal(bad.errors.length, 2, bad.errors.join(' | '));
+});
