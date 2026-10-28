@@ -136,3 +136,49 @@ test('skalmodel: tykkelser af IPE 330 og HE 300 B', () => {
 test('skalmodel: andre profiler end I og H afvises', () => {
   assert.throws(() => TS.plateDims(TR, LIB, 'UPE|300'), /kun lave radialbjælker af/);
 });
+
+test('skalmodel: indstillingerne fra fanen Skalmodel', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ beam: '3', meshSize: '50', endPlate: '10', axialAt: 'shell', holdPos: 'centre', holdRings: '1; 3',
+    holdStiff: '500', caseUp: false, N: '2', q: '2,5', qPos: 'bottom' }, geom);
+  assert.deepEqual(op.errors, []);
+  assert.equal(op.o.index, 2);
+  const { xml, rafter: R, cases, supports } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  // RB.3, fem stykker med krop og flanger plus to endeplader
+  assert.ok(R.pieces.every((pc) => pc.member.index === 2));
+  assert.equal((xml.match(/<slab /g) || []).length, 3 * R.pieces.length + 2);
+  assert.equal((xml.match(/val="0.01"/g) || []).length, 2);
+  assert.ok(/mesh_size="0.05"/.test(xml));
+  R.endPlates.forEach((pl) => assert.ok(supports.filter((s) => /^GL\./.test(s.name)).some((s) => onQuad(s.pos, pl.pts))));
+  // aksialt ved svøbet, sidefastholdelse som fjeder i systemlinjen ved ring 1 og 3
+  assert.deepEqual(supports.filter((s) => s.m[0] === true).map((s) => s.name), ['GL.S']);
+  assert.deepEqual(R.holds.map((h) => h.ring), [1, 3]);
+  R.holds.forEach((h) => assert.ok(same(h.pos, h.node)));
+  supports.filter((s) => /^SF\./.test(s.name)).forEach((s) => assert.deepEqual(s.m, [false, 500, false]));
+  assert.ok(xml.includes('y_neg="500" y_pos="500"'));
+  // to lasttilfælde, N = 2 kN og q = 2,5 kN/m langs underflangen
+  assert.deepEqual(cases.map((c) => c.name), ['Tryk N', 'Last ned på underflange']);
+  let Nin = 0;
+  cases[0].lines.slice(0, 3).forEach((l) => { Nin += dot(l.dir, R.pieces[0].x) * l.val * len(sub(l.b, l.a)); });
+  assert.ok(Math.abs(Nin - 2) < 1e-9);
+  const total = R.pieces.reduce((a, pc) => a + pc.length, 0);
+  let Fz = 0;
+  cases[1].lines.forEach((l) => {
+    Fz += l.dir[2] * l.val * len(sub(l.b, l.a));
+    assert.ok(R.pieces.some((pc) => onQuad(l.a, pc.plates[2].pts) && onQuad(l.b, pc.plates[2].pts)), 'lasten ligger ikke i underflangen');
+  });
+  assert.ok(Math.abs(Fz + 2.5 * total) < 1e-9);
+  assert.equal((xml.match(/<load_combination /g) || []).length, 2);
+
+  // ingen sidefastholdelse
+  const none = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ holdPos: 'none' }, geom).o);
+  assert.equal(none.rafter.holds.length, 0);
+  assert.ok(!none.xml.includes('name="SF.'));
+
+  // fejl i indstillingerne
+  const bad = TS.options({ beam: 99, meshSize: -1, holdRings: '7', holdStiff: '-2', caseN: false, caseDown: false, caseUp: false }, geom);
+  assert.equal(bad.errors.length, 5, bad.errors.join(' | '));
+});

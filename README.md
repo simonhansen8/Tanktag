@@ -14,13 +14,15 @@ Under Laster kan lasttilfældet *Kipning* også slås til: en prøvelast med en 
 
 Knappen *Hent skalmodel* under tegningen henter en lille StruXML-fil (`…_skal_RB1.struxml`) med radialbjælke RB.1 alene, til stabilitetsanalyse i FEM-Design. Ud fra de kritiske laster kan søjle- og kipningslængderne til den almindelige model udledes.
 
+Fanen *Skalmodel* har skalmodellens indstillinger: hvilken radialbjælke, elementstørrelse, endeplader, hvor bjælken er fastholdt aksialt, sidefastholdelsen ved udvekslingerne (topflange, systemlinje, bundflange eller ingen, hvilke ringe og evt. som fjeder), hvilke lasttilfælde der kommer med, N og q og linjelastens angrebspunkt. Standardværdierne er beskrevet herunder. Indstillingerne gemmes i browseren for sig og kommer ikke med i *Kopiér parametre*.
+
 - **Bjælken**: krop, overflange og underflange som skaller i profilets midterflader, med profilets krop- og flangetykkelse. Den deles som i taget, og i kuplens knæk er stykkerne skåret på geringen, så skallerne deler kanter. Kun IPE og HE-A/B/M, og rodradierne er udeladt.
 - **Understøtninger**: gaffellejer i begge ender. Kroppens endekant er fastholdt i sin retning (i midten, over- og underkanten), og over- og underkanten er fastholdt på tværs, så tværsnittet ikke kan vride. Bjælken er fri om den stærke akse og for hvælving og kun fastholdt aksialt ved ringbjælken. Ved hver udvekslingsring er topflangen fastholdt på tværs, fordi udvekslingerne er monteret der.
 - **Laster**: tre enhedslaster, hver med sin egen kombination: *Tryk N* (1 kN jævnt fordelt over endetværsnittene, og i knækkene afbøjningskraften, så hvert stykke har rent normalkraft), *Last ned på overflange* og *Last op på overflange* (1 kN/m lodret langs overflangens midte pr. meter bjælke). FEM-Designs kritiske lastfaktor er derfor den kritiske last i kN eller kN/m.
 
 β for søjlevirkning følger af N_cr = π²EI/(βL)², hvor L er stykkets længde (står i statuslinjen, når filen hentes). For kipning sammenlignes M_cr fra lasten nedad (trykket overflange) og opad (trykket underflange) med FEM-Designs kipningsformel for den samme bjælke.
 
-Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og bruger ikke den almindelige eksport. Den fjernes ved at slette blokken, knappen `btnShell` med dens handler og linjen, der slår den fra, `tests/shell.test.js` (og dens linjer i `tests/load.js` og `package.json`) og dette afsnit.
+Funktionen ligger i sin egen scriptblok (`TankShell`) i `index.html` og bruger ikke den almindelige eksport. Den fjernes ved at slette blokken, knappen `btnShell`, fanen `ftab-shell`/`pane-shell` med dens handler og linjerne markeret `skalmodel`, `tests/shell.test.js` (og dens linjer i `tests/load.js` og `package.json`) og dette afsnit.
 
 ## Kom i gang
 
