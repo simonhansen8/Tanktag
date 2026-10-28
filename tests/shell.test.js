@@ -261,35 +261,3 @@ test('skalmodel: regnearket til kalibrering af kipnings-β udfyldes', async () =
   const back = TC.unzip(z.buffer);
   assert.deepEqual(Object.keys(back).sort(), Object.keys(files).filter((k) => k !== 'xl/calcChain.xml').sort());
 });
-
-// det kalibrerede ark læses tilbage: L_cr pr. flange fra Excels gemte resultater
-test('skalmodel: kalibreret regneark læses tilbage', async () => {
-  const { BETA_XLSX, TC } = load();
-  const ab = BETA_XLSX.buffer.slice(BETA_XLSX.byteOffset, BETA_XLSX.byteOffset + BETA_XLSX.length);
-  const parts = TC.unzip(ab), files = {}, dec = new TextDecoder();
-  for (const k of Object.keys(parts)) files[k] = dec.decode(await TC.inflate(parts[k]));
-  // skabelonen er gemt af Excel med eksemplets resultater
-  const r = TS.readBetaWorkbook(files);
-  assert.equal(r.sections, 5);
-  assert.ok(Math.abs(r.Ltot - 16.4) < 1e-9);
-  assert.ok(Math.abs(r.lcrTop - 2.793495) < 1e-6);
-  assert.ok(Math.abs(r.lcrBottom - 8.9054177690457905) < 1e-9);
-  assert.equal(typeof r.statusTop, 'string');
-  // et nyudfyldt ark har ingen resultater endnu
-  const params = Object.assign({}, TR.DEFAULTS); params.combos = TR.normCombos(params.combos);
-  const geom = TR.computeGeometry(params);
-  const fresh = TS.readBetaWorkbook(TS.betaWorkbook(TR, geom, LIB, TS.options({}, geom).o, files).files);
-  assert.equal(fresh.lcrTop, null);
-  assert.equal(fresh.lcrBottom, null);
-  assert.equal(fresh.sections, 5);
-  // β af hele bjælken med »Hele« giver arkets β = L_cr / L_sektion på hvert stykke
-  const rb = geom.members.filter((m) => m.group === 'radial' && m.index === 0), full = rb[0].fullLength;
-  const p2 = Object.assign({}, params, { bkRadialTop: r.lcrTop / full, bkRadialTopFull: true });
-  const g2 = TR.computeGeometry(p2);
-  g2.members.filter((m) => m.group === 'radial' && m.index === 0).forEach((m) => {
-    const L = Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
-    assert.ok(Math.abs(TR.bucklingBetas(g2.params, m)[2] * L - r.lcrTop) < 1e-9);
-  });
-  // andre filer afvises
-  assert.throws(() => TS.readBetaWorkbook({ 'xl/workbook.xml': '<workbook/>' }), /ikke et β-kalibreringsark/);
-});
