@@ -190,18 +190,6 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .bkcell input[type="text"] { min-height: 32px; padding: 4px 7px; }
 .bkcell .check { font-size: 0.8rem; }
 .bkgrid .bksec.off { opacity: 0.45; }
-/* egen kipnings-β pr. stykke af radialbjælkerne og kalibrering mod Mcr */
-.bkseg summary { cursor: pointer; font-weight: 600; font-size: 0.9rem; padding: 4px 0; }
-.bkseg[open] summary { margin-bottom: 6px; }
-.bkseg-body { display: grid; gap: 10px; }
-.bksegrows { display: grid; grid-template-columns: minmax(0, 1fr) 84px 84px; gap: 6px 8px; align-items: center; }
-.bksegrows .lbl { font-size: 0.7rem; }
-.bksegrows .rl { font-family: var(--f-data); font-size: 0.8rem; }
-.bksegrows input, .bkcal input, .bkcal select { min-height: 32px; padding: 4px 7px; }
-.bkcal { display: grid; gap: 8px; border: 1px solid var(--rule); border-radius: 4px; padding: 8px 10px; }
-.bkcal h3 { margin: 0; font-size: 0.85rem; }
-.bkcal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
-.bkcal-res { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .prof { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 8px; }
 .prof-head { display: flex; align-items: center; gap: 8px; }
 .swatch { width: 18px; height: 0; border-top: 3px solid currentColor; flex: none; }
@@ -746,24 +734,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </div>
         <p class="calc" id="bkCalc"></p>
         <p class="hint">Tallene er FEM-Designs β: knæklængden er β gange længden. Uden flueben gælder β for hvert stykke, som bjælken er delt i ved udvekslingsringene (RB1.1, RB1.2 … og SEK1.1, SEK1.2 …), og med »Hele« for hele radialbjælken eller hele sektionsspæret fra den inderste til den yderste ende. β omregnes så til det enkelte stykke i filen. Kipning skrives som FEM-Designs trykket overflange og trykket underflange, med lasten på overflangen.</p>
-        <details class="bkseg" id="bkSegBox">
-          <summary>Egen kipnings-β pr. stykke af radialbjælkerne</summary>
-          <div class="bkseg-body">
-            <div class="bksegrows" id="bkSegRows"></div>
-            <div class="bkcal" role="group" aria-labelledby="bkCalH">
-              <h3 id="bkCalH">Kalibrering: β<sub>ny</sub> = β<sub>gl</sub> · √(M<sub>cr,FEM</sub> / M<sub>cr,mål</sub>)</h3>
-              <div class="bkcal-grid">
-                <label class="field"><span class="lbl">Stykke</span><select id="bkCalSeg"></select></label>
-                <label class="field"><span class="lbl">Flange</span><select id="bkCalFlange"><option value="Top">Overflange</option><option value="Bottom">Underflange</option></select></label>
-                <label class="field"><span class="lbl nocase">β<sub>gl</sub></span><input class="num" type="text" inputmode="decimal" id="bkCalOld"></label>
-                <label class="field"><span class="lbl nocase">M<sub>cr,FEM</sub> [kNm]</span><input class="num" type="text" inputmode="decimal" id="bkCalFem"></label>
-                <label class="field"><span class="lbl nocase">M<sub>cr,mål</sub> [kNm]</span><input class="num" type="text" inputmode="decimal" id="bkCalTarget"></label>
-              </div>
-              <div class="bkcal-res"><output class="calc" id="bkCalOut" for="bkCalOld bkCalFem bkCalTarget"></output><button type="button" class="btn small" id="bkCalUse" disabled>Brug β<sub>ny</sub> for stykket</button></div>
-            </div>
-            <p class="hint">Et tal her går forud for den fælles kipnings-β ovenfor og gælder altid stykkets egen længde. Et tomt felt følger den fælles værdi. Værdierne gælder alle radialbjælker. Til kalibreringen: β<sub>gl</sub> er den β, der stod i filen, da FEM-Design gav M<sub>cr,FEM</sub> for stykket, og M<sub>cr,mål</sub> er det kritiske moment, stykket skal have, fx fra skalmodellen. Formlen bruger, at M<sub>cr</sub> er omtrent omvendt proportional med β², så kør gerne FEM-Design igen med den nye β og gentag, hvis M<sub>cr</sub> ikke rammer målet.</p>
-          </div>
-        </details>
       </section>
 
       <section class="group" aria-labelledby="g-conn">
@@ -1414,30 +1384,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <p class="hint">Samme spær som almindelige stænger, forskudt vandret på tværs af spæret, med de samme lejer og laster, så momentet kan aflæses på stængerne. Den får egne lasttilfælde og kombinationer (»… – bjælkemodel«), så dens egenformer ikke blandes med skallens. Linjelasten og sidefastholdelsen sidder i systemlinjen, fordi en stang ikke har flanger. 0 = ingen bjælkemodel.</p>
       </section>
 
-      <section class="group" aria-labelledby="g-shell-bk">
-        <h2 id="g-shell-bk">Kalibrering af kipningslængder</h2>
-        <p class="hint">Bjælkemodellen får de samme søjle- og kipningslængder som den almindelige model. Her kan kipningen få sin egen β pr. stykke, så den kan kalibreres mod skalmodellen i samme fil, før den overføres til den almindelige model. Et tomt felt bruger den almindelige models β (pladsholderen).</p>
-        <div class="bkseg-body">
-          <div class="bksegrows" id="shBkSegRows"></div>
-          <div class="bkcal" role="group" aria-labelledby="shBkCalH">
-            <h3 id="shBkCalH">β<sub>ny</sub> = β<sub>gl</sub> · √(M<sub>cr,FEM</sub> / M<sub>cr,mål</sub>)</h3>
-            <div class="bkcal-grid">
-              <label class="field"><span class="lbl">Stykke</span><select id="shBkCalSeg"></select></label>
-              <label class="field"><span class="lbl">Flange</span><select id="shBkCalFlange"><option value="Top">Overflange</option><option value="Bottom">Underflange</option></select></label>
-              <label class="field"><span class="lbl nocase">β<sub>gl</sub></span><input class="num" type="text" inputmode="decimal" id="shBkCalOld"></label>
-              <label class="field"><span class="lbl nocase">M<sub>cr,FEM</sub> [kNm]</span><input class="num" type="text" inputmode="decimal" id="shBkCalFem"></label>
-              <label class="field"><span class="lbl nocase">M<sub>cr,mål</sub> [kNm]</span><input class="num" type="text" inputmode="decimal" id="shBkCalTarget"></label>
-            </div>
-            <div class="bkcal-res"><output class="calc" id="shBkCalOut" for="shBkCalOld shBkCalFem shBkCalTarget"></output><button type="button" class="btn small" id="shBkCalUse" disabled>Brug β<sub>ny</sub> for stykket</button></div>
-          </div>
-          <div class="tools">
-            <button type="button" class="btn small" id="shBkTransfer" disabled>Overfør til den almindelige model</button>
-            <button type="button" class="btn small" id="shBkClear" disabled>Ryd</button>
-          </div>
-          <p class="hint">Sådan: M<sub>cr,mål</sub> er skalmodellens kritiske lastfaktor gange det største moment i bjælkemodellen i samme lasttilfælde, med »last ned« for overflangen og »last op« for underflangen. M<sub>cr,FEM</sub> aflæses i stål-designet af bjælkemodellen med β<sub>gl</sub>, som er stykkets β i filen. Hent filen igen med β<sub>ny</sub>, og gentag, til de to stemmer. Lastens angrebspunkt i bjælkemodellens kipning følger linjelasten ovenfor. Første egenform kalibrerer kun det stykke, hvor den sidder; de andre stykker kalibreres med de egenformer, der ligger i dem.</p>
-        </div>
-      </section>
-
       <section class="group" aria-labelledby="g-shell-out">
         <h2 id="g-shell-out">Hent</h2>
         <p class="calc" id="shellInfo"></p>
@@ -1607,9 +1553,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // over-/underflange. …Full = β regnes af hele bjælkens længde i stedet for det enkelte stykke.
     bkRadialStiff: 1, bkRadialStiffFull: false, bkRadialWeak: 1, bkRadialWeakFull: false,
     bkRadialTop: 1, bkRadialTopFull: false, bkRadialBottom: 1, bkRadialBottomFull: false,
-    // egen kipnings-β pr. stykke af radialbjælken, indefra (RB·.1; RB·.2; …), fx "0,8; ; 1,2" (tom = som fælles).
-    // β gælder altid stykkets egen længde, også når »Hele« er sat for den fælles værdi.
-    bkRadialTopSeg: '', bkRadialBottomSeg: '',
     bkSecStiff: 1, bkSecStiffFull: false, bkSecWeak: 1, bkSecWeakFull: false,
     bkSecTop: 1, bkSecTopFull: false, bkSecBottom: 1, bkSecBottomFull: false,
     connRadialRing: 'rigid',   // 'rigid' | 'hinged' – radialbjælke mod ringbjælke
@@ -2003,27 +1946,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     { key: 'Bottom', type: 'pressured_bottom_flange', name: 'Kipning, trykket underflange' }
   ];
   var BUCKLING_GROUPS = { radial: 'bkRadial', sec: 'bkSec' };
-  // kipning, der kan have egen β for hvert stykke af radialbjælkerne
-  var BUCKLING_SEG = ['Top', 'Bottom'];
-  // egne β pr. stykke som liste (indeks 0 = inderste stykke); tom plads = som fælles
-  function bucklingSegEntries(p, key) {
-    var s = jsString(p['bkRadial' + key + 'Seg']);
-    return s.trim() === '' ? [] : s.split(';').map(function (x) { return x.trim(); });
-  }
-  // egen β for stykke j (0 = inderste) eller null, når stykket følger den fælles værdi
-  function bucklingSegOf(p, key, j) {
-    var e = bucklingSegEntries(p, key)[j];
-    return e === undefined || e === '' ? null : toNum(e);
-  }
   // β for stang m, som den skrives i filen: med »hele længden« omregnes β til stykkets egen længde
   function bucklingBetas(p, m) {
     var pre = BUCKLING_GROUPS[m.group];
     if (!pre) return null;
     var len = norm(vsub(m.end, m.start));
     return BUCKLING.map(function (b) {
-      // egen β for stykket gælder dets egen længde
-      var own = m.group === 'radial' && BUCKLING_SEG.indexOf(b.key) >= 0 ? bucklingSegOf(p, b.key, m.seg || 0) : null;
-      if (own !== null) return own;
       var beta = p[pre + b.key];
       return p[pre + b.key + 'Full'] && m.fullLength ? beta * m.fullLength / len : beta;
     });
@@ -2069,7 +1997,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         q[k + 'Full'] = q[k + 'Full'] === true || q[k + 'Full'] === 'true';
       });
     });
-    BUCKLING_SEG.forEach(function (k) { q['bkRadial' + k + 'Seg'] = jsString(q['bkRadial' + k + 'Seg']); });
     q.combos = normCombos(q.combos);
     q.holdMode = q.holdMode === 'nodes' ? 'nodes' : 'auto';
     q.holds = normHolds(q.holds);
@@ -2154,13 +2081,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       BUCKLING.forEach(function (b) {
         var v = p[BUCKLING_GROUPS[g[0]] + b.key];
         if (!(v > 0 && v <= 100)) errors.push(b.name + ' for ' + g[1] + ': β skal være større end 0 og højst 100.');
-      });
-    });
-    BUCKLING_SEG.forEach(function (k) {
-      var b = BUCKLING.filter(function (x) { return x.key === k; })[0];
-      bucklingSegEntries(p, k).forEach(function (e, j) {
-        var v = bucklingSegOf(p, k, j);
-        if (v !== null && !(v > 0 && v <= 100)) errors.push(b.name + ' for stykke ' + (j + 1) + ' af radialbjælkerne: β skal være større end 0 og højst 100 – eller tom (som fælles).');
       });
     });
     // udvekslingernes profil kan drejes i hele kvarte omgange om stangaksen
@@ -2585,14 +2505,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           : 'Charnier ved ringbjælken uden udvekslinger eller kantring giver en mekanisme – ringbjælken kan dreje om den lodrette akse. Vælg stiv forbindelse, eller tilføj udvekslinger eller kantring.');
       }
     }
-
-    // egne kipnings-β ud over det antal stykker, radialbjælkerne er delt i, bruges ikke
-    var nPieces = segmented ? nodesR.length - 1 : 1;
-    BUCKLING_SEG.forEach(function (k) {
-      var extra = bucklingSegEntries(p, k).slice(nPieces).filter(function (e) { return e !== ''; }).length;
-      if (extra) warnings.push('Egen ' + (k === 'Top' ? 'kipnings-β for overflangen' : 'kipnings-β for underflangen') + ' er angivet for ' + extra +
-        ' stykke' + (extra > 1 ? 'r' : '') + ' mere, end radialbjælkerne har (' + nPieces + '). De bruges ikke.');
-    });
 
     // nøgletal
     var info = {
@@ -3708,8 +3620,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
     weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections,
-    BUCKLING: BUCKLING, BUCKLING_SEG: BUCKLING_SEG, bucklingBetas: bucklingBetas, bucklingSegOf: bucklingSegOf,
-    bucklingSegEntries: bucklingSegEntries
+    BUCKLING: BUCKLING, bucklingBetas: bucklingBetas
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -3764,13 +3675,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     N: UNIT_N,          // trykket i kN
     q: UNIT_Q,          // linjelasten i kN/m pr. meter bjælke
     qPos: 'top',        // linjelastens angrebspunkt: 'top', 'centre' eller 'bottom'
-    beamOffset: 3,      // bjælkemodellen af samme spær ved siden af skalmodellen: afstand i m, 0 = ingen
-    // kipnings-β for bjælkemodellens stykker indefra, fx "0,8; ; 1,2" – tom = som i den almindelige model
-    bkTopSeg: '', bkBottomSeg: ''
+    beamOffset: 3       // bjælkemodellen af samme spær ved siden af skalmodellen: afstand i m, 0 = ingen
   };
   var HOLD_SIDE = { top: 1, centre: 0, bottom: -1 };
   var POS_NAME = { top: 'overflange', centre: 'systemlinjen', bottom: 'underflange' };
-  var LOAD_POS = { top: 'top', centre: 'center', bottom: 'bottom' };   // FEM-Designs load_position
   function num(v) {
     if (typeof v === 'number') return v;
     var t = String(v === undefined || v === null ? '' : v).trim().replace(',', '.');
@@ -3795,38 +3703,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     var stiff = String(r.holdStiff === undefined || r.holdStiff === null ? '' : r.holdStiff).trim() === '' ? null : num(r.holdStiff);
     if (stiff !== null && !(stiff >= 0)) e.push('Sidefastholdelsens stivhed skal være 0 eller større – eller tom for fast.');
-    var seg = {};
-    [['Top', 'overflange'], ['Bottom', 'underflange']].forEach(function (k) {
-      seg[k[0]] = segList(r['bk' + k[0] + 'Seg']);
-      seg[k[0]].forEach(function (x, j) {
-        if (x !== '' && !(num(x) > 0 && num(x) <= 100)) e.push('Kipnings-β for ' + k[1] + ' på stykke ' + (j + 1) + ' i bjælkemodellen skal være større end 0 og højst 100 – eller tom.');
-      });
-    });
     if (!r.caseN && !r.caseDown && !r.caseUp) e.push('Vælg mindst ét lasttilfælde.');
     if (r.caseN && !(N > 0)) e.push('Trykket N skal være større end 0.');
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
     return {
       errors: e,
       o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
-        holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off,
-        bkTopSeg: seg.Top.join('; '), bkBottomSeg: seg.Bottom.join('; ') }
+        holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
   }
-  function segList(v) {
-    var t = String(v === undefined || v === null ? '' : v);
-    return t.trim() === '' ? [] : t.split(';').map(function (x) { return x.trim(); });
-  }
-  // kipnings-β for bjælkemodellen: egne værdier pr. stykke fra fanen Skalmodel, ellers den almindelige models
-  function beamParams(TR, p, o) {
-    var q = Object.assign({}, p);
-    TR.BUCKLING_SEG.forEach(function (k) {
-      var own = segList(o['bk' + k + 'Seg']), main = TR.bucklingSegEntries(p, k), out = [];
-      for (var j = 0; j < Math.max(own.length, main.length); j++) out.push(own[j] ? own[j] : (main[j] || ''));
-      q['bkRadial' + k + 'Seg'] = out.join('; ');
-    });
-    return q;
-  }
-  function beamBetas(TR, p, o, member) { return TR.bucklingBetas(beamParams(TR, p, o), member); }
 
   // dobbeltsymmetriske I- og H-profiler med parallelle flanger; tykkelserne læses af tværsnittets omrids
   var FAMILIES = ['IPE', 'HE-A', 'HE-B', 'HE-M'];
@@ -3948,19 +3833,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I5 + '<physical x="0" y="0" z="0"/>');
         L.push(I5 + '<physical x="0" y="0" z="0"/>');
         L.push(I4 + '</eccentricity>');
-        // søjle- og kipningslængder som i den almindelige model, med egne kipnings-β fra fanen Skalmodel til kalibreringen.
-        // Lastens angrebspunkt følger skalmodellens linjelast, så Mcr regnes for samme last som skallens kritiske last.
-        var betas = beamBetas(TR, p, o, pc.member);
-        L.push(I4 + '<buckling_data>');
-        TR.BUCKLING.forEach(function (b, bi) {
-          if (!(betas[bi] > 0 && betas[bi] <= 100)) throw new Error(b.name + ' for ' + name + ' giver β = ' + fmt(betas[bi]) + '. FEM-Design tillader 0–100.');
-          var flange = b.type.indexOf('pressured') === 0;
-          L.push(I5 + '<buckling_length type="' + b.type + '" beta="' + fmt(betas[bi]) + '"' +
-            (flange ? ' load_position="' + LOAD_POS[qPos] + '" continously_restrained="false"' : ' sway="false"') + '>');
-          L.push(I6 + '<position start="0" end="1"/>');
-          L.push(I5 + '</buckling_length>');
-        });
-        L.push(I4 + '</buckling_data>');
         L.push(I4 + '<end/>');
         L.push(I3 + '</bar_part>');
         L.push(I3 + '<end/>');
@@ -4142,8 +4014,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { xml: L.join('\n') + '\n', rafter: R, cases: shellCases, beamCases: beamCases, supports: sups };
   }
 
-  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml,
-    beamParams: beamParams, beamBetas: beamBetas };
+  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
 })(typeof window !== 'undefined' ? window : this);
@@ -8057,115 +7928,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       });
     }
     $('bkCalc').innerHTML = out.join('<br>');
-    renderBkSeg(g);
-  }
-  // egen kipnings-β pr. stykke af radialbjælkerne: et felt for over- og underflange pr. stykke, indefra, og kalibrering
-  // mod Mcr. Bruges på fanen Model (den almindelige model, id'er bk…) og på fanen Skalmodel (bjælkemodellen, id'er shBk…).
-  function betaText(x) { return String(Math.round(x * 1000) / 1000).replace('.', ','); }
-  function pieceName(name) { return name.replace(/^RB\d+\./, 'RBx.').replace(/^RB\.\d+$/, 'RBx'); }
-  function memberLen(mb) { return Math.sqrt(Math.pow(mb.end[0] - mb.start[0], 2) + Math.pow(mb.end[1] - mb.start[1], 2) + Math.pow(mb.end[2] - mb.start[2], 2)); }
-  // cfg: pre (id-præfiks), storeKey, entries(k) → liste, setEntries(k, liste) – gemmer og tegner igen
-  function makeBkSeg(cfg) {
-    var pieces = [];   // [{ name, len, eff: [over, under], fb: [over, under] }]: β i filen nu og β, når feltet er tomt
-    function el(s) { return $(cfg.pre + s); }
-    function render(ps, nSeg) {
-      pieces = ps;
-      var h = ['<span class="lbl">Stykke</span><span class="lbl">Overflange</span><span class="lbl">Underflange</span>'];
-      var ent = { Top: cfg.entries('Top'), Bottom: cfg.entries('Bottom') };
-      for (var j = 0; j < nSeg; j++) {
-        var pc = pieces[j];
-        h.push('<span class="rl">' + esc(pc ? pieceName(pc.name) : 'Stykke ' + (j + 1)) + (pc ? ' · ' + nf(pc.len, 2) + ' m' : '') + '</span>');
-        TR.BUCKLING_SEG.forEach(function (k, ki) {
-          // pladsholderen viser den β, stykket får med et tomt felt
-          h.push('<input class="num" type="text" inputmode="decimal" data-bk-seg="' + k + '" data-bk-j="' + j + '" value="' + esc(ent[k][j] || '') + '" placeholder="' +
-            esc(pc ? betaText(pc.fb[ki]) : '') + '" aria-label="Egen β, kipning med trykket ' + (k === 'Top' ? 'overflange' : 'underflange') + ', stykke ' + (j + 1) + '">');
-        });
-      }
-      var html = h.join(''), box = el('SegRows');
-      if (box.dataset.html !== html) {
-        var ae = document.activeElement, fk = ae && ae.dataset && ae.dataset.bkSeg && box.contains(ae) ? [ae.dataset.bkSeg, ae.dataset.bkJ] : null;
-        box.innerHTML = html; box.dataset.html = html;
-        if (fk) { var f = box.querySelector('[data-bk-seg="' + fk[0] + '"][data-bk-j="' + fk[1] + '"]'); if (f) f.focus(); }
-      }
-      // stykkerne i kalibreringen
-      var sel = el('CalSeg'), cur = sel.value;
-      var so = pieces.map(function (pc, i) { return '<option value="' + i + '">' + esc(pieceName(pc.name)) + '</option>'; }).join('');
-      if (sel.dataset.html !== so) { sel.innerHTML = so; sel.dataset.html = so; if (cur && Number(cur) < pieces.length) sel.value = cur; }
-      if (el('CalOld').value.trim() === '') fillOld();
-      update();
-      return ent.Top.length || ent.Bottom.length;
-    }
-    // β_gl foreslås som den β, stykket har i filen nu
-    function fillOld() {
-      var pc = pieces[Number(el('CalSeg').value)];
-      el('CalOld').value = pc ? betaText(pc.eff[el('CalFlange').value === 'Top' ? 0 : 1]) : '';
-    }
-    function calNew() {
-      var num = function (s) { var v = el(s).value.trim().replace(',', '.'); return v === '' ? NaN : Number(v); };
-      var b = num('CalOld'), f = num('CalFem'), t = num('CalTarget');
-      return b > 0 && f > 0 && t > 0 ? b * Math.sqrt(f / t) : NaN;
-    }
-    function update() {
-      var v = calNew();
-      el('CalOut').innerHTML = isFinite(v) ? 'β<sub>ny</sub> = ' + nf(v, 3) + (v > 100 ? ' – over FEM-Designs grænse på 100' : '') : 'Udfyld β<sub>gl</sub>, M<sub>cr,FEM</sub> og M<sub>cr,mål</sub>';
-      el('CalUse').disabled = !(isFinite(v) && pieces.length > 0) || v > 100;
-    }
-    try {
-      var saved = JSON.parse(window.localStorage.getItem(cfg.storeKey) || '{}');
-      el('CalTarget').value = saved.target || '';
-      el('CalFem').value = saved.fem || '';
-    } catch (e) { /* ingen lagring */ }
-    function store() {
-      try { window.localStorage.setItem(cfg.storeKey, JSON.stringify({ target: el('CalTarget').value, fem: el('CalFem').value })); } catch (e) { /* ingen lagring */ }
-    }
-    ['CalOld', 'CalFem', 'CalTarget'].forEach(function (s) {
-      el(s).addEventListener('input', function (e) { e.stopPropagation(); store(); update(); });
-    });
-    ['CalSeg', 'CalFlange'].forEach(function (s) {
-      el(s).addEventListener('change', function (e) { e.stopPropagation(); fillOld(); update(); });
-    });
-    function setOne(k, j, v) {
-      var ent = cfg.entries(k);
-      while (ent.length <= j) ent.push('');
-      ent[j] = v;
-      cfg.setEntries(k, ent);
-    }
-    el('CalUse').addEventListener('click', function () {
-      var v = calNew(), j = Number(el('CalSeg').value);
-      if (!isFinite(v) || !(j >= 0)) return;
-      // den nye β er nu stykkets β i filen; Mcr,FEM skal aflæses igen med den
-      el('CalFem').value = '';
-      store();
-      setOne(el('CalFlange').value, j, betaText(v));
-      fillOld();
-      update();
-    });
-    el('SegRows').addEventListener('change', function (e) {
-      var t = e.target;
-      if (!t.dataset.bkSeg) return;
-      e.stopPropagation();
-      setOne(t.dataset.bkSeg, Number(t.dataset.bkJ), t.value.trim());
-    });
-    el('SegRows').addEventListener('input', function (e) { if (e.target.dataset.bkSeg) e.stopPropagation(); });
-    return { render: render };
-  }
-  // den almindelige model: RB1's stykker; tomt felt = den fælles β (med »Hele« omregnet til stykket)
-  var bkSegMain = makeBkSeg({
-    pre: 'bk', storeKey: 'tanktag-bkcal',
-    entries: function (k) { return ringEntries('bkRadial' + k + 'Seg'); },
-    setEntries: function (k, ent) { setRingEntries('bkRadial' + k + 'Seg', ent); statusExtra = []; storeParams(); render(); }
-  });
-  function renderBkSeg(g) {
-    var p = g.params, ok = !g.errors.length;
-    var ms = ok ? g.members.filter(function (mb) { return mb.group === 'radial' && mb.index === 0; }) : [];
-    var pc = Object.assign({}, p, { bkRadialTopSeg: '', bkRadialBottomSeg: '' });
-    var ps = ms.map(function (mb) {
-      var b = TR.bucklingBetas(p, mb), f = TR.bucklingBetas(pc, mb);
-      return { name: mb.name, len: memberLen(mb), eff: [b[2], b[3]], fb: [f[2], f[3]] };
-    });
-    var nSeg = ms.length || Math.max(TR.bucklingSegEntries(p, 'Top').length, TR.bucklingSegEntries(p, 'Bottom').length, 1);
-    if (bkSegMain.render(ps, nSeg)) $('bkSegBox').open = true;
-    if (typeof updateShellBk === 'function') updateShellBk(g);
   }
   // gangbro: valg af radialbjælke med bjælkens vinkel
   function updateWalkUI(g) {
@@ -9118,7 +8880,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   function shellOptions(g) { return window.TankShell.options(shellSet, g); }
   function updateShellInfo() {
     var g = TR.computeGeometry(params), el = $('shellInfo');
-    if (typeof bkSegShell !== 'undefined') updateShellBk(g);
     if (g.errors.length) { el.textContent = 'Taget har fejl – ret dem først.'; return; }
     var op = shellOptions(g);
     if (op.errors.length) { el.innerHTML = '<b>Ret først:</b> ' + op.errors.map(esc).join(' '); return; }
@@ -9150,60 +8911,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     updateShellInfo();
   });
   fillShell();
-  // kalibrering af kipnings-β på bjælkemodellen; tomt felt = den almindelige models β
-  function shellSegEntries(k) {
-    var t = String(shellSet['bk' + k + 'Seg'] || '');
-    return t.trim() === '' ? [] : t.split(';').map(function (x) { return x.trim(); });
-  }
-  function storeShell() { try { window.localStorage.setItem(SHELL_KEY, JSON.stringify(shellSet)); } catch (err) { /* kun i hukommelsen */ } }
-  var bkSegShell = makeBkSeg({
-    pre: 'shBk', storeKey: 'tanktag-bkcal-skal',
-    entries: shellSegEntries,
-    setEntries: function (k, ent) {
-      while (ent.length && !ent[ent.length - 1]) ent.pop();
-      shellSet['bk' + k + 'Seg'] = ent.join('; ');
-      storeShell();
-      updateShellInfo();
-    }
-  });
-  function updateShellBk(g) {
-    g = g || TR.computeGeometry(params);
-    var op = g.errors.length ? null : shellOptions(g), ps = [], nSeg = 1;
-    var beam = op ? op.o.index : 0;
-    if (!g.errors.length) {
-      var ms = g.members.filter(function (mb) { return mb.group === 'radial' && mb.index === beam; });
-      var bp = window.TankShell.beamParams(TR, g.params, { bkTopSeg: shellSet.bkTopSeg, bkBottomSeg: shellSet.bkBottomSeg });
-      ps = ms.map(function (mb) {
-        var b = TR.bucklingBetas(bp, mb), f = TR.bucklingBetas(g.params, mb);
-        return { name: mb.name, len: memberLen(mb), eff: [b[2], b[3]], fb: [f[2], f[3]] };
-      });
-      nSeg = ms.length;
-    }
-    var any = bkSegShell.render(ps, Math.max(nSeg, 1));
-    $('shBkTransfer').disabled = !any || !!g.errors.length;
-    $('shBkClear').disabled = !any;
-  }
-  $('shBkTransfer').addEventListener('click', function () {
-    var n = 0;
-    TR.BUCKLING_SEG.forEach(function (k) {
-      var own = shellSegEntries(k), key = 'bkRadial' + k + 'Seg', ent = ringEntries(key);
-      own.forEach(function (v, j) { if (v !== '') { while (ent.length <= j) ent.push(''); ent[j] = v; n++; } });
-      setRingEntries(key, ent);
-    });
-    // overført: bjælkemodellen følger nu den almindelige model
-    shellSet.bkTopSeg = ''; shellSet.bkBottomSeg = '';
-    storeShell();
-    statusExtra = [];
-    storeParams();
-    render();
-    updateShellInfo();
-    addStatus('ok', '', n + ' kipnings-β er overført til den almindelige model (fanen Model, Søjle- og kipningslængder).');
-  });
-  $('shBkClear').addEventListener('click', function () {
-    shellSet.bkTopSeg = ''; shellSet.bkBottomSeg = '';
-    storeShell();
-    updateShellInfo();
-  });
   function exportShell() {
     var res, op, base = fileBase(TR.normalizeParams(params));
     try {
