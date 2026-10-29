@@ -139,6 +139,18 @@ fs.readdirSync(CASES_DIR).filter((f) => f.endsWith('.json')).sort().forEach((fil
     assert.deepEqual(bs.find((s) => s.name === 'B.GL.R').m, [true, true, true]);
     assert.deepEqual(bs.find((s) => s.name === 'B.GL.R').r, [true, false, false]);
     R.holds.forEach((h) => assert.ok(bs.some((s) => s.name === 'B.SF.' + h.ring && same(s.pos, add(h.node, ov)))));
+    // trykket i bjælkemodellen: ingen punktlast står på en understøtning (FEM-Design fører den direkte ned i den),
+    // men 1 mm inde på en af stængerne, og trykket i enderne går langs stængernes akse
+    bc[0].points.forEach((q) => {
+      bs.forEach((s) => assert.ok(len(sub(q.pos, s.pos)) > 0.0005, 'punktlast på ' + s.name));
+      const onBar = R.pieces.some((pc) => {
+        const a = add(pc.member.start, ov), b = add(pc.member.end, ov), t = dot(sub(q.pos, a), pc.x);
+        return t > 0 && t < pc.length && len(sub(q.pos, add(a, scale(pc.x, t)))) < 1e-9;
+      });
+      assert.ok(onBar, 'punktlasten ligger ikke på en stang');
+    });
+    assert.ok(same(bc[0].points[0].pos, add(add(R.pieces[0].member.start, ov), scale(R.pieces[0].x, 0.001))));
+    assert.ok(same(bc[0].points[1].pos, add(add(R.pieces[R.pieces.length - 1].member.end, ov), scale(R.pieces[R.pieces.length - 1].x, -0.001))));
     assert.equal(R.holds.length, geom.info.radii.length);
     R.holds.forEach((h) => {
       const top = h.piece.plates[1].pts;

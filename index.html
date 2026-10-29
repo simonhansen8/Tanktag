@@ -3677,6 +3677,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // enhedslasterne: N i kN og q i kN/m, så FEM-Designs kritiske lastfaktor er den kritiske last
   var UNIT_N = 1, UNIT_Q = 1;
   var FIXED = '10000000000';
+  var BEAM_LOAD_IN = 0.001;   // m: punktlaster i bjælkemodellen flyttes så meget væk fra understøtningerne
 
   // indstillingerne på fanen Skalmodel (gemmes for sig, uden for tagets parametre)
   var DEFAULTS = {
@@ -3915,7 +3916,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     endLoads(last, true, vscale(last.x, -1));
     for (var j = 0; j < pieces.length - 1; j++) {
       var dv = vscale(vsub(pieces[j + 1].x, pieces[j].x), N), mag = norm(dv);
-      if (mag > 1e-12) cases[0].points.push({ pos: pieces[j].member.end, dir: vscale(dv, 1 / mag), val: mag });
+      if (mag > 1e-12) cases[0].points.push({ pos: pieces[j].member.end, dir: vscale(dv, 1 / mag), val: mag, piece: j });
     }
     // jævn lodret last langs overflangens midte (kroppens overkant), systemlinjen eller underflangens midte, nedad og opad
     var side = HOLD_SIDE[qPos];
@@ -3931,9 +3932,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var beamCases = off > 0 ? cases.map(function (c) {
       var bc = { key: c.key, name: c.name.replace(/ på \S+$/, '') + ' – bjælkemodel', points: [], lines: [], beam: true };
       if (c.key === 'N') {
-        bc.points.push({ pos: vadd(first.member.start, ov), dir: first.x, val: N });
-        bc.points.push({ pos: vadd(last.member.end, ov), dir: vscale(last.x, -1), val: N });
-        c.points.forEach(function (Ld) { bc.points.push({ pos: vadd(Ld.pos, ov), dir: Ld.dir, val: Ld.val }); });
+        // FEM-Design fører en punktlast, der står lige på en understøtning, direkte ned i den. Trykket i enderne og
+        // afbøjningskræfterne i knækkene (hvor sidefastholdelsen sidder) sættes derfor BEAM_LOAD_IN ind på stangen.
+        bc.points.push({ pos: vadd(vadd(first.member.start, ov), vscale(first.x, BEAM_LOAD_IN)), dir: first.x, val: N });
+        bc.points.push({ pos: vadd(vadd(last.member.end, ov), vscale(last.x, -BEAM_LOAD_IN)), dir: vscale(last.x, -1), val: N });
+        c.points.forEach(function (Ld) { bc.points.push({ pos: vadd(vadd(Ld.pos, ov), vscale(pieces[Ld.piece + 1].x, BEAM_LOAD_IN)), dir: Ld.dir, val: Ld.val }); });
       } else {
         pieces.forEach(function (pc) {
           bc.lines.push({ a: vadd(pc.member.start, ov), b: vadd(pc.member.end, ov), dir: c.key === 'down' ? [0, 0, -1] : [0, 0, 1], val: Q });
