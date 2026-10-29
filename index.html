@@ -4213,7 +4213,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     L.push(I1 + '</entities>');
     if (sections.length) {
       L.push(I1 + '<sections>');
-      sections.forEach(function (x) { L.push(I2 + x); });
+      // FEM-Design vil have alle tværsnit før de sammensatte (complex_section)
+      sections.filter(function (x) { return /^<section /.test(x); }).concat(sections.filter(function (x) { return !/^<section /.test(x); }))
+        .forEach(function (x) { L.push(I2 + x); });
       L.push(I1 + '</sections>');
     }
     L.push(I1 + '<materials>');

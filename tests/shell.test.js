@@ -431,6 +431,9 @@ test('skalmodel: torsionsstang for rundingerne', () => {
   const sec = /<section [^>]*fd_name_type="Torsionsstang"[\s\S]*?<\/section>/.exec(xml)[0];
   assert.equal((sec.match(/<contour>/g) || []).length, 2);
   assert.equal((sec.match(/type="arc"/g) || []).length, 4);
+  // sammen med bjælkemodellen: alle <section> før de sammensatte <complex_section> (FEM-Designs skema)
+  const secs = /<sections>([\s\S]*?)<\/sections>/.exec(xml)[1], kinds = [...secs.matchAll(/<(section(?= guid)|complex_section) /g)].map((m) => m[1]);
+  assert.deepEqual(kinds, ['section', 'section', 'complex_section', 'complex_section']);
   // uden valget: ingen torsionsstang
   assert.ok(!/name="RT/.test(TS.buildRafterStruxml(TR, geom, LIB, TS.options({}, geom).o).xml));
 });
