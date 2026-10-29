@@ -366,3 +366,37 @@ test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tv�
   assert.ok(onQuad(fu.a, first.plates[2].pts) && onQuad(fu.b, first.plates[2].pts));
   assert.deepEqual(ls.find((s) => s.name === 'GL.R').m, [true, true, false]);
 });
+
+test('skalmodel: lige og vandret version af bjælken', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const R0 = TS.rafter(TR, geom, LIB, TS.options({}, geom).o);
+  const op = TS.options({ straight: true }, geom);
+  assert.deepEqual(op.errors, []);
+  const res = TS.buildRafterStruxml(TR, geom, LIB, op.o), R = res.rafter;
+  wellFormed(res.xml);
+  // samme stykker og længder, i forlængelse af hinanden på én vandret linje fra den inderste knude
+  assert.equal(R.pieces.length, R0.pieces.length);
+  assert.ok(same(R.pieces[0].member.start, R0.pieces[0].member.start));
+  const z0 = R.pieces[0].member.start[2];
+  R.pieces.forEach((pc, k) => {
+    assert.ok(Math.abs(pc.length - R0.pieces[k].length) < 1e-12);
+    assert.ok(same(pc.x, R.pieces[0].x) && Math.abs(pc.x[2]) < 1e-12);
+    assert.ok(Math.abs(pc.member.start[2] - z0) < 1e-12 && Math.abs(pc.member.end[2] - z0) < 1e-12);
+    if (k) assert.ok(same(pc.member.start, R.pieces[k - 1].member.end));
+    assert.ok(pc.z[2] > 0.999, 'overflangen opad');
+  });
+  // fastholdelserne samme sted langs bjælken
+  assert.equal(R.holds.length, R0.holds.length);
+  R.holds.forEach((h, i) => {
+    const h0 = R0.holds[i], s = (H, P) => P.pieces.slice(0, P.pieces.indexOf(H.piece)).reduce((a, pc) => a + pc.length, 0) + len(sub(H.node, H.piece.member.start));
+    assert.ok(Math.abs(s(h, R) - s(h0, R0)) < 1e-9);
+    assert.ok(Math.abs(h.pos[2] - z0 - R.d) < 1e-9, 'i topflangen');
+  });
+  // ingen afbøjningskræfter i knækkene, og bjælkemodellen ligger også lige
+  assert.equal(res.cases[0].points.length, 0);
+  res.beamCases[0].points.forEach((q) => assert.ok(Math.abs(q.dir[2]) < 1e-12));
+  const bars = [...res.xml.matchAll(/<bar [\s\S]*?<\/bar>/g)].map((m) => m[0]);
+  assert.equal(bars.length, R.pieces.length);
+});
