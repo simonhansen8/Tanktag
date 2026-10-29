@@ -348,3 +348,30 @@ test('skalmodel: fastholdelserne som linjeunderstøtninger', () => {
   assert.equal(s2.lineSupports.filter((s) => /^SF\./.test(s.name)).length, 0);
   assert.ok(s2.supports.some((s) => /^SF\./.test(s.name)));
 });
+
+test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tværs', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ supRing: 'full', supShell: 'full', rotShell: 'fixed', holdPos: 'none' }, geom);
+  assert.deepEqual(op.errors, []);
+  assert.match(TS.supportText(op.o), /^ved ringbjælken fuldt vridningsfastholdt og ved svøbet fuldt vridningsfastholdt, indspændt/);
+  const { xml, rafter: R, supports } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  const first = R.pieces[0], by = (n) => supports.find((s) => s.name === n);
+  // ringbjælken: kroppen i midten, over- og underkant og alle fire flangespidser fastholdt på tværs
+  ['GL.R', 'GL.RO', 'GL.RU', 'GL.RO1', 'GL.RO2', 'GL.RU1', 'GL.RU2'].forEach((n) => assert.equal(by(n).m[1], true, n));
+  const tips = ['GL.RO1', 'GL.RO2', 'GL.RU1', 'GL.RU2'].map((n) => by(n).pos);
+  tips.forEach((q) => assert.ok(first.plates.slice(1).some((pl) => pl.pts.some((c) => same(c, q))), 'flangespids'));
+  // svøbet indspændt: også flangespidserne aksialt
+  ['GL.SO', 'GL.SU', 'GL.SO1', 'GL.SO2', 'GL.SU1', 'GL.SU2'].forEach((n) => assert.equal(by(n).m[0], true, n));
+  assert.equal(by('GL.RO1').m[0], false);
+  assert.deepEqual(by('B.GL.R').r, [true, false, false]);
+  // som linjer: kroppens endekant og begge flanger i hele bredden
+  const ls = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ supType: 'line', supRing: 'full' }, geom).o).lineSupports;
+  const fo = ls.find((s) => s.name === 'GL.RO'), fu = ls.find((s) => s.name === 'GL.RU');
+  [fo, fu].forEach((s) => { assert.ok(Math.abs(len(sub(s.b, s.a)) - R.dims.b) < 1e-9); assert.deepEqual(s.m, [true, false, false]); });
+  assert.ok(onQuad(fo.a, first.plates[1].pts) && onQuad(fo.b, first.plates[1].pts));
+  assert.ok(onQuad(fu.a, first.plates[2].pts) && onQuad(fu.b, first.plates[2].pts));
+  assert.deepEqual(ls.find((s) => s.name === 'GL.R').m, [true, true, false]);
+});
