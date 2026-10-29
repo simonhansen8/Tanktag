@@ -1315,9 +1315,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <input class="num" type="text" inputmode="decimal" id="shellEndPlate" data-shell="endPlate">
           </div>
         </div>
+        <div class="field">
+          <span class="lbl">Skalprofilets højde</span>
+          <div class="seg" role="radiogroup" aria-label="Skalprofilets højde">
+            <label><input type="radio" name="shellHeight" value="full" data-shell="shellHeight"><span>Fuld højde h</span></label>
+            <label><input type="radio" name="shellHeight" value="mid" data-shell="shellHeight"><span>Midterflader h − t<sub>f</sub></span></label>
+          </div>
+        </div>
         <label class="check"><input type="checkbox" id="shellStraight" data-shell="straight"> <span>Lige og vandret bjælke – til kontrol mod programmer uden krumme bjælker, fx LTBeam</span></label>
         <label class="check"><input type="checkbox" id="shellTorsionBar" data-shell="torsionBar"> <span>Torsionsstang for rundingerne – lægger den I<sub>t</sub> til, som skallerne mangler</span></label>
-        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne. Skallerne har ikke rundingerne mellem krop og flanger, så I<sub>t</sub> er for lav (IPE 330: 20,7 mod 28,15 cm⁴). Torsionsstangen er et tyndvægget rør (1 mm) langs systemlinjen i kroppens plan med netop den manglende I<sub>t</sub>; arealet og bøjningsstivheden ændres næsten ikke (IPE 330: Ø46,6 × 1 mm, A +2,4 %). Kontrollér første gang i FEM-Design, at stængerne (RT…) er forbundet med kroppen. Lige og vandret: de samme stykker med de samme længder i forlængelse af hinanden, vandret ud fra ringbjælken, med lejer, sidefastholdelser og laster samme sted langs bjælken – i både skal- og bjælkemodellen.</p>
+        <p class="hint">Fuld højde: flangeskallerne ligger i profilets yderflader, så skalprofilet er lige så højt som det virkelige profil (kroppen er h høj). Midterflader: flangeskallerne ligger midt i flangerne (kroppen er h − t<sub>f</sub> høj). Torsionsstangen regnes ud fra den valgte kropshøjde. Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne. Skallerne har ikke rundingerne mellem krop og flanger, så I<sub>t</sub> er for lav (IPE 330 i fuld højde: 20,9 mod 28,15 cm⁴). Torsionsstangen er et tyndvægget rør (1 mm) langs systemlinjen i kroppens plan med netop den manglende I<sub>t</sub>; arealet og bøjningsstivheden ændres næsten ikke (IPE 330 i fuld højde: Ø46,3 × 1 mm, A +2,3 %). Kontrollér første gang i FEM-Design, at stængerne (RT…) er forbundet med kroppen. Lige og vandret: de samme stykker med de samme længder i forlængelse af hinanden, vandret ud fra ringbjælken, med lejer, sidefastholdelser og laster samme sted langs bjælken – i både skal- og bjælkemodellen.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-sup">
@@ -3732,6 +3739,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     beam: 1,            // radialbjælke nr. (1 = RB.1)
     meshSize: 0,        // elementstørrelse i mm, 0 = automatisk
     endPlate: 0,        // endepladernes tykkelse i mm, 0 = ingen
+    shellHeight: 'full', // flangeskallerne i profilets yderflader ('full', fuld højde h) eller i midterfladerne ('mid', h − tf)
     torsionBar: false,  // torsionsstang langs systemlinjen med den I_t, rundingerne giver (skallerne har dem ikke)
     straight: false,    // bjælken lige og vandret (samme stykker og længder), til kontrol mod fx LTBeam
     axialAt: 'ring',    // aksial fastholdelse: 'ring' (ved ringbjælken) eller 'shell' (ved svøbet)
@@ -3776,6 +3784,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (!(mesh >= 0)) e.push('Elementstørrelsen skal være 0 (automatisk) eller større.');
     if (!(plate >= 0)) e.push('Endepladernes tykkelse skal være 0 (ingen) eller større.');
     if (['ring', 'shell'].indexOf(r.axialAt) < 0) e.push('Ukendt aksial fastholdelse.');
+    if (['full', 'mid'].indexOf(r.shellHeight) < 0) e.push('Ukendt højde af skalprofilet.');
     if (!SUP_NAME[r.supRing] || !SUP_NAME[r.supShell]) e.push('Ukendt leje på tværs.');
     if (['point', 'line'].indexOf(r.supType) < 0) e.push('Ukendt understøtningstype.');
     if (['free', 'fixed'].indexOf(r.rotRing) < 0 || ['free', 'fixed'].indexOf(r.rotShell) < 0) e.push('Ukendt rotation om den stærke akse.');
@@ -3796,7 +3805,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
     return {
       errors: e,
-      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
+      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, shellHeight: r.shellHeight, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
         supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
@@ -3822,7 +3831,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var tf = h / 2 - yIn, tw = 2 * xIn;
     if (!(tf > 0 && tf < h / 2 && tw > 0 && tw < b)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(key).replace('|', ' ') + '.');
     // rundingerne mellem krop og flanger: radius af omridsets buer og profilets I_t med rundinger (den formel profiltabellerne
-    // bruger), og skallernes I_t uden rundinger (b·tf³/3 pr. flange og (h − tf)·tw³/3 for kroppen)
+    // bruger), og skallernes I_t uden rundinger (b·tf³/3 pr. flange og hw·tw³/3 for kroppen, hw = afstanden mellem flangeskallerne,
+    // her med flangerne i midterfladerne; rafter sætter den efter skallernes højde)
     var rm = /<edge radius="([^"]+)"/.exec(s.xml), r = rm ? +rm[1] : 0;
     var D = (Math.pow(r + tw / 2, 2) + Math.pow(r + tf, 2) - r * r) / (2 * r + tf);
     var It = 2 / 3 * (b - 0.63 * tf) * Math.pow(tf, 3) + (h - 2 * tf) * Math.pow(tw, 3) / 3 + (r > 0 ? 2 * (tw / tf) * (0.145 + 0.1 * r / tf) * Math.pow(D, 4) : 0);
@@ -3845,7 +3855,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // I et knæk er endekanterne halveringslinjen mellem stykkernes lokale z, så skallerne deler kanter (geringssnit).
   function rafter(TR, geom, lib, o) {
     o = o || {};
-    var p = geom.params, dims = plateDims(TR, lib, p.profRadial), d = (dims.h - dims.tf) / 2, bh = dims.b / 2;
+    var p = geom.params, dims = plateDims(TR, lib, p.profRadial), bh = dims.b / 2;
+    // flangeskallerne i profilets yderflader (fuld højde h, standard) eller i midterfladerne (h − tf); d = halv afstand mellem dem.
+    // Skallernes I_t (og dermed torsionsstangen) følger kroppens højde 2d
+    var d = o.shellHeight === 'mid' ? (dims.h - dims.tf) / 2 : dims.h / 2;
+    dims = Object.assign({}, dims, { ItShell: (2 * dims.b * Math.pow(dims.tf, 3) + 2 * d * Math.pow(dims.tw, 3)) / 3 });
     var idx = o.index || 0;
     var list = geom.members.filter(function (m) { return m.group === 'radial' && m.index === idx; });
     if (!list.length) throw new Error('Radialbjælke ' + (idx + 1) + ' findes ikke.');
