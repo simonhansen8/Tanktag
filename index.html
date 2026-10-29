@@ -1316,7 +1316,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           </div>
         </div>
         <label class="check"><input type="checkbox" id="shellStraight" data-shell="straight"> <span>Lige og vandret bjælke – til kontrol mod programmer uden krumme bjælker, fx LTBeam</span></label>
-        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne. Lige og vandret: de samme stykker med de samme længder i forlængelse af hinanden, vandret ud fra ringbjælken, med lejer, sidefastholdelser og laster samme sted langs bjælken – i både skal- og bjælkemodellen.</p>
+        <label class="check"><input type="checkbox" id="shellTorsionBar" data-shell="torsionBar"> <span>Torsionsstang for rundingerne – lægger den I<sub>t</sub> til, som skallerne mangler</span></label>
+        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne. Skallerne har ikke rundingerne mellem krop og flanger, så I<sub>t</sub> er for lav (IPE 330: 20,7 mod 28,15 cm⁴). Torsionsstangen er et tyndvægget rør (1 mm) langs systemlinjen i kroppens plan med netop den manglende I<sub>t</sub>; arealet og bøjningsstivheden ændres næsten ikke (IPE 330: Ø46,6 × 1 mm, A +2,4 %). Kontrollér første gang i FEM-Design, at stængerne (RT…) er forbundet med kroppen. Lige og vandret: de samme stykker med de samme længder i forlængelse af hinanden, vandret ud fra ringbjælken, med lejer, sidefastholdelser og laster samme sted langs bjælken – i både skal- og bjælkemodellen.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-sup">
@@ -3731,6 +3732,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     beam: 1,            // radialbjælke nr. (1 = RB.1)
     meshSize: 0,        // elementstørrelse i mm, 0 = automatisk
     endPlate: 0,        // endepladernes tykkelse i mm, 0 = ingen
+    torsionBar: false,  // torsionsstang langs systemlinjen med den I_t, rundingerne giver (skallerne har dem ikke)
     straight: false,    // bjælken lige og vandret (samme stykker og længder), til kontrol mod fx LTBeam
     axialAt: 'ring',    // aksial fastholdelse: 'ring' (ved ringbjælken) eller 'shell' (ved svøbet)
     supRing: 'fork',    // lejet på tværs ved ringbjælken: 'fork' (gaffelleje: side og vridning fastholdt), 'full' (hele endetværsnittet fastholdt
@@ -3794,7 +3796,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
     return {
       errors: e,
-      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
+      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
         supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
@@ -3819,7 +3821,24 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     var tf = h / 2 - yIn, tw = 2 * xIn;
     if (!(tf > 0 && tf < h / 2 && tw > 0 && tw < b)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(key).replace('|', ' ') + '.');
-    return { h: h, b: b, tf: tf, tw: tw };
+    // rundingerne mellem krop og flanger: radius af omridsets buer og profilets I_t med rundinger (den formel profiltabellerne
+    // bruger), og skallernes I_t uden rundinger (b·tf³/3 pr. flange og (h − tf)·tw³/3 for kroppen)
+    var rm = /<edge radius="([^"]+)"/.exec(s.xml), r = rm ? +rm[1] : 0;
+    var D = (Math.pow(r + tw / 2, 2) + Math.pow(r + tf, 2) - r * r) / (2 * r + tf);
+    var It = 2 / 3 * (b - 0.63 * tf) * Math.pow(tf, 3) + (h - 2 * tf) * Math.pow(tw, 3) / 3 + (r > 0 ? 2 * (tw / tf) * (0.145 + 0.1 * r / tf) * Math.pow(D, 4) : 0);
+    var ItShell = (2 * b * Math.pow(tf, 3) + (h - tf) * Math.pow(tw, 3)) / 3;
+    return { h: h, b: b, tf: tf, tw: tw, r: r, It: It, ItShell: ItShell };
+  }
+
+  // torsionsstangen for rundingerne: et tyndvægget rør (tykkelse TUBE_T) langs systemlinjen med den I_t, skallerne mangler,
+  // så arealet og bøjningsstivheden næsten ikke ændres. Middelradius rm af I_t = π/2·(Ry⁴ − Ri⁴) = 2π·rm³·t + π·rm·t³/2
+  var TUBE_T = 0.001;
+  function torsionTube(dims) {
+    var dIt = dims.It - dims.ItShell, t = TUBE_T;
+    if (!(dIt > 0)) return null;
+    var rm = Math.cbrt(dIt / (2 * Math.PI * t));
+    for (var i = 0; i < 20; i++) rm -= (2 * Math.PI * rm * rm * rm * t + Math.PI * rm * t * t * t / 2 - dIt) / (6 * Math.PI * rm * rm * t + Math.PI * t * t * t / 2);
+    return { It: dIt, t: t, rm: rm, D: 2 * rm + t, A: 2 * Math.PI * rm * t, I: Math.PI * rm * rm * rm * t + Math.PI * rm * t * t * t / 4 };
   }
 
   // geometrien: radialbjælke nr. o.index (0 = RB.1) i stykker indefra og ud, hvert med krop og flanger.
@@ -3930,6 +3949,48 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         L.push(I4 + pt('local-y', pc.member.localY));
         L.push(I4 + rigid);
         L.push(I4 + rigid);
+        L.push(I4 + '<eccentricity use_default_physical_alignment="false">');
+        L.push(I5 + '<analytical x="0" y="0" z="0"/>');
+        L.push(I5 + '<analytical x="0" y="0" z="0"/>');
+        L.push(I5 + '<physical x="0" y="0" z="0"/>');
+        L.push(I5 + '<physical x="0" y="0" z="0"/>');
+        L.push(I4 + '</eccentricity>');
+        L.push(I4 + '<end/>');
+        L.push(I3 + '</bar_part>');
+        L.push(I3 + '<end/>');
+        L.push(I2 + '</bar>');
+      });
+    }
+
+    // torsionsstangen for rundingerne: rør langs systemlinjen i kroppens plan, stift forbundet stykke for stykke
+    R.tube = o.torsionBar ? torsionTube(dims) : null;
+    if (R.tube) {
+      var tb = R.tube, ro = tb.rm + tb.t / 2, ri = tb.rm - tb.t / 2, tGuid = newGuid(), tcGuid = newGuid();
+      var arc = function (rr, nz, ax) {
+        return '<edge radius="' + fmt(rr) + '" start_angle="0" end_angle="' + Math.PI + '" type="arc"><point x="0" y="0" z="0"></point>' +
+          '<normal x="0" y="0" z="' + nz + '"></normal><x_axis x="' + ax + '" y="0" z="0"></x_axis></edge>';
+      };
+      var tname = 'RT' + ((o.index || 0) + 1);
+      sections.push('<section guid="' + tGuid + '" last_change="1970-01-01T00:00:00.000" action="added" name="Tanktag, Torsionsstang, ' + tname +
+        '" type="custom" fd-mat="0" fd_name_code="Tanktag" fd_name_type="Torsionsstang" fd_name_size="' + tname + '"><region_group><region>' +
+        '<contour>' + arc(ro, 1, 1) + arc(ro, 1, -1) + '</contour><contour>' + arc(ri, -1, 1) + arc(ri, -1, -1) + '</contour>' +
+        '</region></region_group><end></end></section>');
+      sections.push('<complex_section guid="' + tcGuid + '" last_change="1970-01-01T00:00:00.000" action="added">' +
+        '<section pos="0" guid="' + tGuid + '"><ecc x="0" y="0" z="0"/><end/></section>' +
+        '<section pos="1" guid="' + tGuid + '"><ecc x="0" y="0" z="0"/><end/></section></complex_section>');
+      var rigidT = '<connectivity m_x="true" m_y="true" m_z="true" r_x="true" r_y="true" r_z="true"/>';
+      pieces.forEach(function (pc) {
+        var name = pc.member.name.replace(/^RB/, 'RT');
+        L.push(I2 + '<bar name="' + name + '" type="beam" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
+        L.push(I3 + '<bar_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + name + '.1" complex_material="' +
+          matGuid + '" made="rolled" complex_section="' + tcGuid + '" ecc_calc="true">');
+        L.push(I4 + '<curve type="line">');
+        L.push(I5 + pt('point', pc.member.start));
+        L.push(I5 + pt('point', pc.member.end));
+        L.push(I4 + '</curve>');
+        L.push(I4 + pt('local-y', pc.y));
+        L.push(I4 + rigidT);
+        L.push(I4 + rigidT);
         L.push(I4 + '<eccentricity use_default_physical_alignment="false">');
         L.push(I5 + '<analytical x="0" y="0" z="0"/>');
         L.push(I5 + '<analytical x="0" y="0" z="0"/>');
@@ -4233,7 +4294,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { files: out, sections: N, lengths: lens, Ltot: Ltot, governing: gov, betaTop: betas[2], betaBottom: betas[3], cases: [down, up] };
   }
 
-  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, supportText: supportText, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml,
+  var api = { FAMILIES: FAMILIES, UNIT_N: UNIT_N, UNIT_Q: UNIT_Q, DEFAULTS: DEFAULTS, options: options, supportText: supportText, torsionTube: torsionTube, plateDims: plateDims, rafter: rafter, buildRafterStruxml: buildRafterStruxml,
     betaWorkbook: betaWorkbook, setCell: setCell };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankShell = api;
@@ -9119,7 +9180,12 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ') + ' m (i alt ' +
         R.pieces.reduce(function (a, pc) { return a + pc.length; }, 0).toFixed(3).replace('.', ',') + ' m). Lejer: ' + esc(window.TankShell.supportText(op.o)) + '. Sidefastholdelse ved ' +
         (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen udvekslingsringe') + '.' +
-        (op.o.beamOffset > 0 ? ' Bjælkemodellen ligger ' + esc(String(op.o.beamOffset).replace('.', ',')) + ' m ved siden af.' : '');
+        (op.o.beamOffset > 0 ? ' Bjælkemodellen ligger ' + esc(String(op.o.beamOffset).replace('.', ',')) + ' m ved siden af.' : '') +
+        (op.o.torsionBar ? (function (tb) {
+          var c = function (v, n) { return esc(v.toFixed(n).replace('.', ',')); };
+          return tb ? ' Torsionsstang Ø' + c(tb.D * 1000, 1) + ' × ' + c(tb.t * 1000, 0) + ' mm med I<sub>t</sub> = ' + c(tb.It * 1e8, 2) + ' cm⁴ (profilet ' +
+            c(R.dims.It * 1e8, 2) + ', skallerne ' + c(R.dims.ItShell * 1e8, 2) + ' cm⁴).' : ' Ingen torsionsstang: skallerne mangler ingen I<sub>t</sub>.';
+        })(window.TankShell.torsionTube(R.dims)) : '');
     } catch (e) { el.innerHTML = '<b>Skalmodellen kan ikke dannes:</b> ' + esc(e && e.message ? e.message : String(e)); }
   }
   function onShellChange(e) {

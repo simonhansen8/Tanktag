@@ -400,3 +400,37 @@ test('skalmodel: lige og vandret version af bjælken', () => {
   const bars = [...res.xml.matchAll(/<bar [\s\S]*?<\/bar>/g)].map((m) => m[0]);
   assert.equal(bars.length, R.pieces.length);
 });
+
+test('skalmodel: torsionsstang for rundingerne', () => {
+  // profilets I_t med rundinger som i profiltabellerne
+  [['IPE|330', 28.15], ['HE-B|300', 185.0], ['IPE|200', 6.98], ['HE-A|300', 85.17]].forEach(([k, It]) => {
+    const dm = TS.plateDims(TR, LIB, k);
+    assert.ok(Math.abs(dm.It * 1e8 - It) / It < 0.002, k + ': ' + dm.It * 1e8);
+    const tb = TS.torsionTube(dm);
+    // røret har netop den I_t, skallerne mangler
+    const ro = tb.rm + tb.t / 2, ri = tb.rm - tb.t / 2;
+    assert.ok(Math.abs(Math.PI / 2 * (ro ** 4 - ri ** 4) - (dm.It - dm.ItShell)) < 1e-14);
+  });
+  const dm = TS.plateDims(TR, LIB, 'IPE|330'), tb = TS.torsionTube(dm);
+  assert.ok(Math.abs(dm.ItShell * 1e8 - 20.70) < 0.01);
+  assert.ok(Math.abs(tb.D - 0.0466) < 0.0001 && Math.abs(tb.A - 143.3e-6) < 0.5e-6);
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ torsionBar: true }, geom);
+  assert.deepEqual(op.errors, []);
+  const { xml, rafter: R } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  // én stang pr. stykke langs systemlinjen (kroppens plan), med rørtværsnittet (to cirkler)
+  const bars = [...xml.matchAll(/<bar name="(RT[^"]*)"[\s\S]*?<\/bar>/g)];
+  assert.equal(bars.length, R.pieces.length);
+  bars.forEach((m, k) => {
+    const pts = [...m[0].matchAll(/<point x="([^"]+)" y="([^"]+)" z="([^"]+)"/g)].map((q) => [+q[1], +q[2], +q[3]]);
+    assert.ok(same(pts[0], R.pieces[k].member.start) && same(pts[1], R.pieces[k].member.end));
+  });
+  const sec = /<section [^>]*fd_name_type="Torsionsstang"[\s\S]*?<\/section>/.exec(xml)[0];
+  assert.equal((sec.match(/<contour>/g) || []).length, 2);
+  assert.equal((sec.match(/type="arc"/g) || []).length, 4);
+  // uden valget: ingen torsionsstang
+  assert.ok(!/name="RT/.test(TS.buildRafterStruxml(TR, geom, LIB, TS.options({}, geom).o).xml));
+});
