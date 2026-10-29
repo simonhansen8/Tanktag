@@ -273,3 +273,36 @@ test('skalmodel: regnearket til kalibrering af kipnings-β udfyldes', async () =
   const back = TC.unzip(z.buffer);
   assert.deepEqual(Object.keys(back).sort(), Object.keys(files).filter((k) => k !== 'xl/calcChain.xml').sort());
 });
+
+test('skalmodel: lejerne vælges for hver ende og gælder også bjælkemodellen', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ supRing: 'lateral', supShell: 'fork', rotRing: 'fixed', rotShell: 'free' }, geom);
+  assert.deepEqual(op.errors, []);
+  assert.equal(TS.supportText(op.o), 'ved ringbjælken sidefastholdt med fri vridning, indspændt om den stærke akse og ved svøbet gaffelleje');
+  assert.equal(TS.supportText(TS.options({}, geom).o), 'gaffellejer i begge ender');
+  const { xml, supports } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  const by = (n) => supports.find((s) => s.name === n);
+  // ringbjælken: midten på tværs (fri vridning), over- og underkanten aksialt (indspændt)
+  assert.deepEqual(by('GL.R').m, [true, true, true]);
+  assert.deepEqual(by('GL.RO').m, [true, false, true]);
+  assert.deepEqual(by('GL.RU').m, [true, false, true]);
+  // svøbet: gaffelleje som standard
+  assert.deepEqual(by('GL.S').m, [false, false, true]);
+  assert.deepEqual(by('GL.SO').m, [false, true, true]);
+  assert.deepEqual(by('B.GL.R').m, [true, true, true]);
+  assert.deepEqual(by('B.GL.R').r, [false, true, false]);
+  assert.deepEqual(by('B.GL.S').m, [false, true, true]);
+  assert.deepEqual(by('B.GL.S').r, [true, false, false]);
+  // fri på tværs ved svøbet: ingen fastholdelse på tværs og ingen vridning
+  const o2 = TS.options({ supShell: 'free' }, geom).o, s2 = TS.buildRafterStruxml(TR, geom, LIB, o2).supports;
+  ['GL.S', 'GL.SO', 'GL.SU', 'B.GL.S'].forEach((n) => assert.equal(s2.find((s) => s.name === n).m[1], false, n));
+  assert.deepEqual(s2.find((s) => s.name === 'B.GL.S').r, [false, false, false]);
+  // ustabile valg afvises
+  assert.match(TS.options({ supRing: 'free', supShell: 'free', holdPos: 'none' }, geom).errors.join(' '), /på tværs et sted/);
+  assert.match(TS.options({ supRing: 'lateral', supShell: 'lateral', holdPos: 'centre' }, geom).errors.join(' '), /mod vridning/);
+  assert.deepEqual(TS.options({ supRing: 'lateral', supShell: 'lateral', holdPos: 'top' }, geom).errors, []);
+  assert.match(TS.options({ supRing: 'x' }, geom).errors.join(' '), /Ukendt leje/);
+});
