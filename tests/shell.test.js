@@ -437,3 +437,26 @@ test('skalmodel: torsionsstang for rundingerne', () => {
   // uden valget: ingen torsionsstang
   assert.ok(!/name="RT/.test(TS.buildRafterStruxml(TR, geom, LIB, TS.options({}, geom).o).xml));
 });
+
+test('skalmodel: skalprofilet i fuld højde, og torsionsstangen følger med', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const full = TS.rafter(TR, geom, LIB, TS.options({}, geom).o), mid = TS.rafter(TR, geom, LIB, TS.options({ shellHeight: 'mid' }, geom).o);
+  // standard: flangeskallerne i yderfladerne, kroppen h høj
+  assert.ok(Math.abs(full.d - 0.165) < 1e-12 && Math.abs(mid.d - (0.33 - 0.0115) / 2) < 1e-12);
+  const pc = full.pieces[0], web = pc.plates[0].pts;
+  assert.ok(Math.abs(len(sub(web[3], web[0])) - 0.33) < 1e-9, 'kroppen er h høj');
+  // skallernes I_t følger kroppens højde, og røret har netop forskellen til profilets I_t
+  [full, mid].forEach((R) => {
+    assert.ok(Math.abs(R.dims.ItShell - (2 * R.dims.b * R.dims.tf ** 3 + 2 * R.d * R.dims.tw ** 3) / 3) < 1e-15);
+    const tb = TS.torsionTube(R.dims), ro = tb.rm + tb.t / 2, ri = tb.rm - tb.t / 2;
+    assert.ok(Math.abs(Math.PI / 2 * (ro ** 4 - ri ** 4) - (R.dims.It - R.dims.ItShell)) < 1e-14);
+  });
+  assert.ok(Math.abs(full.dims.ItShell * 1e8 - 20.86) < 0.01 && Math.abs(mid.dims.ItShell * 1e8 - 20.70) < 0.01);
+  assert.ok(TS.torsionTube(full.dims).D < TS.torsionTube(mid.dims).D);
+  // filen bruger den samme rør-diameter som infoboksen
+  const res = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ torsionBar: true }, geom).o);
+  assert.ok(Math.abs(res.rafter.tube.rm - TS.torsionTube(full.dims).rm) < 1e-15);
+  assert.match(TS.options({ shellHeight: 'x' }, geom).errors.join(' '), /højde af skalprofilet/);
+});
