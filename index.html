@@ -1315,7 +1315,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <input class="num" type="text" inputmode="decimal" id="shellEndPlate" data-shell="endPlate">
           </div>
         </div>
-        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne.</p>
+        <label class="check"><input type="checkbox" id="shellFillet" data-shell="fillet"> <span>Kompensér for rundingerne – kroppen gøres så tyk, at I<sub>t</sub> svarer til profilets</span></label>
+        <p class="hint">Elementstørrelse 0 lader FEM-Design vælge. Endeplader med tykkelse 0 betyder ingen; en endeplade over hele endetværsnittet holder bulinger ved lejerne væk fra egenformerne. Skallerne har ikke rundingerne mellem krop og flanger, så I<sub>t</sub> er for lav (IPE 330: 20,7 mod 28,15 cm⁴), og kipning bliver lidt på den sikre side. Med kompensationen får kroppen en tykkelse, så I<sub>t</sub> rammer profilets værdi; I<sub>y</sub> og arealet bliver så lidt større end profilets (IPE 330: kroppen 10,4 mm, I<sub>y</sub> +3 %, A +12 %).</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-sup">
@@ -3730,6 +3731,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     beam: 1,            // radialbjælke nr. (1 = RB.1)
     meshSize: 0,        // elementstørrelse i mm, 0 = automatisk
     endPlate: 0,        // endepladernes tykkelse i mm, 0 = ingen
+    fillet: false,      // kompensér for rundingerne: kroppen så tyk, at I_t svarer til profilets
     axialAt: 'ring',    // aksial fastholdelse: 'ring' (ved ringbjælken) eller 'shell' (ved svøbet)
     supRing: 'fork',    // lejet på tværs ved ringbjælken: 'fork' (gaffelleje: side og vridning fastholdt), 'full' (hele endetværsnittet fastholdt
                         // på tværs: krop og begge flanger i hele bredden), 'lateral' (kun side, fri vridning) eller 'free'
@@ -3792,7 +3794,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
     return {
       errors: e,
-      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
+      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, fillet: !!r.fillet, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
         supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
@@ -3817,7 +3819,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     var tf = h / 2 - yIn, tw = 2 * xIn;
     if (!(tf > 0 && tf < h / 2 && tw > 0 && tw < b)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(key).replace('|', ' ') + '.');
-    return { h: h, b: b, tf: tf, tw: tw };
+    // rundingerne mellem krop og flanger: radius af omridsets buer, profilets I_t med rundinger (den formel profiltabellerne bruger)
+    // og den kroptykkelse, der giver skallerne (b·tf³/3 pr. flange og (h − tf)·tw³/3 for kroppen) samme I_t
+    var rm = /<edge radius="([^"]+)"/.exec(s.xml), r = rm ? +rm[1] : 0;
+    var D = (Math.pow(r + tw / 2, 2) + Math.pow(r + tf, 2) - r * r) / (2 * r + tf);
+    var It = 2 / 3 * (b - 0.63 * tf) * Math.pow(tf, 3) + (h - 2 * tf) * Math.pow(tw, 3) / 3 + (r > 0 ? 2 * (tw / tf) * (0.145 + 0.1 * r / tf) * Math.pow(D, 4) : 0);
+    var twFillet = Math.max(tw, Math.cbrt(3 * (It - 2 * b * Math.pow(tf, 3) / 3) / (h - tf)));
+    return { h: h, b: b, tf: tf, tw: tw, r: r, It: It, twFillet: twFillet };
   }
 
   // geometrien: radialbjælke nr. o.index (0 = RB.1) i stykker indefra og ud, hvert med krop og flanger.
@@ -3825,6 +3833,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function rafter(TR, geom, lib, o) {
     o = o || {};
     var p = geom.params, dims = plateDims(TR, lib, p.profRadial), d = (dims.h - dims.tf) / 2, bh = dims.b / 2;
+    // kompensation for rundingerne: kroppen gøres så tyk, at skallernes I_t svarer til profilets
+    if (o.fillet) dims = Object.assign({}, dims, { tw: dims.twFillet, twNominal: dims.tw });
     var idx = o.index || 0;
     var list = geom.members.filter(function (m) { return m.group === 'radial' && m.index === idx; });
     if (!list.length) throw new Error('Radialbjælke ' + (idx + 1) + ' findes ikke.');
@@ -9096,7 +9106,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (op.errors.length) { el.innerHTML = '<b>Ret først:</b> ' + op.errors.map(esc).join(' '); return; }
     try {
       var R = window.TankShell.rafter(TR, g, LIB, op.o);
-      el.innerHTML = 'RB.' + (op.o.index + 1) + ', ' + esc(R.profile) + ': krop ' + esc(String(Math.round(R.dims.tw * 10000) / 10).replace('.', ',')) + ' mm og flanger ' +
+      el.innerHTML = 'RB.' + (op.o.index + 1) + ', ' + esc(R.profile) + ': krop ' + esc(String(Math.round(R.dims.tw * 10000) / 10).replace('.', ',')) + ' mm' +
+        (R.dims.twNominal ? ' (kompenseret for rundingerne, I<sub>t</sub> = ' + esc((R.dims.It * 1e8).toFixed(2).replace('.', ',')) + ' cm⁴; profilets krop er ' +
+          esc(String(Math.round(R.dims.twNominal * 10000) / 10).replace('.', ',')) + ' mm)' : '') + ' og flanger ' +
         esc(String(Math.round(R.dims.tf * 10000) / 10).replace('.', ',')) + ' mm, ' + R.pieces.length + ' stykke' + (R.pieces.length > 1 ? 'r' : '') + ' på ' +
         R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ') + ' m (i alt ' +
         R.pieces.reduce(function (a, pc) { return a + pc.length; }, 0).toFixed(3).replace('.', ',') + ' m). Lejer: ' + esc(window.TankShell.supportText(op.o)) + '. Sidefastholdelse ved ' +

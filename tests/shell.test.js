@@ -366,3 +366,26 @@ test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tv�
   assert.ok(onQuad(fu.a, first.plates[2].pts) && onQuad(fu.b, first.plates[2].pts));
   assert.deepEqual(ls.find((s) => s.name === 'GL.R').m, [true, true, false]);
 });
+
+test('skalmodel: kompensation for rundingerne giver profilets I_t', () => {
+  // I_t med rundinger som i profiltabellerne
+  [['IPE|330', 28.15], ['HE-B|300', 185.0], ['IPE|200', 6.98], ['HE-A|300', 85.17]].forEach(([k, It]) => {
+    const dm = TS.plateDims(TR, LIB, k);
+    assert.ok(Math.abs(dm.It * 1e8 - It) / It < 0.002, k + ': ' + dm.It * 1e8);
+    const shellIt = (2 * dm.b * dm.tf ** 3 + (dm.h - dm.tf) * dm.twFillet ** 3) / 3;
+    assert.ok(Math.abs(shellIt - dm.It) < 1e-12);
+  });
+  const dm = TS.plateDims(TR, LIB, 'IPE|330');
+  assert.ok(Math.abs(dm.r - 0.018) < 1e-9);
+  assert.ok(Math.abs(dm.twFillet - 0.0104) < 0.0001);
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ fillet: true }, geom);
+  assert.deepEqual(op.errors, []);
+  const { xml, rafter: R } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  assert.ok(Math.abs(R.dims.tw - dm.twFillet) < 1e-12 && Math.abs(R.dims.twNominal - 0.0075) < 1e-12);
+  R.pieces.forEach((pc) => assert.equal(pc.plates[0].t, dm.twFillet));
+  assert.equal(TS.rafter(TR, geom, LIB, TS.options({}, geom).o).dims.tw, 0.0075);
+});
