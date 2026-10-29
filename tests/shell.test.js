@@ -306,3 +306,45 @@ test('skalmodel: lejerne vælges for hver ende og gælder også bjælkemodellen'
   assert.deepEqual(TS.options({ supRing: 'lateral', supShell: 'lateral', holdPos: 'top' }, geom).errors, []);
   assert.match(TS.options({ supRing: 'x' }, geom).errors.join(' '), /Ukendt leje/);
 });
+
+test('skalmodel: fastholdelserne som linjeunderstøtninger', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ supType: 'line', supShell: 'lateral', rotShell: 'fixed', holdStiff: '300' }, geom);
+  assert.deepEqual(op.errors, []);
+  assert.match(TS.supportText(op.o), /linjeunderstøtninger/);
+  const { xml, rafter: R, supports, lineSupports: ls } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  const first = R.pieces[0], last = R.pieces[R.pieces.length - 1], by = (n) => ls.find((s) => s.name === n);
+  // endekanterne: én linje fra under- til overkant af kroppen, lokal x langs linjen, lokal y på tværs
+  const gr = by('GL.R'), gs = by('GL.S');
+  assert.ok(same(gr.a, add(first.member.start, scale(first.mS, -R.d))) && same(gr.b, add(first.member.start, scale(first.mS, R.d))));
+  assert.ok(same(gs.a, add(last.member.end, scale(last.mE, -R.d))) && same(gs.b, add(last.member.end, scale(last.mE, R.d))));
+  [gr, gs].forEach((s) => { assert.ok(Math.abs(dot(s.x, s.y)) < 1e-9); assert.ok(same(s.y, first.y)); });
+  // ringbjælken: gaffelleje og aksialt (punkt i midten); svøbet: kun sidefastholdt (punkt) og indspændt (linjen aksialt)
+  assert.deepEqual(gr.m, [true, true, false]);
+  assert.deepEqual(gs.m, [true, false, true]);
+  assert.deepEqual(supports.find((s) => s.name === 'GL.R').m, [true, false, false]);
+  assert.deepEqual(supports.find((s) => s.name === 'GL.S').m, [false, true, false]);
+  assert.equal(supports.filter((s) => /^GL\.[RS][OU]$/.test(s.name)).length, 0);
+  // sidefastholdelsen: linje på tværs af topflangen, fjederen fordelt over flangebredden
+  const sf = ls.filter((s) => /^SF\./.test(s.name));
+  assert.equal(sf.length, R.holds.length);
+  sf.forEach((s, k) => {
+    const h = R.holds[k];
+    assert.ok(onQuad(s.a, h.piece.plates[1].pts) && onQuad(s.b, h.piece.plates[1].pts));
+    assert.ok(Math.abs(len(sub(s.b, s.a)) - R.dims.b) < 1e-9);
+    assert.ok(Math.abs(s.m[0] - 300 / R.dims.b) < 1e-9);
+  });
+  assert.equal(supports.filter((s) => /^SF\./.test(s.name)).length, 0);
+  assert.equal((xml.match(/<line_support /g) || []).length, 2 + R.holds.length);
+  assert.ok(xml.includes('moving_local="false"'));
+  assert.ok(xml.includes('x_neg="10000000" x_pos="10000000"'));
+  // bjælkemodellen har stadig punkter
+  assert.ok(supports.some((s) => s.name === 'B.GL.R') && supports.some((s) => s.name === 'B.GL.S'));
+  // sidefastholdelse i systemlinjen forbliver et punkt
+  const s2 = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ supType: 'line', holdPos: 'centre' }, geom).o);
+  assert.equal(s2.lineSupports.filter((s) => /^SF\./.test(s.name)).length, 0);
+  assert.ok(s2.supports.some((s) => /^SF\./.test(s.name)));
+});

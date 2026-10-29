@@ -1321,6 +1321,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <section class="group" aria-labelledby="g-shell-sup">
         <h2 id="g-shell-sup">Lejer</h2>
         <p class="hint">Kroppens endekant er altid fastholdt i sin retning (i midten, over- og underkanten). Resten vælges for hver ende og gælder både skal- og bjælkemodellen. Bjælken er altid fri for hvælving.</p>
+        <div class="field">
+          <span class="lbl">Understøtninger i skalmodellen</span>
+          <div class="seg" role="radiogroup" aria-label="Understøtninger i skalmodellen">
+            <label><input type="radio" name="shellSupType" value="point" data-shell="supType"><span>Punkter</span></label>
+            <label><input type="radio" name="shellSupType" value="line" data-shell="supType"><span>Linjer</span></label>
+          </div>
+        </div>
         <div class="row">
           <div class="field">
             <label class="lbl" for="shellSupRing">På tværs ved ringbjælken</label>
@@ -1363,6 +1370,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           </div>
         </div>
         <p class="hint">Gaffelleje: over- og underkanten er fastholdt på tværs, så bjælken hverken kan flytte sig til siden eller vride om sin egen akse. Sidefastholdt: kun midten er fastholdt på tværs, så bjælken kan vride om sin akse. Indspændt om den stærke akse: over- og underkanten er også fastholdt i bjælkens retning, hvilket også fastholder den aksialt i den ende (i bjælkemodellen ligeså).</p>
+        <p class="hint">Linjer: kroppens endekant er én linjeunderstøtning (i sin retning, på tværs ved gaffelleje, aksialt ved indspænding), og sidefastholdelsen i top- eller bundflangen er en linje på tværs af flangen. Det, en linje ikke kan alene (aksialt uden indspænding, kun sidefastholdt), er et punkt midt på kroppens endekant, og sidefastholdelse i systemlinjen forbliver et punkt. En fjederstivhed fordeles over flangebredden. Bjælkemodellen har altid punkter.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-hold">
@@ -3712,6 +3720,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   // enhedslasterne: N i kN og q i kN/m, så FEM-Designs kritiske lastfaktor er den kritiske last
   var UNIT_N = 1, UNIT_Q = 1;
   var FIXED = '10000000000';
+  var FIXED_LINE = '10000000';   // kN/m/m – stiv linjeunderstøtning (som FEM-Design)
   var BEAM_LOAD_IN = 0.001;   // m: punktlaster i bjælkemodellen flyttes så meget væk fra understøtningerne
 
   // indstillingerne på fanen Skalmodel (gemmes for sig, uden for tagets parametre)
@@ -3724,6 +3733,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     supShell: 'fork',   // det samme ved svøbet
     rotRing: 'free',    // rotation om den stærke akse ved ringbjælken: 'free' eller 'fixed' (indspændt)
     rotShell: 'free',   // det samme ved svøbet
+    supType: 'point',   // skalmodellens fastholdelser som 'point' (punktunderstøtninger) eller 'line' (linjeunderstøtninger)
     holdPos: 'top',     // sidefastholdelse ved udvekslingerne: 'top', 'centre', 'bottom' eller 'none'
     holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle
     holdStiff: '',      // stivhed i kN/m – tom = fast
@@ -3739,7 +3749,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function supportText(o) {
     function end(lat, rot) { return SUP_NAME[lat || 'fork'] + (rot === 'fixed' ? ', indspændt om den stærke akse' : ''); }
     var a = end(o.supRing, o.rotRing), b = end(o.supShell, o.rotShell);
-    return a === b ? (a === 'gaffelleje' ? 'gaffellejer i begge ender' : a + ' i begge ender') : 'ved ringbjælken ' + a + ' og ved svøbet ' + b;
+    return (a === b ? (a === 'gaffelleje' ? 'gaffellejer i begge ender' : a + ' i begge ender') : 'ved ringbjælken ' + a + ' og ved svøbet ' + b) +
+      (o.supType === 'line' ? ' (linjeunderstøtninger)' : '');
   }
   var POS_NAME = { top: 'overflange', centre: 'systemlinjen', bottom: 'underflange' };
   function num(v) {
@@ -3758,6 +3769,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (!(plate >= 0)) e.push('Endepladernes tykkelse skal være 0 (ingen) eller større.');
     if (['ring', 'shell'].indexOf(r.axialAt) < 0) e.push('Ukendt aksial fastholdelse.');
     if (!SUP_NAME[r.supRing] || !SUP_NAME[r.supShell]) e.push('Ukendt leje på tværs.');
+    if (['point', 'line'].indexOf(r.supType) < 0) e.push('Ukendt understøtningstype.');
     if (['free', 'fixed'].indexOf(r.rotRing) < 0 || ['free', 'fixed'].indexOf(r.rotShell) < 0) e.push('Ukendt rotation om den stærke akse.');
     if (r.supRing === 'free' && r.supShell === 'free' && r.holdPos === 'none') e.push('Bjælken skal fastholdes på tværs et sted: i en af enderne eller ved udvekslingerne.');
     else if (r.supRing !== 'fork' && r.supShell !== 'fork' && (r.holdPos === 'none' || r.holdPos === 'centre' || (r.supRing === 'free' && r.supShell === 'free')))
@@ -3777,7 +3789,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return {
       errors: e,
       o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
-        supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell,
+        supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp }, N: N, q: q, qPos: r.qPos, beamOffset: off }
     };
   }
@@ -4045,14 +4057,31 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       { tag: 'R', P: first.member.start, pc: first, mv: first.mS, ax: !axShell, lat: o.supRing || 'fork', clamp: o.rotRing === 'fixed' },
       { tag: 'S', P: last.member.end, pc: last, mv: last.mE, ax: axShell, lat: o.supShell || 'fork', clamp: o.rotShell === 'fixed' }
     ];
+    // som linjeunderstøtninger: kroppens endekant er én linje (i sin retning, på tværs ved gaffelleje, aksialt ved indspænding),
+    // og det, linjen ikke kan (aksialt uden indspænding, kun sidefastholdt), er et punkt i midten. Sidefastholdelsen i top- eller
+    // bundflangen er en linje på tværs af flangen; i systemlinjen forbliver den et punkt, så den ikke fastholder mod vridning.
+    // Linjens lokale x er linjens retning, og stivheden er pr. meter
+    var lineSups = [], asLines = o.supType === 'line';
+    function lsup(name, a, b, ly, m) { lineSups.push({ name: name, a: a, b: b, x: unit(vsub(b, a)), y: ly, m: m }); }
+    var hold = o.holdStiff === null || o.holdStiff === undefined ? true : o.holdStiff;
     ends.forEach(function (en) {
       var tor = en.lat === 'fork', side = en.lat !== 'free';
+      var top = vadd(en.P, vscale(en.mv, d)), bot = vadd(en.P, vscale(en.mv, -d));
+      if (asLines) {
+        lsup('GL.' + en.tag, bot, top, en.pc.y, [true, tor, en.clamp]);
+        if ((en.ax && !en.clamp) || (side && !tor)) sup('GL.' + en.tag, en.P, en.pc, en.ax && !en.clamp, side && !tor, false);
+        return;
+      }
       sup('GL.' + en.tag, en.P, en.pc, en.ax, side && !tor, true);
-      sup('GL.' + en.tag + 'O', vadd(en.P, vscale(en.mv, d)), en.pc, en.clamp, tor, true);
-      sup('GL.' + en.tag + 'U', vadd(en.P, vscale(en.mv, -d)), en.pc, en.clamp, tor, true);
+      sup('GL.' + en.tag + 'O', top, en.pc, en.clamp, tor, true);
+      sup('GL.' + en.tag + 'U', bot, en.pc, en.clamp, tor, true);
     });
-    var hold = o.holdStiff === null || o.holdStiff === undefined ? true : o.holdStiff;
-    R.holds.forEach(function (h) { sup('SF.' + h.ring, h.pos, h.piece, false, hold, false); });
+    R.holds.forEach(function (h) {
+      if (asLines && o.holdPos !== 'centre') {
+        var hy = vscale(h.piece.y, R.dims.b / 2);
+        lsup('SF.' + h.ring, vsub(h.pos, hy), vadd(h.pos, hy), h.piece.x, [hold === true ? true : hold / R.dims.b, false, false]);
+      } else sup('SF.' + h.ring, h.pos, h.piece, false, hold, false);
+    });
     // bjælkemodellen: de samme lejer som fastholdte flytninger og rotationer i endeknuderne, sidefastholdelse i knuderne
     if (off > 0) {
       ends.forEach(function (en) {
@@ -4076,6 +4105,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I4 + pt('position', s.pos));
       L.push(I3 + '</point_support>');
     });
+    lineSups.forEach(function (s) {
+      var m = s.m.map(function (f) { return f === true ? FIXED_LINE : (typeof f === 'number' ? fmt(f) : '0'); });
+      L.push(I3 + '<line_support guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + s.name + '" moving_local="false">');
+      L.push(I4 + '<group>');
+      L.push(I5 + pt('local_x', s.x));
+      L.push(I5 + pt('local_y', s.y));
+      L.push(I5 + '<rigidity>');
+      L.push(I6 + '<motions x_neg="' + m[0] + '" x_pos="' + m[0] + '" y_neg="' + m[1] + '" y_pos="' + m[1] + '" z_neg="' + m[2] + '" z_pos="' + m[2] + '"/>');
+      L.push(I6 + '<rotations x_neg="0" x_pos="0" y_neg="0" y_pos="0" z_neg="0" z_pos="0"/>');
+      L.push(I5 + '</rigidity>');
+      L.push(I4 + '</group>');
+      L.push(I4 + '<edge type="line">' + pt('point', s.a) + pt('point', s.b) + pt('normal', s.y) + '</edge>');
+      L.push(I4 + pt('normal', s.x));
+      L.push(I3 + '</line_support>');
+    });
     L.push(I2 + '</supports>');
     L.push(I1 + '</entities>');
     if (sections.length) {
@@ -4088,7 +4132,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     L.push(I1 + '</materials>');
     L.push(I1 + '<end/>');
     L.push('</database>');
-    return { xml: L.join('\n') + '\n', rafter: R, cases: shellCases, beamCases: beamCases, supports: sups };
+    return { xml: L.join('\n') + '\n', rafter: R, cases: shellCases, beamCases: beamCases, supports: sups, lineSupports: lineSups };
   }
 
   // ---------- regnearket til kalibrering af kipnings-β (Simons skabelon, udfyldt for den valgte bjælke) ----------
