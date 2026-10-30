@@ -13,7 +13,7 @@ Nyttelast, halv	Korttids	27	152,21	0,00
 Gangbro, egenlast	Permanent	3	5,71	0,00
 Gangbro, nyttelast	Korttids	3	21,00	0,00
 Sne, jævn	Korttids	48	194,83	0,00
-Sne, ensidig	Korttids	48	133,95	0,00
+Sne, ensidig	Korttids	54	133,95	0,00
 Vind 0°	Øjeblikkelig	48	−182,65	0,00
 Vind 45°	Øjeblikkelig	48	−182,65	0,00
 Undertryk	Korttids	48	152,21	0,00
@@ -61,13 +61,13 @@ Flader	Hældning α	μ	s, kN/m²	A_proj, m²	s · A_proj, kN
 
 Lodret resultant i filen: 194,83 kN nedad.
 
-Ensidig sne med læsiden mod θ = 45°: μ_1 på læsiden og μ = 0,3 på luvsiden (angivet).
+Ensidig sne med læsiden mod θ = 45°: μ_1 på læsiden og μ = 0,3 på luvsiden (angivet). 6 flader krydser skillelinjen og er delt ved linjen, så hver del får sin sides μ; de tæller med på begge sider i tabellen.
 
 Sne, ensidig: 2 grupper af flader
 Side	Flader	Hældning α	μ	s, kN/m²	A_proj, m²	s · A_proj, kN
-Læside	24	11,5°	0,8	0,640	152,21	97,42
-Luvside	24	11,5°	0,3	0,240	152,21	36,53
-I alt	48				304,42	133,95
+Læside	27	11,5°	0,8	0,640	152,21	97,42
+Luvside	27	11,5°	0,3	0,240	152,21	36,53
+I alt	54				304,42	133,95
 
 Lodret resultant i filen: 133,95 kN nedad.
 
