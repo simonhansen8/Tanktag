@@ -1401,11 +1401,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <input type="text" id="shellHoldRings" data-shell="holdRings" placeholder="alle">
           </div>
           <div class="field">
+            <label class="lbl" for="shellHoldDepth">Afstand fra oversiden <span class="unit">mm</span></label>
+            <input type="text" id="shellHoldDepth" data-shell="holdDepth" placeholder="som placeringen">
+          </div>
+          <div class="field">
             <label class="lbl" for="shellHoldStiff">Stivhed <span class="unit">kN/m</span></label>
             <input class="num" type="text" inputmode="decimal" id="shellHoldStiff" data-shell="holdStiff" placeholder="fast">
           </div>
         </div>
-        <p class="hint">Udvekslingerne er monteret i topflangen. Skriv ringene som fx 1; 3, eller lad feltet stå tomt for alle. En tom stivhed betyder fast; ellers er fastholdelsen en fjeder på tværs af bjælken.</p>
+        <p class="hint">Udvekslingerne er monteret i topflangen. Skriv ringene som fx 1; 3, eller lad feltet stå tomt for alle. En tom stivhed betyder fast; ellers er fastholdelsen en fjeder på tværs af bjælken. Afstand fra oversiden flytter fastholdelsen ned på kroppen, målt fra profilets overside: ét tal gælder alle ringe (fx 90), eller skriv ring og afstand for hver (fx 1: 90; 3: 120), så bruger de øvrige ringe placeringen. Tom = placeringen. Bjælkemodellen har altid fastholdelsen i systemlinjen.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-load">
@@ -3832,6 +3836,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     supType: 'point',   // skalmodellens fastholdelser som 'point' (punktunderstøtninger) eller 'line' (linjeunderstøtninger)
     holdPos: 'top',     // sidefastholdelse ved udvekslingerne: 'top', 'centre', 'bottom' eller 'none'
     holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle
+    holdDepth: '',      // sidefastholdelsens afstand fra profilets overside i mm: "90" for alle eller "1: 90; 3: 120" pr. ring – tom = holdPos
     holdStiff: '',      // stivhed i kN/m – tom = fast
     caseN: true, caseDown: true, caseUp: true,
     caseEnd: false,     // lasttilfælde med normalkraft og moment om den stærke akse i enden
@@ -3888,6 +3893,22 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       rings = txt.split(/[;\s]+/).filter(Boolean).map(num);
       if (rings.some(function (k) { return !(k >= 1 && k <= nr && Math.round(k) === k); })) e.push('Udvekslingsringene skal være hele tal fra 1 til ' + nr + ', adskilt af semikolon.');
     }
+    // afstand fra oversiden: ét tal for alle ringe eller »ring: mm« for hver
+    var depth = null, dtxt = String(r.holdDepth === undefined || r.holdDepth === null ? '' : r.holdDepth).trim();
+    if (dtxt) {
+      depth = {};
+      if (dtxt.indexOf(':') < 0) {
+        depth.all = num(dtxt);
+        if (!(depth.all >= 0)) e.push('Sidefastholdelsens afstand fra oversiden skal være et tal i mm, 0 eller større.');
+        else depth.all /= 1000;
+      } else {
+        dtxt.split(';').map(function (x) { return x.trim(); }).filter(Boolean).forEach(function (x) {
+          var m = /^(\S+)\s*:\s*(\S+)$/.exec(x), k = m ? num(m[1]) : NaN, v = m ? num(m[2]) : NaN;
+          if (!(k >= 1 && k <= nr && Math.round(k) === k) || !(v >= 0)) e.push('Afstand fra oversiden skrives som ring: mm, fx 1: 90; 3: 120 (ringe fra 1 til ' + nr + ').');
+          else depth[k] = v / 1000;
+        });
+      }
+    }
     var stiff = String(r.holdStiff === undefined || r.holdStiff === null ? '' : r.holdStiff).trim() === '' ? null : num(r.holdStiff);
     if (stiff !== null && !(stiff >= 0)) e.push('Sidefastholdelsens stivhed skal være 0 eller større – eller tom for fast.');
     if (!r.caseN && !r.caseDown && !r.caseUp && !r.caseEnd) e.push('Vælg mindst ét lasttilfælde.');
@@ -3901,7 +3922,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
     return {
       errors: e,
-      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, shellHeight: r.shellHeight, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
+      o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, shellHeight: r.shellHeight, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings, holdDepth: depth,
         supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp, end: !!r.caseEnd }, N: N, q: q, qPos: r.qPos, beamOffset: off,
         end: { nAt: r.endNAt, mAt: r.endMAt, N: eN, nDir: r.endNDir, M: eM, mDir: r.endMDir } }
@@ -4006,9 +4027,19 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }));
     }
     holds.forEach(function (h) {
-      var pc = pieces[h.k], up = h.t > 1 - 1e-9 ? pc.mE : pc.z;
+      var pc = pieces[h.k], up = h.t > 1 - 1e-9 ? pc.mE : pc.z, side = HOLD_SIDE[holdPos];
+      // en afstand fra profilets overside flytter fastholdelsen ned på kroppen (kroppen går fra −d til d om systemlinjen)
+      var dep = o.holdDepth ? (o.holdDepth[h.ring] !== undefined ? o.holdDepth[h.ring] : o.holdDepth.all) : undefined;
+      if (dep !== undefined) {
+        side = (dims.h / 2 - dep) / d;
+        if (Math.abs(side) > 1 + 1e-9) {
+          throw new Error('Sidefastholdelsen ved udvekslingsring ' + h.ring + ' skal ligge på kroppen: ' + mm(dims.h / 2 - d) + '–' + mm(dims.h / 2 + d) +
+            ' mm fra oversiden, ikke ' + mm(dep) + ' mm.');
+        }
+        h.depth = dep;
+      }
       h.node = vadd(pc.member.start, vscale(vsub(pc.member.end, pc.member.start), h.t));
-      h.pos = vadd(h.node, vscale(up, d * HOLD_SIDE[holdPos]));
+      h.pos = vadd(h.node, vscale(up, d * side));
       h.piece = pc;
       delete h.k; delete h.t;
     });
@@ -9339,7 +9370,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         esc(String(Math.round(R.dims.tf * 10000) / 10).replace('.', ',')) + ' mm, ' + R.pieces.length + ' stykke' + (R.pieces.length > 1 ? 'r' : '') + (op.o.straight ? ' lige og vandret' : '') + ' på ' +
         R.pieces.map(function (pc) { return pc.length.toFixed(3).replace('.', ','); }).join('; ') + ' m (i alt ' +
         R.pieces.reduce(function (a, pc) { return a + pc.length; }, 0).toFixed(3).replace('.', ',') + ' m). Lejer: ' + esc(window.TankShell.supportText(op.o)) + '. Sidefastholdelse ved ' +
-        (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) { return h.ring; }).join(', ') : 'ingen udvekslingsringe') + '.' +
+        (R.holds.length ? 'udvekslingsring ' + R.holds.map(function (h) {
+          return h.ring + (h.depth !== undefined ? ' (' + esc(String(Math.round(h.depth * 10000) / 10).replace('.', ',')) + ' mm fra oversiden)' : '');
+        }).join(', ') : 'ingen udvekslingsringe') + '.' +
         (op.o.beamOffset > 0 ? ' Bjælkemodellen ligger ' + esc(String(op.o.beamOffset).replace('.', ',')) + ' m ved siden af.' : '') +
         (op.o.torsionBar ? (function (tb) {
           var c = function (v, n) { return esc(v.toFixed(n).replace('.', ',')); };
