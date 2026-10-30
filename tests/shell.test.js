@@ -354,9 +354,13 @@ test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tv�
   ['GL.R', 'GL.RO', 'GL.RU', 'GL.RO1', 'GL.RO2', 'GL.RU1', 'GL.RU2'].forEach((n) => assert.equal(by(n).m[1], true, n));
   const tips = ['GL.RO1', 'GL.RO2', 'GL.RU1', 'GL.RU2'].map((n) => by(n).pos);
   tips.forEach((q) => assert.ok(first.plates.slice(1).some((pl) => pl.pts.some((c) => same(c, q))), 'flangespids'));
-  // svøbet indspændt: også flangespidserne aksialt
-  ['GL.SO', 'GL.SU', 'GL.SO1', 'GL.SO2', 'GL.SU1', 'GL.SU2'].forEach((n) => assert.equal(by(n).m[0], true, n));
-  assert.equal(by('GL.RO1').m[0], false);
+  // svøbet indspændt: kun kroppen (over- og underkant) aksialt, flangespidserne ikke
+  ['GL.SO', 'GL.SU'].forEach((n) => assert.equal(by(n).m[0], true, n));
+  ['GL.SO1', 'GL.SO2', 'GL.SU1', 'GL.SU2', 'GL.RO1'].forEach((n) => assert.equal(by(n).m[0], false, n));
+  // også som linjer: indspændt fastholdes kun kroppens endekant aksialt
+  const lsC = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ supType: 'line', supShell: 'full', rotShell: 'fixed' }, geom).o).lineSupports;
+  assert.deepEqual(lsC.find((s) => s.name === 'GL.S').m, [true, true, true]);
+  ['GL.SO', 'GL.SU'].forEach((n) => assert.deepEqual(lsC.find((s) => s.name === n).m, [true, false, false], n));
   assert.deepEqual(by('B.GL.R').r, [true, false, false]);
   // som linjer: kroppens endekant og begge flanger i hele bredden
   const ls = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ supType: 'line', supRing: 'full' }, geom).o).lineSupports;
@@ -459,4 +463,59 @@ test('skalmodel: skalprofilet i fuld højde, og torsionsstangen følger med', ()
   const res = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ torsionBar: true }, geom).o);
   assert.ok(Math.abs(res.rafter.tube.rm - TS.torsionTube(full.dims).rm) < 1e-15);
   assert.match(TS.options({ shellHeight: 'x' }, geom).errors.join(' '), /højde af skalprofilet/);
+});
+
+test('skalmodel: normalkraft og moment i enden', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  assert.ok(TS.options({ caseEnd: true, endN: '0', endM: '0' }, geom).errors.length);
+  assert.ok(TS.options({ caseEnd: true, endAt: 'x' }, geom).errors.length);
+  // resultanten af linjelasterne i en ende: kraft langs bjælken (ind = tryk) og moment om tværaksen y
+  function resultant(c, pc, P0, into) {
+    let Nn = 0, M = 0;
+    c.lines.forEach((l) => {
+      const L = len(sub(l.b, l.a)), vb = l.valB === undefined ? l.val : l.valB;
+      if (len(sub(l.a, P0)) > 0.5 && len(sub(l.b, P0)) > 0.5) return;
+      const f = dot(l.dir, into);
+      Nn += f * (l.val + vb) / 2 * L;
+      // tyngdepunktet af en trapezlast ligger L·(va + 2vb)/(3(va + vb)) fra a
+      const za = dot(sub(l.a, P0), pc.z), zb = dot(sub(l.b, P0), pc.z), tot = l.val + vb;
+      const zc = tot === 0 ? za : za + (zb - za) * (l.val + 2 * vb) / (3 * tot);
+      M += f * tot / 2 * L * zc;
+    });
+    return { N: Nn, M: M };
+  }
+  [['compression', 'top', 1, 1], ['tension', 'bottom', -1, -1]].forEach(([nDir, mDir, sn, sm]) => {
+    ['ring', 'shell', 'both'].forEach((at) => {
+      const op = TS.options({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endAt: at, endN: '20', endNDir: nDir, endM: '15', endMDir: mDir }, geom);
+      assert.deepEqual(op.errors, []);
+      const { xml, rafter: R, cases, beamCases } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+      wellFormed(xml);
+      assert.equal(cases.length, 1);
+      assert.match(cases[0].name, /^N og M (ved ringbjælken|ved svøbet|i begge ender)$/);
+      const first = R.pieces[0], last = R.pieces[R.pieces.length - 1];
+      const ends = { ring: [[first, first.member.start, first.x]], shell: [[last, last.member.end, scale(last.x, -1)]] };
+      ends.both = ends.ring.concat(ends.shell);
+      const other = at === 'ring' ? ends.shell : (at === 'shell' ? ends.ring : []);
+      ends[at].forEach(([pc, P0, into]) => {
+        const r = resultant(cases[0], pc, P0, into);
+        assert.ok(Math.abs(r.N - sn * 20) < 1e-6, 'N = ' + r.N);
+        // tryk i overflangen: z > 0 skubbes ind i bjælken
+        assert.ok(Math.abs(r.M - sm * 15) < 1e-6, 'M = ' + r.M);
+      });
+      other.forEach(([pc, P0, into]) => assert.equal(resultant(cases[0], pc, P0, into).N, 0));
+      cases[0].lines.forEach((l) => assert.ok(l.val >= 0 && l.valB >= 0));
+      // bjælkemodellen: en punktlast og et punktmoment pr. ende
+      assert.equal(beamCases[0].points.length, 2 * ends[at].length);
+      beamCases[0].points.filter((q) => q.moment).forEach((q) => assert.ok(Math.abs(Math.abs(dot(q.dir, R.pieces[0].y)) - 1) < 1e-6 || at !== 'ring'));
+      assert.ok(/load_type="moment"/.test(xml));
+    });
+  });
+  // momentvektoren i bjælkemodellen svarer til skallens kraftpar: tryk i overflangen ved ringbjælken giver M om +y
+  const op = TS.options({ caseEnd: true, endAt: 'ring', endN: '0', endM: '1' }, geom);
+  const res = TS.buildRafterStruxml(TR, geom, LIB, op.o), pc = res.rafter.pieces[0];
+  const mom = res.beamCases.find((c) => c.key === 'end').points[0];
+  assert.ok(mom.moment && Math.abs(dot(mom.dir, pc.y) - 1) < 1e-9);
+  assert.equal(res.beamCases.find((c) => c.key === 'end').points.length, 1);
 });
