@@ -1435,8 +1435,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <label class="check"><input type="checkbox" id="shellCaseEnd" data-shell="caseEnd"> <span>Normalkraft og moment i enden</span></label>
         <div class="row">
           <div class="field">
-            <label class="lbl" for="shellEndAt">Virker</label>
-            <select id="shellEndAt" data-shell="endAt">
+            <label class="lbl" for="shellEndNAt">Normalkraften virker</label>
+            <select id="shellEndNAt" data-shell="endNAt">
               <option value="ring">Ved ringbjælken</option>
               <option value="shell">Ved svøbet</option>
               <option value="both">I begge ender</option>
@@ -1453,6 +1453,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
               <option value="tension">Træk</option>
             </select>
           </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label class="lbl" for="shellEndMAt">Momentet virker</label>
+            <select id="shellEndMAt" data-shell="endMAt">
+              <option value="ring">Ved ringbjælken</option>
+              <option value="shell">Ved svøbet</option>
+              <option value="both">I begge ender</option>
+            </select>
+          </div>
           <div class="field">
             <label class="lbl" for="shellEndM">Moment om stærk akse <span class="unit">kNm</span></label>
             <input class="num" type="text" inputmode="decimal" id="shellEndM" data-shell="endM">
@@ -1465,7 +1475,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             </select>
           </div>
         </div>
-        <p class="hint">Et eget lasttilfælde med kombination. I skalmodellen fordeles N og M som spændinger over endetværsnittet (N/A ± M·z/I), i bjælkemodellen er de en punktlast og et punktmoment. I begge ender virker de med samme fortegn, så momentet er konstant langs bjælken. Virker normalkraften kun i den ende, hvor bjælken er fastholdt aksialt, går den direkte i lejet; vælg da aksial fastholdelse i den anden ende.</p>
+        <p class="hint">Et eget lasttilfælde med kombination. I skalmodellen fordeles N og M som spændinger over endetværsnittet (N/A ± M·z/I), i bjælkemodellen er de en punktlast og et punktmoment. Normalkraften og momentet kan virke i hver sin ende. I begge ender virker de med samme fortegn, så momentet er konstant langs bjælken. Virker normalkraften kun i den ende, hvor bjælken er fastholdt aksialt, går den direkte i lejet; vælg da aksial fastholdelse i den anden ende.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-beam">
@@ -3788,7 +3798,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     holdStiff: '',      // stivhed i kN/m – tom = fast
     caseN: true, caseDown: true, caseUp: true,
     caseEnd: false,     // lasttilfælde med normalkraft og moment om den stærke akse i enden
-    endAt: 'ring',      // hvor: 'ring' (ved ringbjælken), 'shell' (ved svøbet) eller 'both' (begge ender)
+    endNAt: 'ring',     // hvor normalkraften virker: 'ring' (ved ringbjælken), 'shell' (ved svøbet) eller 'both' (begge ender)
+    endMAt: 'ring',     // hvor momentet virker, på samme måde
     endN: UNIT_N,       // normalkraften i kN (0 = ingen)
     endNDir: 'compression', // 'compression' (tryk) eller 'tension' (træk)
     endM: UNIT_N,       // momentet i kNm (0 = intet)
@@ -3844,7 +3855,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (stiff !== null && !(stiff >= 0)) e.push('Sidefastholdelsens stivhed skal være 0 eller større – eller tom for fast.');
     if (!r.caseN && !r.caseDown && !r.caseUp && !r.caseEnd) e.push('Vælg mindst ét lasttilfælde.');
     if (r.caseEnd) {
-      if (!END_NAME[r.endAt]) e.push('Ukendt ende for normalkraft og moment.');
+      if (!END_NAME[r.endNAt] || !END_NAME[r.endMAt]) e.push('Ukendt ende for normalkraft eller moment.');
       if (['compression', 'tension'].indexOf(r.endNDir) < 0 || ['top', 'bottom'].indexOf(r.endMDir) < 0) e.push('Ukendt retning af normalkraft eller moment.');
       if (!(eN >= 0) || !(eM >= 0)) e.push('Normalkraften og momentet i enden skal være 0 eller større.');
       else if (!(eN > 0) && !(eM > 0)) e.push('Normalkraften eller momentet i enden skal være større end 0.');
@@ -3856,7 +3867,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, shellHeight: r.shellHeight, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings,
         supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp, end: !!r.caseEnd }, N: N, q: q, qPos: r.qPos, beamOffset: off,
-        end: { at: r.endAt, N: eN, nDir: r.endNDir, M: eM, mDir: r.endMDir } }
+        end: { nAt: r.endNAt, mAt: r.endMAt, N: eN, nDir: r.endNDir, M: eM, mDir: r.endMDir } }
     };
   }
 
@@ -3974,7 +3985,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var p = geom.params, R = rafter(TR, geom, lib, o), dims = R.dims, d = R.d, pieces = R.pieces;
     var first = pieces[0], last = pieces[pieces.length - 1];
     var N = o.N || UNIT_N, Q = o.q || UNIT_Q, qPos = o.qPos || 'top', use = o.cases || { N: true, down: true, up: true };
-    var EL = Object.assign({ at: 'ring', N: UNIT_N, nDir: 'compression', M: UNIT_N, mDir: 'top' }, o.end || {});
+    var EL = Object.assign({ nAt: 'ring', mAt: 'ring', N: UNIT_N, nDir: 'compression', M: UNIT_N, mDir: 'top' }, o.end || {});
+    // navnet nævner kun det, der er med: »N og M ved ringbjælken«, »N ved svøbet og M ved ringbjælken«, »M i begge ender«
+    var endName = !(EL.M > 0) ? 'N ' + END_NAME[EL.nAt] : (!(EL.N > 0) ? 'M ' + END_NAME[EL.mAt] :
+      (EL.nAt === EL.mAt ? 'N og M ' + END_NAME[EL.nAt] : 'N ' + END_NAME[EL.nAt] + ' og M ' + END_NAME[EL.mAt]));
     var mat = lib.materials[p.material];
     if (!mat) throw new Error('Materialet "' + p.material + '" findes ikke i biblioteket.');
     var matGuid = /\sguid="([^"]*)"/.exec(mat)[1];
@@ -4110,7 +4124,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       { key: 'N', name: 'Tryk N', points: [], lines: [] },
       { key: 'down', name: 'Last ned på ' + POS_NAME[qPos], points: [], lines: [] },
       { key: 'up', name: 'Last op på ' + POS_NAME[qPos], points: [], lines: [] },
-      { key: 'end', name: 'N og M ' + END_NAME[EL.at], points: [], lines: [] }
+      { key: 'end', name: endName, points: [], lines: [] }
     ];
     // centrisk tryk: jævnt fordelt over endetværsnittet (σ·t langs kanterne), og i knækkene den afbøjningskraft,
     // der holder trykket i stykkernes akser, så hvert stykke har rent normalkraft N
@@ -4138,13 +4152,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       cases[1].lines.push({ a: a, b: b, dir: [0, 0, -1], val: q });
       cases[2].lines.push({ a: a, b: b, dir: [0, 0, 1], val: q });
     });
-    // normalkraft og moment om den stærke akse i den valgte ende (eller begge): spændingerne σ = ±N/A ± M·z/I fordelt over
+    // normalkraft og moment om den stærke akse, hver i sin valgte ende (eller begge): spændingerne σ = ±N/A ± M·z/I fordelt over
     // endetværsnittet som linjelaster (kroppen lineært, delt på midten, flangerne jævnt), regnet positivt som tryk ind i bjælken.
     // Ingen afbøjningskræfter i knækkene: normalkraften følger bjælken, som den ville i konstruktionen
     var Iy = 2 * dims.b * dims.tf * d * d + dims.tw * Math.pow(2 * d, 3) / 12;
-    var sN = (EL.nDir === 'tension' ? -1 : 1) * EL.N / area, sM = (EL.mDir === 'bottom' ? -1 : 1) * EL.M * d / Iy;
-    var endEnds = EL.at === 'both' ? [[first, false], [last, true]] : [EL.at === 'shell' ? [last, true] : [first, false]];
+    function onEnd(at, atEnd) { return at === 'both' || (at === 'shell') === atEnd; }
+    var endEnds = [[first, false], [last, true]].map(function (e) {
+      return [e[0], e[1], EL.N > 0 && onEnd(EL.nAt, e[1]), EL.M > 0 && onEnd(EL.mAt, e[1])];
+    }).filter(function (e) { return e[2] || e[3]; });
     endEnds.forEach(function (e) {
+      var sN = e[2] ? (EL.nDir === 'tension' ? -1 : 1) * EL.N / area : 0, sM = e[3] ? (EL.mDir === 'bottom' ? -1 : 1) * EL.M * d / Iy : 0;
       var pc = e[0], atEnd = e[1], mv = atEnd ? pc.mE : pc.mS, P0 = atEnd ? pc.member.end : pc.member.start, into = atEnd ? vscale(pc.x, -1) : pc.x;
       var top = vadd(P0, vscale(mv, d)), bot = vadd(P0, vscale(mv, -d)), yb = vscale(pc.y, dims.b / 2), k = 1 / norm(mv);
       function add(a, b, va, vb) {
@@ -4168,8 +4185,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         // normalkraften som punktlast og momentet som punktmoment BEAM_LOAD_IN inde på stangen; momentvektoren z × (ind i bjælken)
         endEnds.forEach(function (e) {
           var pc = e[0], into = e[1] ? vscale(pc.x, -1) : pc.x, P = vadd(vadd(e[1] ? pc.member.end : pc.member.start, ov), vscale(into, BEAM_LOAD_IN));
-          if (EL.N > 0) bc.points.push({ pos: P, dir: vscale(into, EL.nDir === 'tension' ? -1 : 1), val: EL.N });
-          if (EL.M > 0) bc.points.push({ pos: P, dir: vscale(unit(cross(pc.z, into)), EL.mDir === 'bottom' ? -1 : 1), val: EL.M, moment: true });
+          if (e[2]) bc.points.push({ pos: P, dir: vscale(into, EL.nDir === 'tension' ? -1 : 1), val: EL.N });
+          if (e[3]) bc.points.push({ pos: P, dir: vscale(unit(cross(pc.z, into)), EL.mDir === 'bottom' ? -1 : 1), val: EL.M, moment: true });
         });
       } else if (c.key === 'N') {
         // FEM-Design fører en punktlast, der står lige på en understøtning, direkte ned i den. Trykket i enderne og
