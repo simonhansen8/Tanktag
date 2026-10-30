@@ -470,7 +470,7 @@ test('skalmodel: normalkraft og moment i enden', () => {
   params.combos = TR.normCombos(params.combos);
   const geom = TR.computeGeometry(params);
   assert.ok(TS.options({ caseEnd: true, endN: '0', endM: '0' }, geom).errors.length);
-  assert.ok(TS.options({ caseEnd: true, endAt: 'x' }, geom).errors.length);
+  assert.ok(TS.options({ caseEnd: true, endMAt: 'x' }, geom).errors.length);
   // resultanten af linjelasterne i en ende: kraft langs bjælken (ind = tryk) og moment om tværaksen y
   function resultant(c, pc, P0, into) {
     let Nn = 0, M = 0;
@@ -488,7 +488,7 @@ test('skalmodel: normalkraft og moment i enden', () => {
   }
   [['compression', 'top', 1, 1], ['tension', 'bottom', -1, -1]].forEach(([nDir, mDir, sn, sm]) => {
     ['ring', 'shell', 'both'].forEach((at) => {
-      const op = TS.options({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endAt: at, endN: '20', endNDir: nDir, endM: '15', endMDir: mDir }, geom);
+      const op = TS.options({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endNAt: at, endMAt: at, endN: '20', endNDir: nDir, endM: '15', endMDir: mDir }, geom);
       assert.deepEqual(op.errors, []);
       const { xml, rafter: R, cases, beamCases } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
       wellFormed(xml);
@@ -513,9 +513,22 @@ test('skalmodel: normalkraft og moment i enden', () => {
     });
   });
   // momentvektoren i bjælkemodellen svarer til skallens kraftpar: tryk i overflangen ved ringbjælken giver M om +y
-  const op = TS.options({ caseEnd: true, endAt: 'ring', endN: '0', endM: '1' }, geom);
+  const op = TS.options({ caseEnd: true, endMAt: 'ring', endN: '0', endM: '1' }, geom);
   const res = TS.buildRafterStruxml(TR, geom, LIB, op.o), pc = res.rafter.pieces[0];
   const mom = res.beamCases.find((c) => c.key === 'end').points[0];
   assert.ok(mom.moment && Math.abs(dot(mom.dir, pc.y) - 1) < 1e-9);
   assert.equal(res.beamCases.find((c) => c.key === 'end').points.length, 1);
+  assert.equal(res.cases.find((c) => c.key === 'end').name, 'M ved ringbjælken');
+  // hver i sin ende: N ved svøbet, M ved ringbjælken
+  const op2 = TS.options({ caseEnd: true, endNAt: 'shell', endMAt: 'ring', endN: '20', endM: '15' }, geom);
+  assert.deepEqual(op2.errors, []);
+  const r2 = TS.buildRafterStruxml(TR, geom, LIB, op2.o), c2 = r2.cases.find((c) => c.key === 'end');
+  assert.equal(c2.name, 'N ved svøbet og M ved ringbjælken');
+  const f2 = r2.rafter.pieces[0], l2 = r2.rafter.pieces[r2.rafter.pieces.length - 1];
+  const atR = resultant(c2, f2, f2.member.start, f2.x), atS = resultant(c2, l2, l2.member.end, scale(l2.x, -1));
+  assert.ok(Math.abs(atR.N) < 1e-6 && Math.abs(atR.M - 15) < 1e-6, 'ringbjælken: ' + JSON.stringify(atR));
+  assert.ok(Math.abs(atS.N - 20) < 1e-6 && Math.abs(atS.M) < 1e-6, 'svøbet: ' + JSON.stringify(atS));
+  const b2 = r2.beamCases.find((c) => c.key === 'end').points;
+  assert.equal(b2.length, 2);
+  assert.ok(b2.find((q) => q.moment).pos[0] !== b2.find((q) => !q.moment).pos[0] || b2.find((q) => q.moment).pos[1] !== b2.find((q) => !q.moment).pos[1]);
 });
