@@ -2880,6 +2880,28 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var DOWN = [0, 0, -1], R = info.R;
     var ad = p.asymDir * Math.PI / 180, dHat = [Math.cos(ad), Math.sin(ad)];
     function leeward(pp) { return pp.centroid[0] * dHat[0] + pp.centroid[1] * dHat[1] >= -1e-9; }
+    // fladen delt ved skillelinjen gennem centrum vinkelret på θ: [{ pp, lee }], én del, når fladen ligger på én side.
+    // En delt flades dele har egne punkter (pp.points) i fladens plan og samme cover, så lasten kun ligger på den ene side.
+    function splitAtLine(pp) {
+      var P = pp.cover.points, sd = P.map(function (q) { return q[0] * dHat[0] + q[1] * dHat[1]; });
+      var hasLee = sd.some(function (v) { return v > 1e-6; }), hasWind = sd.some(function (v) { return v < -1e-6; });
+      if (!hasLee || !hasWind) return [{ pp: pp, lee: hasLee || leeward(pp) }];
+      var parts = [];
+      [1, -1].forEach(function (sg) {
+        var Q = [];
+        for (var k = 0; k < P.length; k++) {
+          var a = P[k], b = P[(k + 1) % P.length], da0 = sg * sd[k], db0 = sg * sd[(k + 1) % P.length];
+          if (da0 >= -1e-6) Q.push(a);
+          if ((da0 > 1e-6 && db0 < -1e-6) || (da0 < -1e-6 && db0 > 1e-6)) Q.push(vadd(a, vscale(vsub(b, a), da0 / (da0 - db0))));
+        }
+        if (Q.length < 3) return;
+        var sp = panelProps(Q);
+        if (!(sp.area > 1e-9)) return;
+        sp.cover = pp.cover; sp.points = Q; sp.whole = pp;
+        parts.push({ pp: sp, lee: sg > 0 });
+      });
+      return parts;
+    }
     function surf(pp, val, dir, projected, comment) {
       return { kind: 'surface', panel: pp, val: val, dir: dir, projected: projected, comment: comment || '' };
     }
@@ -2919,7 +2941,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         addCase('live', 'Nyttelast', 'static', 'short-term', ll, { values: lv });
         if (p.liveHalf) {
           var hl = [], hv = zeros();
-          panels.forEach(function (pp, i) { if (leeward(pp)) { hl.push(surf(pp, p.liveQ, DOWN, true)); hv[i] = p.liveQ; } });
+          // flader på skillelinjen deles, så kun delen på den belastede halvdel får last; hv er fladens middelværdi
+          panels.forEach(function (pp, i) {
+            splitAtLine(pp).forEach(function (pt) {
+              if (!pt.lee) return;
+              hl.push(surf(pt.pp, p.liveQ, DOWN, true));
+              hv[i] += p.liveQ * pt.pp.areaProj / pp.areaProj;
+            });
+          });
           addCase('liveHalf', 'Nyttelast, halv', 'static', 'short-term', hl, { values: hv });
         }
       }
@@ -2956,14 +2985,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (p.snowOn) {
       var s0 = p.snowSk * p.snowCe * p.snowCt;
       res.snow = { s0: s0, asymMu: asymMu };
-      var snowCase = function (key, name, muOf) {
+      // split: flader på skillelinjen deles, og muOf(del, i, lee) giver hver del sin sides μ; values og mu er fladens middelværdi
+      var snowCase = function (key, name, muOf, split) {
         var sl = [], sv = zeros(), mus = [];
         panels.forEach(function (pp, i) {
-          var mu = muOf(pp, i);
-          mus.push(mu);
-          var val = mu * s0;
-          sv[i] = val;
-          if (val > 1e-12) sl.push(surf(pp, val, DOWN, true, 'μ=' + da(fixed(mu, 3))));
+          var parts = split ? splitAtLine(pp) : [{ pp: pp, lee: leeward(pp) }], muMean = 0;
+          parts.forEach(function (pt) {
+            var mu = muOf(pt.pp, i, pt.lee), val = mu * s0;
+            muMean += mu * pt.pp.areaProj / pp.areaProj;
+            if (val > 1e-12) sl.push(surf(pt.pp, val, DOWN, true, 'μ=' + da(fixed(mu, 3))));
+          });
+          mus.push(muMean);
+          sv[i] = muMean * s0;
         });
         addCase(key, name, 'static', 'short-term', sl, { values: sv, mu: mus });
       };
@@ -2988,7 +3021,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         };
         // middelværdi over fladens vandrette projektion: vifte af trekanter, hver delt i 8 · 8 deltrekanter
         var meanOver = function (pp, fn) {
-          var P = pp.cover.points, N = 8, sumA = 0, sumF = 0;
+          var P = pp.points || pp.cover.points, N = 8, sumA = 0, sumF = 0;
           for (var k = 1; k < P.length - 1; k++) {
             var a = P[0], b = P[k], c = P[k + 1];
             var A = Math.abs((b[0] - a[0]) * (c[1] - a[1]) - (c[0] - a[0]) * (b[1] - a[1])) / 2;
@@ -3010,14 +3043,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         res.snow.dome = { mu3: mu3, h: hDome, b: 2 * R, ls: 2 * rLs, betaEdge: Math.asin(Math.min(1, R / Rsph)) * 180 / Math.PI, t: tOf };
         if (p.snowUniform) snowCase('snowUniform', 'Sne, jævn', function (pp) { return pp.slope <= 60 + 1e-9 ? 0.8 : 0; });
         if (p.snowAsym) snowCase('snowAsym', 'Sne, ensidig', function (pp) { return meanOver(pp, muAsym); });
-        // halvt tag som tidligere: μ1 på læsiden af skillelinjen og μ på luvsiden (tomt felt = 0); flader på linjen deles efter areal
+        // halvt tag: μ1 på læsiden af skillelinjen og μ på luvsiden (tomt felt = 0). Flader på linjen deles ved linjen,
+        // så sneen på læsiden ikke breder sig ind over luvsiden.
         if (p.snowHalf) {
           var muW = asymMu === null ? 0 : asymMu, half = { muW: muW, ApLee: 0, ApWind: 0, mu08: panels.every(function (pp) { return pp.slope <= 30 + 1e-9; }) };
-          snowCase('snowHalf', 'Sne, halvt tag', function (pp) {
-            var f = meanOver(pp, function (x, y) { return x * dHat[0] + y * dHat[1] >= -1e-9 ? 1 : 0; });
-            half.ApLee += f * pp.areaProj; half.ApWind += (1 - f) * pp.areaProj;
-            return f * mu1(pp.slope) + (1 - f) * muW;
-          });
+          snowCase('snowHalf', 'Sne, halvt tag', function (pp, i, lee) {
+            if (lee) half.ApLee += pp.areaProj; else half.ApWind += pp.areaProj;
+            return lee ? mu1(pp.slope) : muW;
+          }, true);
           res.snow.dome.half = half;
         }
       } else {
@@ -3565,7 +3598,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       loads.cases.forEach(function (c, ci) {
         c.loads.forEach(function (Ld) {
           if (Ld.kind !== 'surface') return;
-          var pts = Ld.panel.cover.points;
+          var pts = Ld.panel.points || Ld.panel.cover.points;
           L.push(I3 + '<surface_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added" load_projection="' + (Ld.projected ? 'true' : 'false') + '" load_type="force"' +
             (Ld.comment ? ' comment="' + Ld.comment + '"' : '') + '>');
@@ -5475,7 +5508,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (K.snowHalf && sd.half) {
       var hf = sd.half;
       cases.push({ c: K.snowHalf, text: 'Halvt tag: μ<sub>1</sub> = 0,8 (tabel 5.2) på læsiden af skillelinjen gennem centrum vinkelret på θ = ' + trim(p.asymDir, 2) +
-        '° og μ = ' + coef(hf.muW) + ' på luvsiden' + (hf.muW === 0 ? '' : ' (angivet)') + '. Flader, der krydser skillelinjen, får hver sides μ efter deres areal på den side.',
+        '° og μ = ' + coef(hf.muW) + ' på luvsiden' + (hf.muW === 0 ? '' : ' (angivet)') + '. Flader, der krydser skillelinjen, deles ved linjen, og hver del får sin sides μ.',
         expect: !hf.mu08 ? undefined : '0,8 · ' + num(s0, 3) + ' · ' + num(hf.ApLee, 2) + (hf.muW > 0 ? ' + ' + coef(hf.muW) + ' · ' + num(s0, 3) + ' · ' + num(hf.ApWind, 2) : '') +
           ' = ' + num((0.8 * hf.ApLee + hf.muW * hf.ApWind) * s0, 2) + ' kN' });
     }
@@ -7197,11 +7230,26 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     planXf = { c: c, s: s, k: k };
     if (g.covers.length) {
       var vmax = 0;
+      // flader delt ved skillelinjen: delene tegnes hver for sig med deres egen last
+      var parts = {};
+      if (lcv) lcv.loads.forEach(function (Ld) {
+        if (Ld.kind !== 'surface' || !Ld.panel.points) return;
+        var ci = g.covers.indexOf(Ld.panel.cover);
+        (parts[ci] = parts[ci] || []).push(Ld);
+        vmax = Math.max(vmax, Math.abs(Ld.val));
+      });
       if (lcv) lcv.values.forEach(function (v) { vmax = Math.max(vmax, Math.abs(v)); });
+      var ptsOf = function (P0) { return P0.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' '); };
       out.push('<g class="' + (lcv ? 'd-loadpanel' : 'd-cover') + '">');
       g.covers.forEach(function (cv, i) {
-        var pts = cv.points.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' ');
-        if (lcv) {
+        var pts = ptsOf(cv.points);
+        if (lcv && parts[i]) {
+          out.push('<polygon points="' + pts + '" style="fill: ' + loadFill(0, vmax) + '"><title>' + esc(cv.name) + ': delt ved skillelinjen</title></polygon>');
+          parts[i].forEach(function (Ld) {
+            out.push('<polygon points="' + ptsOf(Ld.panel.points) + '" style="fill: ' + loadFill(Ld.val, vmax) + '"><title>' + esc(cv.name) + ' (del): ' +
+              nf(Ld.val, 3) + ' kN/m²' + (Ld.comment ? ' (' + Ld.comment.replace('μ=', 'μ = ') + ')' : '') + '</title></polygon>');
+          });
+        } else if (lcv) {
           var v = lcv.values[i];
           out.push('<polygon points="' + pts + '" style="fill: ' + loadFill(v, vmax) + '"><title>' + esc(cv.name) + ': ' + nf(v, 3) + ' kN/m²' +
             (lcv.mu ? ' (μ = ' + nf(lcv.mu[i], 3) + ')' : '') + (lcv.cpe ? ' (c_pe = ' + nf(lcv.cpe[i], 3) + ')' : '') + '</title></polygon>');
@@ -7712,7 +7760,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         var pp = Ld.panel, d = Ld.dir, frac = Math.max(0.12, Ld.val / vmax), L = Lmax * 0.6 * frac, c = pp.centroid;
         var sgn = dot3(d, pp.normal) < 0 ? -1 : 1, off = [d[0] * L * sgn, d[1] * L * sgn, d[2] * L * sgn];
         var ci = g.covers.indexOf(pp.cover), v = lc.values && ci >= 0 ? lc.values[ci] : Ld.val;
-        var base = pp.cover.points.map(function (q) { return [c[0] + (q[0] - c[0]) * 0.8, c[1] + (q[1] - c[1]) * 0.8, c[2] + (q[2] - c[2]) * 0.8]; });
+        var base = (pp.points || pp.cover.points).map(function (q) { return [c[0] + (q[0] - c[0]) * 0.8, c[1] + (q[1] - c[1]) * 0.8, c[2] + (q[2] - c[2]) * 0.8]; });
         var top = base.map(function (q) { return vadd3(q, off); });
         var mid = vadd3(c, vscale3(off, 0.5));
         return { Ld: Ld, v: v, base: base, top: top, at: vadd3(c, off), c: c, d: depth(mid) };
