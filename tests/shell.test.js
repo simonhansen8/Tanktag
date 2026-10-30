@@ -532,3 +532,34 @@ test('skalmodel: normalkraft og moment i enden', () => {
   assert.equal(b2.length, 2);
   assert.ok(b2.find((q) => q.moment).pos[0] !== b2.find((q) => !q.moment).pos[0] || b2.find((q) => q.moment).pos[1] !== b2.find((q) => !q.moment).pos[1]);
 });
+
+test('skalmodel: sidefastholdelsens afstand fra oversiden, pr. ring', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  assert.ok(TS.options({ holdDepth: 'x' }, geom).errors.length);
+  assert.ok(TS.options({ holdDepth: '1: 90; 99: 10' }, geom).errors.length);
+  const base = TS.rafter(TR, geom, LIB, TS.options({}, geom).o);
+  assert.ok(base.holds.length >= 2);
+  const height = (h, R) => dot(sub(h.pos, h.node), h.piece.z) / dot(h.piece.z, h.piece.z);
+  // ét tal for alle: 90 mm under oversiden, på kroppen
+  const all = TS.rafter(TR, geom, LIB, TS.options({ holdDepth: '90' }, geom).o);
+  all.holds.forEach((h) => {
+    assert.ok(Math.abs(height(h) - (all.dims.h / 2 - 0.09)) < 1e-9, 'ring ' + h.ring);
+    assert.equal(h.depth, 0.09);
+    assert.ok(h.piece.plates[0].pts && onQuad(h.pos, h.piece.plates[0].pts), 'ikke på kroppen');
+  });
+  // pr. ring: kun den nævnte ring flyttes, de øvrige bliver i topflangen
+  const r1 = base.holds[0].ring, r2 = base.holds[1].ring;
+  const one = TS.rafter(TR, geom, LIB, TS.options({ holdDepth: r1 + ': 120' }, geom).o);
+  assert.ok(Math.abs(height(one.holds[0]) - (one.dims.h / 2 - 0.12)) < 1e-9);
+  assert.ok(same(one.holds[1].pos, base.holds[1].pos) && one.holds[1].ring === r2 && one.holds[1].depth === undefined);
+  // midterflader: oversiden af profilet ligger tf/2 over flangeskallen, så 0 mm er uden for kroppen
+  assert.throws(() => TS.rafter(TR, geom, LIB, TS.options({ shellHeight: 'mid', holdDepth: '0' }, geom).o), /skal ligge på kroppen/);
+  const mid = TS.rafter(TR, geom, LIB, TS.options({ shellHeight: 'mid', holdDepth: '90' }, geom).o);
+  assert.ok(Math.abs(height(mid.holds[0]) - (mid.dims.h / 2 - 0.09)) < 1e-9);
+  // bjælkemodellen: stadig i systemlinjen
+  const res = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ holdDepth: '90' }, geom).o);
+  const bsf = res.supports.filter((q) => /^B\.SF\./.test(q.name));
+  assert.equal(bsf.length, all.holds.length);
+});
