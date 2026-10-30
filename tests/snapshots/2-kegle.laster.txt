@@ -9,7 +9,7 @@ Normer:	DS/EN 1990, DS/EN 1991-1-1, -1-3, -1-4 og -4 samt DS/EN 1993-4-2, alle m
 Lasttilfælde	Lastvarighed	Laster	Lodret, kN	Vandret, kN
 Egenlast	Permanent	48	121,95	0,00
 Nyttelast	Korttids	48	304,42	0,00
-Nyttelast, halv	Korttids	24	152,21	0,00
+Nyttelast, halv	Korttids	27	152,21	0,00
 Gangbro, egenlast	Permanent	3	5,71	0,00
 Gangbro, nyttelast	Korttids	3	21,00	0,00
 Sne, jævn	Korttids	48	194,83	0,00
@@ -38,7 +38,7 @@ Nyttelast på tag efter DS/EN 1991-1-1, kategori H. Den jævnt fordelte last vir
 
 Lasttilfælde	Last	Lodret, kN	Kontrol, kN
 Nyttelast	q_k = 1 kN/m² på hele taget	304,42	q_k · A_proj = 304,42
-Nyttelast, halv	q_k på halvdelen mod θ = 45° (24 flader, A_proj = 152,21 m²)	152,21	152,21
+Nyttelast, halv	q_k på halvdelen mod θ = 45° (27 flader, A_proj = 152,21 m²)	152,21	152,21
 
 4. Gangbro
 ==========

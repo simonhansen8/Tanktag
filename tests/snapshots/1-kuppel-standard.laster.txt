@@ -77,9 +77,9 @@ I alt	217		912,80	362,41
 
 Lodret resultant i filen: 362,41 kN nedad.
 
-Sne, halvt tag. Halvt tag: μ_1 = 0,8 (tabel 5.2) på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° og μ = 0,0 på luvsiden. Flader, der krydser skillelinjen, får hver sides μ efter deres areal på den side.
+Sne, halvt tag. Halvt tag: μ_1 = 0,8 (tabel 5.2) på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° og μ = 0,0 på luvsiden. Flader, der krydser skillelinjen, deles ved linjen, og hver del får sin sides μ.
 
-Lodret resultant i filen: 365,12 kN nedad (kontrol: 0,8 · 1,000 · 456,39 = 365,12 kN).
+Lodret resultant i filen: 365,12 kN nedad (kontrol: 0,8 · 1,000 · 456,40 = 365,12 kN).
 
 6. Vindlast
 ===========
