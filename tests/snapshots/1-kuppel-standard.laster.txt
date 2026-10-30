@@ -12,7 +12,7 @@ Nyttelast, punkt	Korttids	1	1,50	0,00
 Gangbro, egenlast	Permanent	5	16,40	0,00
 Gangbro, nyttelast	Korttids	5	25,71	0,00
 Sne, jævn	Korttids	217	730,24	0,00
-Sne, ensidig	Korttids	217	362,41	0,00
+Sne, ensidig	Korttids	224	362,41	0,00
 Sne, halvt tag	Korttids	112	365,12	0,00
 Vind 0°	Øjeblikkelig	217	−854,91	46,56
 Overtryk	Korttids	217	−136,92	0,00
@@ -47,7 +47,7 @@ Gangbro, nyttelast	q = q_k · b = 2 · 0,8 = 1,6 kN/m på den vandrette længde	
 
 5. Snelast
 ==========
-DS/EN 1991-1-3 med DK NA. Kuppeltaget regnes som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så profilet i fig. 5.6 bruges i hvert lodret snit gennem toppen: på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° ligger læ-trekanten, og på luvsiden luv-trekanten, begge som funktion af afstanden fra toppen. Hver flade får middelværdien af μ over sin vandrette projektion. Snelasten virker lodret på den vandrette projektion.
+DS/EN 1991-1-3 med DK NA. Kuppeltaget regnes som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så profilet i fig. 5.6 bruges i hvert lodret snit gennem toppen: på læsiden af skillelinjen gennem centrum vinkelret på θ = 0° ligger læ-trekanten, og på luvsiden luv-trekanten, begge som funktion af afstanden fra toppen. Hver flade får middelværdien af μ over sin vandrette projektion; ved ensidig sne deles flader, der krydser skillelinjen, ved linjen, og hver del får middelværdien over sin side. Snelasten virker lodret på den vandrette projektion.
 
 s = μ · C_e · C_t · s_k = μ · 1,0 · 1,0 · 1 kN/m² = μ · 1,000 kN/m²
 
@@ -70,7 +70,7 @@ Placering, andel af l_s	Flader	μ	A_proj, m²	s · A_proj, kN
 0,250–0,375	11	0,407	55,52	22,58
 0,375–0,500	11	0,212	34,16	7,23
 0,500–0,625	14	0,061–0,424	43,48	16,63
-0,625–0,750	13	0,608–0,813	65,61	51,32
+0,625–0,750	13	0,61–0,813	65,61	51,32
 0,750–0,875	37	0,633–0,922	149,20	118,72
 0,875–1,000	48	0,186–0,506	215,19	61,11
 I alt	217		912,80	362,41

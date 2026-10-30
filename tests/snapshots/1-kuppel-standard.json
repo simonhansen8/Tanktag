@@ -292,12 +292,12 @@
         "type": "static",
         "duration": "short-term",
         "loads": {
-          "surface": 217
+          "surface": 224
         },
         "F": [
           0,
           0,
-          -362.407432
+          -362.407037
         ]
       },
       {
@@ -976,7 +976,7 @@
         "F": [
           0,
           0,
-          -1270.973771
+          -1270.97318
         ]
       },
       {
@@ -994,7 +994,7 @@
         "F": [
           0,
           0,
-          -1270.973771
+          -1270.97318
         ]
       },
       {
@@ -1292,7 +1292,7 @@
         "F": [
           0,
           0,
-          -975.669971
+          -975.669577
         ]
       },
       {
@@ -1310,7 +1310,7 @@
         "F": [
           0,
           0,
-          -975.669971
+          -975.669577
         ]
       },
       {
@@ -1930,8 +1930,8 @@
     ]
   },
   "struxml": {
-    "sha256": "5ee03c3ca14d8c78e4c37e0340a08f4d5fac216286cb47f2ab18cdb16081a5b4",
-    "lines": 34083,
+    "sha256": "6513d3977aac36b6e1cf65b47894a5608d00ca32f7aad501b63edbf04edfd29e",
+    "lines": 34167,
     "elements": {
       "analytical": 720,
       "bar": 378,
@@ -1941,22 +1941,22 @@
       "complex_section": 360,
       "compression": 18,
       "connectivity": 720,
-      "contour": 1638,
+      "contour": 1645,
       "cover": 217,
       "curve": 378,
       "database": 1,
-      "direction": 1851,
+      "direction": 1858,
       "displacement": 48,
       "ecc": 720,
       "eccentricity": 378,
-      "edge": 6434,
+      "edge": 6462,
       "elastic": 36,
       "end": 1484,
       "entities": 1,
       "group": 48,
       "line_load": 10,
       "line_temperature_variation_load": 378,
-      "load": 1435,
+      "load": 1442,
       "load_case": 177,
       "load_combination": 37,
       "loads": 1,
@@ -1966,15 +1966,15 @@
       "materials": 1,
       "members": 10,
       "motions": 48,
-      "normal": 6822,
+      "normal": 6850,
       "physical": 756,
-      "point": 13596,
+      "point": 13652,
       "point_load": 1,
       "point_support": 48,
       "point_support_motion_load": 48,
       "position": 720,
       "ref": 360,
-      "region": 1638,
+      "region": 1645,
       "region_group": 7,
       "rigidity": 48,
       "rotations": 48,
@@ -1983,7 +1983,7 @@
       "steel": 1,
       "supporting_structures": 217,
       "supports": 1,
-      "surface_load": 1414,
+      "surface_load": 1421,
       "temperature": 756,
       "tension": 18,
       "truss_behaviour": 18,

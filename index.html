@@ -2986,19 +2986,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var s0 = p.snowSk * p.snowCe * p.snowCt;
       res.snow = { s0: s0, asymMu: asymMu };
       // split: flader på skillelinjen deles, og muOf(del, i, lee) giver hver del sin sides μ; values og mu er fladens middelværdi
+      // parts: hver flade eller del med sin side og sit μ (til rapporten)
       var snowCase = function (key, name, muOf, split) {
-        var sl = [], sv = zeros(), mus = [];
+        var sl = [], sv = zeros(), mus = [], all = [];
         panels.forEach(function (pp, i) {
           var parts = split ? splitAtLine(pp) : [{ pp: pp, lee: leeward(pp) }], muMean = 0;
           parts.forEach(function (pt) {
             var mu = muOf(pt.pp, i, pt.lee), val = mu * s0;
+            all.push({ i: i, pp: pt.pp, lee: pt.lee, mu: mu });
             muMean += mu * pt.pp.areaProj / pp.areaProj;
             if (val > 1e-12) sl.push(surf(pt.pp, val, DOWN, true, 'μ=' + da(fixed(mu, 3))));
           });
           mus.push(muMean);
           sv[i] = muMean * s0;
         });
-        addCase(key, name, 'static', 'short-term', sl, { values: sv, mu: mus });
+        addCase(key, name, 'static', 'short-term', sl, { values: sv, mu: mus, parts: all });
       };
       if (p.roofType === 'dome') {
         // kuppel som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så hvert lodret snit gennem toppen regnes som
@@ -3042,7 +3044,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var tOf = panels.map(function (pp) { return tAt(pp.centroid[0], pp.centroid[1]); });
         res.snow.dome = { mu3: mu3, h: hDome, b: 2 * R, ls: 2 * rLs, betaEdge: Math.asin(Math.min(1, R / Rsph)) * 180 / Math.PI, t: tOf };
         if (p.snowUniform) snowCase('snowUniform', 'Sne, jævn', function (pp) { return pp.slope <= 60 + 1e-9 ? 0.8 : 0; });
-        if (p.snowAsym) snowCase('snowAsym', 'Sne, ensidig', function (pp) { return meanOver(pp, muAsym); });
+        // flader på skillelinjen deles, så luv- og læ-trekanten hver kun midles over sin egen side
+        if (p.snowAsym) snowCase('snowAsym', 'Sne, ensidig', function (pp) { return meanOver(pp, muAsym); }, true);
         // halvt tag: μ1 på læsiden af skillelinjen og μ på luvsiden (tomt felt = 0). Flader på linjen deles ved linjen,
         // så sneen på læsiden ikke breder sig ind over luvsiden.
         if (p.snowHalf) {
@@ -3056,9 +3059,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       } else {
       if (p.snowUniform) snowCase('snowUniform', 'Sne, jævn', function (pp) { return mu1(pp.slope); });
       if (p.snowAsym) {
-        snowCase('snowAsym', 'Sne, ensidig', function (pp) {
-          return leeward(pp) ? mu1(pp.slope) : (asymMu === null ? mu1(pp.slope) * 0.5 : asymMu);
-        });
+        // flader på skillelinjen deles, så hver del får sin sides μ
+        snowCase('snowAsym', 'Sne, ensidig', function (pp, i, lee) {
+          return lee ? mu1(pp.slope) : (asymMu === null ? mu1(pp.slope) * 0.5 : asymMu);
+        }, true);
         var mu1Max = Math.max.apply(null, panels.map(function (pp) { return mu1(pp.slope); }));
         if (asymMu !== null && asymMu > mu1Max + 1e-12) {
           W.push('Formfaktoren på luvsiden (μ = ' + da(fmt(asymMu)) + ') er større end μ1 = ' + da(fmt(mu1Max)) +
@@ -5442,16 +5446,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       (caseFh(c) > 0.005 ? ', vandret resultant ' + num(caseFh(c), 2) + ' kN' : '') + '.';
   }
   // flader med samme værdi samles i én række
-  function groupPanels(d, valOf, keyOf) {
-    var groups = [], idx = {};
-    d.L.panels.forEach(function (pp, i) {
-      var v = valOf(pp, i), k = keyOf ? keyOf(pp, i, v) : v.toFixed(4);
-      var g = idx[k];
-      if (!g) { g = idx[k] = { key: k, v: v, n: 0, Ap: 0, A: 0, smin: 90, smax: 0, items: [] }; groups.push(g); }
-      g.n++; g.Ap += pp.areaProj; g.A += pp.area; g.smin = Math.min(g.smin, pp.slope); g.smax = Math.max(g.smax, pp.slope); g.items.push(i);
-    });
-    return groups;
-  }
   function slopeRange(g) { return Math.abs(g.smax - g.smin) < 0.05 ? num(g.smin, 1) + '°' : num(g.smin, 1) + '–' + num(g.smax, 1) + '°'; }
   // ---------- sne på kuppeltag: krumt tag efter 5.3.5 ----------
   function snowProfileFig(pts, lines, mMax) {
@@ -5482,7 +5476,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var p = d.p, L = d.L, K = d.byKey, s0 = L.snow.s0, sd = L.snow.dome;
     B.push({ p: 'DS/EN 1991-1-3 med DK NA. Kuppeltaget regnes som krumt tag efter 5.3.5. Normen har ingen regel for kupler, så profilet i fig. 5.6 ' +
       'bruges i hvert lodret snit gennem toppen: på læsiden af skillelinjen gennem centrum vinkelret på θ = ' + trim(p.asymDir, 2) + '° ligger læ-trekanten, ' +
-      'og på luvsiden luv-trekanten, begge som funktion af afstanden fra toppen. Hver flade får middelværdien af μ over sin vandrette projektion. ' +
+      'og på luvsiden luv-trekanten, begge som funktion af afstanden fra toppen. Hver flade får middelværdien af μ over sin vandrette projektion; ved ensidig sne deles flader, der krydser skillelinjen, ved linjen, og hver del får middelværdien over sin side. ' +
       'Snelasten virker lodret på den vandrette projektion.' });
     B.push({ formula: 's = μ · C<sub>e</sub> · C<sub>t</sub> · s<sub>k</sub> = μ · ' + coef(p.snowCe) + ' · ' + coef(p.snowCt) + ' · ' + trim(p.snowSk, 3) + ' kN/m² = μ · ' + num(s0, 3) + ' kN/m²' });
     B.push({
@@ -5642,16 +5636,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       [['snowUniform', 'Sne, jævn'], ['snowAsym', 'Sne, ensidig']].forEach(function (sc) {
         var c = K[sc[0]];
         if (!c) return;
-        var asym = sc[0] === 'snowAsym', ad = p.asymDir * Math.PI / 180;
-        var groups = groupPanels(d, function (pp, i) { return c.mu[i]; }, function (pp, i, v) {
-          var lee = pp.centroid[0] * Math.cos(ad) + pp.centroid[1] * Math.sin(ad) >= -1e-9;
-          return (asym ? (lee ? 'L' : 'V') : '') + v.toFixed(4);
+        var asym = sc[0] === 'snowAsym';
+        // grupper af flader og dele med samme side og μ; en flade, der er delt ved skillelinjen, tæller med på begge sider
+        var groups = [], idx = {};
+        c.parts.forEach(function (pt) {
+          var k = (asym ? (pt.lee ? 'L' : 'V') : '') + pt.mu.toFixed(4), g = idx[k], pp = pt.pp;
+          if (!g) { g = idx[k] = { key: k, v: pt.mu, n: 0, Ap: 0, smin: 90, smax: 0 }; groups.push(g); }
+          g.n++; g.Ap += pp.areaProj; g.smin = Math.min(g.smin, pp.slope); g.smax = Math.max(g.smax, pp.slope);
         });
+        var nSplit = c.parts.length - L.panels.length;
         groups.sort(function (a, b) { return (a.key < b.key ? -1 : 1); });
         var total = sum(groups, function (g) { return g.v * s0 * g.Ap; });
         if (asym) {
           B.push({ p: 'Ensidig sne med læsiden mod θ = ' + trim(p.asymDir, 2) + '°: μ<sub>1</sub> på læsiden og ' +
-            (L.snow.asymMu === null ? '½μ<sub>1</sub> på luvsiden (fig. 5.3)' : 'μ = ' + coef(L.snow.asymMu) + ' på luvsiden (angivet)') + '.' });
+            (L.snow.asymMu === null ? '½μ<sub>1</sub> på luvsiden (fig. 5.3)' : 'μ = ' + coef(L.snow.asymMu) + ' på luvsiden (angivet)') + '.' +
+            (nSplit > 0 ? ' ' + nSplit + (nSplit === 1 ? ' flade krydser' : ' flader krydser') + ' skillelinjen og er delt ved linjen, så hver del får sin sides μ; de tæller med på begge sider i tabellen.' : '') });
         }
         B.push({
           more: esc(sc[1]) + ': ' + groups.length + (groups.length === 1 ? ' gruppe' : ' grupper') + ' af flader',
@@ -5661,7 +5660,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             rows: groups.map(function (g) {
               return (asym ? [g.key.charAt(0) === 'L' ? 'Læside' : 'Luvside'] : []).concat([String(g.n), slopeRange(g), coef(g.v), num(g.v * s0, 3), num(g.Ap, 2), num(g.v * s0 * g.Ap, 2)]);
             }),
-            total: (asym ? ['I alt'] : []).concat([String(L.panels.length), '', '', '', num(d.Ap, 2), num(total, 2)])
+            total: (asym ? ['I alt'] : []).concat([String(c.parts.length), '', '', '', num(d.Ap, 2), num(total, 2)])
           }
         });
         B.push({ p: resultantLine(c) });
