@@ -544,6 +544,11 @@ test('skalmodel: normalkraft og moment i enden', () => {
   params.combos = TR.normCombos(params.combos);
   const geom = TR.computeGeometry(params);
   assert.ok(TS.options({ caseEnd: true, endN: '0', endM: '0' }, geom).errors.length);
+  // normalkraft kun i den ende, der er fastholdt aksialt (eller indspændt), går direkte i lejet
+  assert.match(TS.options({ caseEnd: true, endNAt: 'ring', axialAt: 'ring' }, geom).errors.join(' '), /direkte i lejet/);
+  assert.match(TS.options({ caseEnd: true, endNAt: 'shell', axialAt: 'ring', rotShell: 'fixed' }, geom).errors.join(' '), /indspændt/);
+  assert.deepEqual(TS.options({ caseEnd: true, endNAt: 'shell', axialAt: 'ring' }, geom).errors, []);
+  assert.deepEqual(TS.options({ caseEnd: true }, geom).errors, []);
   assert.ok(TS.options({ caseEnd: true, endMAt: 'x' }, geom).errors.length);
   // resultanten af linjelasterne i en ende: kraft langs bjælken (ind = tryk) og moment om tværaksen y
   function resultant(c, pc, P0, into) {
@@ -562,7 +567,7 @@ test('skalmodel: normalkraft og moment i enden', () => {
   }
   [['compression', 'top', 1, 1], ['tension', 'bottom', -1, -1]].forEach(([nDir, mDir, sn, sm]) => {
     ['ring', 'shell', 'both'].forEach((at) => {
-      const op = TS.options({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endNAt: at, endMAt: at, endN: '20', endNDir: nDir, endM: '15', endMDir: mDir }, geom);
+      const op = TS.options({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endNAt: at, endMAt: at, axialAt: at === 'ring' ? 'shell' : 'ring', endN: '20', endNDir: nDir, endM: '15', endMDir: mDir }, geom);
       assert.deepEqual(op.errors, []);
       const { xml, rafter: R, cases, beamCases } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
       wellFormed(xml);
@@ -646,4 +651,41 @@ test('skalmodel: "ingen" udvekslingsringe fastholder bjælken', () => {
   assert.equal(op.errors.length, 0);
   assert.deepEqual(op.o.holdRings, []);
   assert.equal(TS.rafter(TR, geom, LIB, op.o).holds.length, 0);
+});
+
+test('skalmodel: N og M i enden – skallens linjelaster i filen har samme resultant som bjælkemodellens punktlast og -moment', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const P = (s, tag) => { const m = new RegExp('<' + tag + ' x="([^"]+)" y="([^"]+)" z="([^"]+)"').exec(s); return [+m[1], +m[2], +m[3]]; };
+  [{ shellHeight: 'mid', torsionBar: true }, { shellHeight: 'full' }, { straight: true, endNDir: 'tension', endMDir: 'bottom' }].forEach((extra) => {
+    const op = TS.options(Object.assign({ caseN: false, caseDown: false, caseUp: false, caseEnd: true, endNAt: 'both', endMAt: 'both', endN: '170', endM: '43' }, extra), geom);
+    assert.deepEqual(op.errors, []);
+    const { xml, rafter: R } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+    const names = {};
+    for (const m of xml.matchAll(/<load_case type="static"[^>]*guid="([^"]+)"[^>]*name="([^"]+)"/g)) names[m[1]] = m[2];
+    const ends = [R.pieces[0].member.start, R.pieces[R.pieces.length - 1].member.end];
+    const shell = ends.map(() => ({ F: [0, 0, 0], M: [0, 0, 0] })), beam = ends.map(() => ({ F: [0, 0, 0], M: [0, 0, 0] }));
+    const near = (q) => ends.findIndex((E) => len(sub(q, E)) < 0.5);
+    for (const m of xml.matchAll(/<line_load load_case="([^"]+)"[\s\S]*?<\/line_load>/g)) {
+      const e = /<edge type="line"><point x="([^"]+)" y="([^"]+)" z="([^"]+)"\/><point x="([^"]+)" y="([^"]+)" z="([^"]+)"/.exec(m[0]);
+      const A = [+e[1], +e[2], +e[3]], B = [+e[4], +e[5], +e[6]], dir = P(m[0].replace(/<edge[\s\S]*?<\/edge>/, ''), 'direction');
+      const v = [...m[0].matchAll(/<load [^>]*val="([^"]+)"/g)].map((q) => +q[1]), Fm = (v[0] + v[1]) / 2 * len(sub(B, A));
+      const C = add(A, scale(sub(B, A), (v[0] + 2 * v[1]) / (3 * (v[0] + v[1])))), k = near(C);
+      shell[k].F = add(shell[k].F, scale(dir, Fm));
+      shell[k].M = add(shell[k].M, cross(sub(C, ends[k]), scale(dir, Fm)));
+    }
+    for (const m of xml.matchAll(/<point_load load_case="([^"]+)"[^>]*load_type="([^"]+)">([\s\S]*?)<\/point_load>/g)) {
+      assert.match(names[m[1]], /bjælkemodel$/);
+      const q = /<load x="([^"]+)" y="([^"]+)" z="([^"]+)" val="([^"]+)"/.exec(m[3]), pos = [+q[1], +q[2], +q[3]];
+      const k = ends.findIndex((E) => len(sub(sub(pos, E), scale(R.pieces[0].y, R.beamOffset))) < 0.01);
+      if (m[2] === 'moment') beam[k].M = add(beam[k].M, scale(P(m[3], 'direction'), +q[4]));
+      else beam[k].F = add(beam[k].F, scale(P(m[3], 'direction'), +q[4]));
+    }
+    [0, 1].forEach((k) => {
+      assert.ok(len(sub(shell[k].F, beam[k].F)) < 1e-6, 'kraft i ende ' + k + ': ' + shell[k].F + ' / ' + beam[k].F);
+      assert.ok(len(sub(shell[k].M, beam[k].M)) < 1e-6, 'moment i ende ' + k + ': ' + shell[k].M + ' / ' + beam[k].M);
+      assert.ok(Math.abs(len(beam[k].F) - 170) < 1e-6 && Math.abs(len(beam[k].M) - 43) < 1e-6);
+    });
+  });
 });
