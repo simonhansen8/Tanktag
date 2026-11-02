@@ -605,3 +605,26 @@ test('kipningslængde i meter for over- og underflange', () => {
   // en lang kipningslængde er tilladt, selv om den er over 100 som β
   assert.deepEqual(TR.computeGeometry(Object.assign({}, params, { bkRadialTop: 150 })).errors, []);
 });
+
+// FEM-Design kræver plane lastfordelingsflader, og en bærende bjælke, der ikke ligger i fladens plan, tæller ikke med
+// ("The cover is imported, but it lacks supporting structures"). Det gælder også det inderste sektionsspærfelt, hvor
+// radialbjælken og sektionsspæret ikke ligger i samme plan.
+test('lastfordelingsfladerne er plane, og deres bærende bjælker ligger i fladens plan', () => {
+  const sub = (a, b) => a.map((v, i) => v - b[i]);
+  const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  [{}, { roofType: 'cone', slopeMode: 'ratio', slopeValue: 5 }, { roofType: 'flat' }, { secRing: 3, covers: 'all' }, { secRing: 1 }].forEach((extra) => {
+    const params = Object.assign({}, TR.DEFAULTS, extra);
+    params.combos = TR.normCombos(params.combos);
+    const g = TR.computeGeometry(params);
+    assert.deepEqual(g.errors, []);
+    g.covers.forEach((c) => {
+      const Q = c.points, n0 = cross(sub(Q[1], Q[0]), sub(Q[2], Q[0])), n = n0.map((v) => v / Math.sqrt(dot(n0, n0)));
+      const off = (q) => Math.abs(dot(sub(q, Q[0]), n));
+      Q.forEach((q) => assert.ok(off(q) < 1e-6, c.name + ' skal være plan (' + JSON.stringify(extra) + ')'));
+      assert.ok(c.supports.length > 0, c.name + ' skal have en bærende bjælke');
+      c.supports.forEach((m) => assert.ok(off(m.start) < 1e-6 && off(m.end) < 1e-6,
+        m.name + ' skal ligge i planet for ' + c.name + ' (' + JSON.stringify(extra) + ')'));
+    });
+  });
+});
