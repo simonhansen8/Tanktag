@@ -3758,6 +3758,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I2 + '<advanced-fem>');
       geom.covers.forEach(function (c) {
         L.push(I3 + '<cover guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + c.name + '">');
+        // skemaets rækkefølge (cover_type): load_bearing_direction, region, supporting_structures, colouring
+        if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
         L.push(I4 + '<region>');
         L.push(I5 + '<contour>');
         for (var k = 0; k < c.points.length; k++) {
@@ -3766,8 +3768,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         }
         L.push(I5 + '</contour>');
         L.push(I4 + '</region>');
-        // skemaets rækkefølge: region, load_bearing_direction, supporting_structures, colouring
-        if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
         L.push(I4 + '<supporting_structures>');
         var seen = {};
         c.supports.forEach(function (m) {
