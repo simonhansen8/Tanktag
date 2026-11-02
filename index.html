@@ -1385,6 +1385,22 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             </select>
           </div>
         </div>
+        <div class="row">
+          <div class="field">
+            <label class="lbl" for="shellWeakRing">Svag akse ved ringbjælken</label>
+            <select id="shellWeakRing" data-shell="weakRing">
+              <option value="free">Fri</option>
+              <option value="fixed">Indspændt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl" for="shellWeakShell">Svag akse ved svøbet</label>
+            <select id="shellWeakShell" data-shell="weakShell">
+              <option value="free">Fri</option>
+              <option value="fixed">Indspændt</option>
+            </select>
+          </div>
+        </div>
         <div class="field">
           <span class="lbl">Aksialt fastholdt</span>
           <div class="seg" role="radiogroup" aria-label="Aksialt fastholdt">
@@ -1392,8 +1408,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <label><input type="radio" name="shellAxial" value="shell" data-shell="axialAt"><span>Ved svøbet</span></label>
           </div>
         </div>
-        <p class="hint">Gaffelleje: over- og underkanten er fastholdt på tværs, så bjælken hverken kan flytte sig til siden eller vride om sin egen akse. Fuldt vridningsfastholdt: hele endetværsnittet er fastholdt på tværs, dvs. kroppen og begge flanger i hele bredden, så hverken tværsnittet eller flangerne kan vride; flangerne fastholdes kun på tværs, aldrig aksialt. Vridningsfastholdt i topflange og krop: kun to vandrette fastholdelser på tværs, én i topflangen (kroppens overkant) og én midt på kroppen, så bjælken hverken kan flytte sig til siden eller vride, mens underflangen er fri på tværs. Kun sidefastholdt: kun midten er fastholdt på tværs, så bjælken kan vride om sin akse. Indspændt om den stærke akse: kun kroppen er fastholdt i bjælkens retning (over- og underkanten, eller hele endekanten med linjeunderstøtninger), flangerne ikke. Det fastholder den også aksialt i den ende (i bjælkemodellen ligeså).</p>
-        <p class="hint">Linjer: kroppens endekant er én linjeunderstøtning (i sin retning, på tværs ved gaffelleje, aksialt ved indspænding), og ved fuldt vridningsfastholdt også en linje på tværs af hver flange. Det, en linje ikke kan alene (aksialt uden indspænding, kun sidefastholdt), er et punkt midt på kroppens endekant. Ved vridningsfastholdt i topflange og krop er linjen kun i sin retning, og de to vandrette fastholdelser er punkter. Sidefastholdelserne ved udvekslingerne er altid punkter, og bjælkemodellen har altid punkter.</p>
+        <p class="hint">Gaffelleje: over- og underkanten er fastholdt på tværs, så bjælken hverken kan flytte sig til siden eller vride om sin egen akse. Fuldt vridningsfastholdt: hele endetværsnittet er fastholdt på tværs, dvs. kroppen og begge flanger i hele bredden, så hverken tværsnittet eller flangerne kan vride; flangerne fastholdes kun på tværs, aldrig aksialt. Vridningsfastholdt i topflange og krop: kun to vandrette fastholdelser på tværs, én i topflangen (kroppens overkant) og én midt på kroppen, så bjælken hverken kan flytte sig til siden eller vride, mens underflangen er fri på tværs. Kun sidefastholdt: kun midten er fastholdt på tværs, så bjælken kan vride om sin akse. Indspændt om den stærke akse: kun kroppen er fastholdt i bjælkens retning (over- og underkanten, eller hele endekanten med linjeunderstøtninger), flangerne ikke. Det fastholder den også aksialt i den ende (i bjælkemodellen ligeså). Indspændt om den svage akse: endepladen er fastholdt i bjælkens retning i to punkter i systemlinjens højde, ved hver side af pladen, så enden ikke kan dreje om den lodrette akse, mens den stadig kan dreje om den stærke akse og hvælve. Det kræver en endeplade (tykkelse over 0) og fastholder også bjælken aksialt i den ende; i bjælkemodellen er rotationen om den svage akse fastholdt.</p>
+        <p class="hint">Linjer: kroppens endekant er én linjeunderstøtning (i sin retning, på tværs ved gaffelleje, aksialt ved indspænding), og ved fuldt vridningsfastholdt også en linje på tværs af hver flange. Det, en linje ikke kan alene (aksialt uden indspænding, kun sidefastholdt), er et punkt midt på kroppens endekant. Ved vridningsfastholdt i topflange og krop er linjen kun i sin retning, og de to vandrette fastholdelser er punkter. Indspændingen om den svage akse er altid de to punkter på endepladen. Sidefastholdelserne ved udvekslingerne er altid punkter, og bjælkemodellen har altid punkter.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-hold">
@@ -3839,6 +3855,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     supShell: 'fork',   // det samme ved svøbet
     rotRing: 'free',    // rotation om den stærke akse ved ringbjælken: 'free' eller 'fixed' (indspændt)
     rotShell: 'free',   // det samme ved svøbet
+    weakRing: 'free',   // rotation om den svage akse ved ringbjælken: 'free' eller 'fixed' (indspændt: endepladen fastholdt aksialt i to
+                        // punkter i systemlinjens højde ved pladens sider – kræver endeplade)
+    weakShell: 'free',  // det samme ved svøbet
     supType: 'point',   // skalmodellens fastholdelser som 'point' (punktunderstøtninger) eller 'line' (linjeunderstøtninger)
     holdPos: 'top',     // sidefastholdelse ved udvekslingerne: 'top', 'centre', 'bottom' eller 'none'
     holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle, "ingen" = ingen
@@ -3862,8 +3881,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   var SUP_NAME = { fork: 'gaffelleje', full: 'fuldt vridningsfastholdt', topWeb: 'vridningsfastholdt i topflangen og midt på kroppen', lateral: 'sidefastholdt med fri vridning', free: 'fri på tværs' };
   // lejerne i ord, fx til statuslinjen
   function supportText(o) {
-    function end(lat, rot) { return SUP_NAME[lat || 'fork'] + (rot === 'fixed' ? ', indspændt om den stærke akse' : ''); }
-    var a = end(o.supRing, o.rotRing), b = end(o.supShell, o.rotShell);
+    function end(lat, rot, weak) {
+      var c = [rot === 'fixed' ? 'den stærke' : '', weak === 'fixed' ? 'den svage' : ''].filter(Boolean);
+      return SUP_NAME[lat || 'fork'] + (c.length ? ', indspændt om ' + c.join(' og ') + ' akse' : '');
+    }
+    var a = end(o.supRing, o.rotRing, o.weakRing), b = end(o.supShell, o.rotShell, o.weakShell);
     return (a === b ? (a === 'gaffelleje' ? 'gaffellejer i begge ender' : a + ' i begge ender') : 'ved ringbjælken ' + a + ' og ved svøbet ' + b) +
       (o.supType === 'line' ? ' (linjeunderstøtninger)' : '');
   }
@@ -3889,6 +3911,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (!SUP_NAME[r.supRing] || !SUP_NAME[r.supShell]) e.push('Ukendt leje på tværs.');
     if (['point', 'line'].indexOf(r.supType) < 0) e.push('Ukendt understøtningstype.');
     if (['free', 'fixed'].indexOf(r.rotRing) < 0 || ['free', 'fixed'].indexOf(r.rotShell) < 0) e.push('Ukendt rotation om den stærke akse.');
+    if (['free', 'fixed'].indexOf(r.weakRing) < 0 || ['free', 'fixed'].indexOf(r.weakShell) < 0) e.push('Ukendt rotation om den svage akse.');
+    else if ((r.weakRing === 'fixed' || r.weakShell === 'fixed') && !(plate > 0))
+      e.push('Indspænding om den svage akse kræver en endeplade: sæt endepladernes tykkelse til mere end 0.');
     if (r.supRing === 'free' && r.supShell === 'free' && r.holdPos === 'none') e.push('Bjælken skal fastholdes på tværs et sted: i en af enderne eller ved udvekslingerne.');
     else if (!TORSION[r.supRing] && !TORSION[r.supShell] && (r.holdPos === 'none' || r.holdPos === 'centre' || (r.supRing === 'free' && r.supShell === 'free')))
       e.push('Bjælken skal fastholdes mod vridning et sted: vælg gaffelleje i mindst én ende, eller sidefastholdelse i top- eller bundflangen sammen med sidefastholdelse i en ende.');
@@ -3930,7 +3955,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return {
       errors: e,
       o: { index: beam - 1, meshSize: mesh / 1000, endPlate: plate / 1000, shellHeight: r.shellHeight, torsionBar: !!r.torsionBar, straight: !!r.straight, axialAt: r.axialAt, holdPos: r.holdPos, holdRings: rings, holdDepth: depth,
-        supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, supType: r.supType,
+        supRing: r.supRing, supShell: r.supShell, rotRing: r.rotRing, rotShell: r.rotShell, weakRing: r.weakRing, weakShell: r.weakShell, supType: r.supType,
         holdStiff: stiff, cases: { N: !!r.caseN, down: !!r.caseDown, up: !!r.caseUp, end: !!r.caseEnd }, N: N, q: q, qPos: r.qPos, beamOffset: off,
         end: { nAt: r.endNAt, mAt: r.endMAt, N: eN, nDir: r.endNDir, M: eM, mDir: r.endMDir } }
     };
@@ -4323,8 +4348,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     function sup(name, pos, pc, mx, my, mz, rot) { sups.push({ name: name, pos: pos, x: pc.x, y: pc.y, m: [mx, my, mz], r: rot || [false, false, false] }); }
     var axShell = o.axialAt === 'shell';
     var ends = [
-      { tag: 'R', P: first.member.start, pc: first, mv: first.mS, ax: !axShell, lat: o.supRing || 'fork', clamp: o.rotRing === 'fixed' },
-      { tag: 'S', P: last.member.end, pc: last, mv: last.mE, ax: axShell, lat: o.supShell || 'fork', clamp: o.rotShell === 'fixed' }
+      { tag: 'R', P: first.member.start, pc: first, mv: first.mS, ax: !axShell, lat: o.supRing || 'fork', clamp: o.rotRing === 'fixed', weak: o.weakRing === 'fixed' },
+      { tag: 'S', P: last.member.end, pc: last, mv: last.mE, ax: axShell, lat: o.supShell || 'fork', clamp: o.rotShell === 'fixed', weak: o.weakShell === 'fixed' }
     ];
     // som linjeunderstøtninger: kroppens endekant er én linje (i sin retning, på tværs ved gaffelleje, aksialt ved indspænding),
     // og det, linjen ikke kan (aksialt uden indspænding, kun sidefastholdt), er et punkt i midten. Sidefastholdelserne ved
@@ -4337,6 +4362,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       // i topflangen og midt på kroppen: kun de to vandrette fastholdelser på tværs, underkanten fri på tværs
       var tw = en.lat === 'topWeb';
       var top = vadd(en.P, vscale(en.mv, d)), bot = vadd(en.P, vscale(en.mv, -d)), hy = vscale(en.pc.y, R.dims.b / 2);
+      // indspændt om den svage akse: endepladen fastholdt aksialt i systemlinjens højde ved hver side, så enden ikke kan dreje om
+      // den lodrette akse, men stadig om den stærke akse og hvælve (punkterne ligger på den neutrale akse). Altid punkter
+      if (en.weak && R.endPlates.length) {
+        sup('GL.' + en.tag + 'V1', vsub(en.P, hy), en.pc, true, false, false);
+        sup('GL.' + en.tag + 'V2', vadd(en.P, hy), en.pc, true, false, false);
+      }
       // fuldt vridningsfastholdt: også begge flanger i hele bredden på tværs, så hverken tværsnittet eller flangerne kan vride.
       // Indspændt om den stærke akse fastholdes kun kroppen aksialt (dens endekant), aldrig flangerne
       if (asLines) {
@@ -4363,7 +4394,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // bjælkemodellen: de samme lejer som fastholdte flytninger og rotationer i endeknuderne, sidefastholdelse i knuderne
     if (off > 0) {
       ends.forEach(function (en) {
-        sup('B.GL.' + en.tag, vadd(en.P, ov), en.pc, en.ax || en.clamp, en.lat !== 'free', true, [!!TORSION[en.lat], en.clamp, false]);
+        sup('B.GL.' + en.tag, vadd(en.P, ov), en.pc, en.ax || en.clamp || en.weak, en.lat !== 'free', true, [!!TORSION[en.lat], en.clamp, en.weak]);
       });
       R.holds.forEach(function (h) { sup('B.SF.' + h.ring, vadd(h.node, ov), h.piece, false, hold, false); });
     }
