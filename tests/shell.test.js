@@ -246,6 +246,15 @@ test('skalmodel: regnearket til kalibrering af kipnings-β udfyldes', async () =
   assert.equal(txt(K, 'C7'), 'Nej');
   lens.forEach((l, j) => assert.ok(Math.abs(num(S, 'C' + (11 + j)) - l) < 1e-3));
   assert.equal(cell(S, 'C' + (11 + lens.length)), '');
+  // hvilken sektion er hvilken: nummereret fra ringbjælken, med stykkets navn og radier i kolonne J
+  assert.match(txt(S, 'B10'), /1 = ved ringbjælken/);
+  assert.equal(txt(S, 'J10'), 'Stykke i modellen');
+  assert.match(txt(S, 'J11'), new RegExp('^' + R.pieces[0].member.name.replace('.', '\\.') + ', r = [\\d,]+–[\\d,]+ m, ved ringbjælken$'));
+  assert.match(txt(S, 'J' + (10 + lens.length)), /ved svøbet \(kantbjælken\)$/);
+  assert.ok(!S.includes('<c r="J' + (11 + lens.length) + '"'));
+  assert.match(S, /<dimension ref="B1:J60"\/>/);
+  assert.match(S, /<col min="10" max="10"/);
+  assert.match(txt(K, 'E5'), /sektion 1 er ved ringbjælken/);
   let x = 0, gov = 0;
   while (x + lens[gov] < tot / 2) x += lens[gov++];
   assert.equal(num(K, 'C14'), gov + 1);

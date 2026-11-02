@@ -4428,6 +4428,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       : a + ' t="inlineStr"><is><t xml:space="preserve">' + xmlText(v) + '</t></is></c>');
     return xml.slice(0, m.index) + cell + xml.slice(m.index + m[0].length);
   }
+  // tilføjer en ny celle sidst i en eksisterende række (kolonnen skal ligge efter rækkens sidste celle)
+  function addCell(xml, ref, text, style) {
+    var row = /\d+$/.exec(ref)[0], re = new RegExp('(<row r="' + row + '"[^>]*>[\\s\\S]*?)(</row>)'), m = re.exec(xml);
+    if (!m) throw new Error('Rækken ' + row + ' findes ikke i regnearket.');
+    var cell = '<c r="' + ref + '"' + (style ? ' s="' + style + '"' : '') + ' t="inlineStr"><is><t xml:space="preserve">' + xmlText(text) + '</t></is></c>';
+    return xml.slice(0, m.index) + m[1] + cell + m[2] + xml.slice(m.index + m[0].length);
+  }
+  function cellStyle(xml, ref) { var m = new RegExp('<c r="' + ref + '"[^>]*?\\ss="(\\d+)"').exec(xml); return m ? m[1] : null; }
   function hasFormula(xml, ref) {
     var m = new RegExp('<c r="' + ref + '"[^>]*?(?:/>|>([\\s\\S]*?)</c>)').exec(xml);
     return !!(m && m[1] && m[1].indexOf('<f') >= 0);
@@ -4449,7 +4457,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var K = out[BETA_SHEETS.kal];
     [['C5', N], ['C6', Ltot], ['C7', 'Nej'], ['C11', null], ['C12', null], ['C14', gov], ['C16', round(betas[2], 4)],
       ['C39', null], ['C40', null], ['C42', gov], ['C44', round(betas[3], 4)],
-      ['E5', rb + ', ' + R.profile + ': ' + N + ' sektioner fra ringbjælken og udad.'],
+      ['E5', rb + ', ' + R.profile + ': ' + N + ' sektioner fra ringbjælken og udad (sektion 1 er ved ringbjælken, sektion ' + N + ' ved svøbet). Se arket Sektioner, kolonne J.'],
       ['E11', 'Skalmodel: »' + down + '«.'], ['E12', 'Bjælkemodel: »Last ned – bjælkemodel«, maks. positivt My.'],
       ['E14', 'Foreslået: stykket midt på spæret. Ret, hvis momentet er størst et andet sted.'],
       ['E39', 'Skalmodel: »' + up + '«.'], ['E40', 'Bjælkemodel: »Last op – bjælkemodel«, numerisk maks. negativt My.'],
@@ -4460,6 +4468,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     out[BETA_SHEETS.kal] = K;
     var S = out[BETA_SHEETS.sek];
     for (var j = 0; j < 50; j++) S = setCell(S, 'C' + (11 + j), j < N ? lens[j] : null);
+    // hvilken sektion er hvilken: nummereret fra ringbjælken og udad, med stykkets navn og radier i en ny kolonne J
+    S = setCell(S, 'B10', 'Sektion nr.\n(1 = ved ringbjælken)');
+    S = setCell(S, 'E10', 'x start [m]\n(fra ringbjælken)');
+    S = setCell(S, 'F10', 'x slut [m]\n(fra ringbjælken)');
+    var hs = cellStyle(S, 'I10'), bs = cellStyle(S, 'I11');
+    S = addCell(S, 'J10', 'Stykke i modellen', hs);
+    pcs.forEach(function (pc, k) {
+      var ra = Math.hypot(pc.member.start[0], pc.member.start[1]), rb = Math.hypot(pc.member.end[0], pc.member.end[1]);
+      var t = pc.member.name + (o.straight ? '' : ', r = ' + ra.toFixed(3).replace('.', ',') + '–' + rb.toFixed(3).replace('.', ',') + ' m') +
+        (k === 0 ? (N === 1 ? ', ringbjælke til svøb' : ', ved ringbjælken') : (k === N - 1 ? ', ved svøbet (kantbjælken)' : ''));
+      S = addCell(S, 'J' + (11 + k), t, bs);
+    });
+    S = S.replace(/<dimension ref="B1:I60"\/>/, '<dimension ref="B1:J60"/>')
+      .replace(/(<col min="9" max="9"[^>]*\/>)/, '$1<col min="10" max="10" width="36" customWidth="1"/>')
+      .replace(/(<row r="(?:10|1[1-9]|[2-5]\d|60)" spans=")2:9"/g, '$12:10"');
     out[BETA_SHEETS.sek] = S;
     // gemte lastformer: eksemplerne fjernes, de to lasttilfælde fra skalmodellen står klar
     var Lf = out[BETA_SHEETS.last];
