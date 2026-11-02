@@ -563,3 +563,13 @@ test('skalmodel: sidefastholdelsens afstand fra oversiden, pr. ring', () => {
   const bsf = res.supports.filter((q) => /^B\.SF\./.test(q.name));
   assert.equal(bsf.length, all.holds.length);
 });
+
+test('skalmodel: "ingen" udvekslingsringe fastholder bjælken', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ holdRings: 'ingen' }, geom);
+  assert.equal(op.errors.length, 0);
+  assert.deepEqual(op.o.holdRings, []);
+  assert.equal(TS.rafter(TR, geom, LIB, op.o).holds.length, 0);
+});

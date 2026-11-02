@@ -210,6 +210,16 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .radrow .rx { width: 32px; height: 32px; border: 1px solid var(--rule); border-radius: 4px; background: var(--field); color: var(--ink-2); font-size: 1rem; line-height: 1; cursor: pointer; }
 .radrow .rx:hover { border-color: var(--ink-2); color: var(--ink); }
 .holdlist { display: grid; gap: 4px; }
+.shellholds { display: grid; gap: 4px; margin: 8px 0 4px; max-width: 520px; }
+.shellholds:empty { display: none; }
+.shrow { display: grid; grid-template-columns: 48px 56px 72px minmax(0, 1fr); gap: 8px; align-items: center; }
+.shrow.sh-head span { font-size: 0.75rem; color: var(--ink-2); line-height: 1.2; }
+.shrow .rl { font-family: var(--f-data); font-size: 0.8rem; color: var(--ink-2); }
+.shrow .rv { font-family: var(--f-data); font-size: 0.8rem; color: var(--ink-2); text-align: right; }
+.shrow label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+.shrow input[type="text"] { min-height: 32px; padding: 4px 9px; font-family: var(--f-data); font-size: 0.85rem; }
+.shrow input[type="text"]:disabled { opacity: 0.45; }
+.shrow input[aria-invalid="true"] { border-color: var(--bad); }
 #holdNodes { display: grid; gap: 6px; margin-top: 6px; }
 #holdNodes[hidden] { display: none; }
 .holdlist:empty { display: none; }
@@ -1397,19 +1407,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             </select>
           </div>
           <div class="field">
-            <label class="lbl" for="shellHoldRings">Udvekslingsringe</label>
-            <input type="text" id="shellHoldRings" data-shell="holdRings" placeholder="alle">
-          </div>
-          <div class="field">
-            <label class="lbl" for="shellHoldDepth">Afstand fra oversiden <span class="unit">mm</span></label>
-            <input type="text" id="shellHoldDepth" data-shell="holdDepth" placeholder="som placeringen">
-          </div>
-          <div class="field">
             <label class="lbl" for="shellHoldStiff">Stivhed <span class="unit">kN/m</span></label>
             <input class="num" type="text" inputmode="decimal" id="shellHoldStiff" data-shell="holdStiff" placeholder="fast">
           </div>
         </div>
-        <p class="hint">Udvekslingerne er monteret i topflangen. Skriv ringene som fx 1; 3, eller lad feltet stå tomt for alle. En tom stivhed betyder fast; ellers er fastholdelsen en fjeder på tværs af bjælken. Afstand fra oversiden flytter fastholdelsen ned på kroppen, målt fra profilets overside: ét tal gælder alle ringe (fx 90), eller skriv ring og afstand for hver (fx 1: 90; 3: 120), så bruger de øvrige ringe placeringen. Tom = placeringen. Bjælkemodellen har altid fastholdelsen i systemlinjen.</p>
+        <div class="shellholds" id="shellHoldList" role="group" aria-label="Sidefastholdelse for hver udvekslingsring"></div>
+        <p class="hint">Udvekslingerne er monteret i topflangen. Sæt flueben ved de udvekslingsringe, der fastholder bjælken, og skriv evt. fastholdelsens højde på profilet for hver ring som afstand fra profilets overside i mm (fx 90). Tom afstand = placeringen ovenfor. Afstanden skal ligge på kroppen. En tom stivhed betyder fast; ellers er fastholdelsen en fjeder på tværs af bjælken. Bjælkemodellen har altid fastholdelsen i systemlinjen.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-load">
@@ -3835,7 +3838,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     rotShell: 'free',   // det samme ved svøbet
     supType: 'point',   // skalmodellens fastholdelser som 'point' (punktunderstøtninger) eller 'line' (linjeunderstøtninger)
     holdPos: 'top',     // sidefastholdelse ved udvekslingerne: 'top', 'centre', 'bottom' eller 'none'
-    holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle
+    holdRings: '',      // udvekslingsringe med sidefastholdelse, fx "1; 3" – tom = alle, "ingen" = ingen
     holdDepth: '',      // sidefastholdelsens afstand fra profilets overside i mm: "90" for alle eller "1: 90; 3: 120" pr. ring – tom = holdPos
     holdStiff: '',      // stivhed i kN/m – tom = fast
     caseN: true, caseDown: true, caseUp: true,
@@ -3889,7 +3892,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (['top', 'centre', 'bottom', 'none'].indexOf(r.holdPos) < 0) e.push('Ukendt placering af sidefastholdelsen.');
     if (['top', 'centre', 'bottom'].indexOf(r.qPos) < 0) e.push('Ukendt angrebspunkt for linjelasten.');
     var rings = null, txt = String(r.holdRings || '').trim();
-    if (txt) {
+    if (/^ingen$/i.test(txt)) rings = [];   // ingen af ringene fastholder bjælken
+    else if (txt) {
       rings = txt.split(/[;\s]+/).filter(Boolean).map(num);
       if (rings.some(function (k) { return !(k >= 1 && k <= nr && Math.round(k) === k); })) e.push('Udvekslingsringene skal være hele tal fra 1 til ' + nr + ', adskilt af semikolon.');
     }
@@ -9359,8 +9363,62 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     });
   }
   function shellOptions(g) { return window.TankShell.options(shellSet, g); }
+  // sidefastholdelse pr. udvekslingsring: flueben og afstand fra oversiden i mm. Skrives som holdRings ("1; 3", tom = alle,
+  // "ingen") og holdDepth ("1: 90; 3: 120"), så TankShell.options læser dem som før
+  function shellHoldState(nr) {
+    var txt = String(shellSet.holdRings || '').trim(), on = [], dep = [];
+    var list = /^ingen$/i.test(txt) ? [] : (txt ? txt.split(/[;\s]+/).filter(Boolean).map(Number) : null);
+    var dtxt = String(shellSet.holdDepth === undefined || shellSet.holdDepth === null ? '' : shellSet.holdDepth).trim(), map = {};
+    if (dtxt && dtxt.indexOf(':') < 0) { for (var j = 1; j <= nr; j++) map[j] = dtxt; }
+    else dtxt.split(';').forEach(function (x) { var m = /^\s*(\S+)\s*:\s*(\S+)\s*$/.exec(x); if (m) map[Number(m[1])] = m[2]; });
+    for (var k = 1; k <= nr; k++) { on.push(!list || list.indexOf(k) >= 0); dep.push(map[k] !== undefined ? map[k] : ''); }
+    return { on: on, dep: dep };
+  }
+  function storeShellHolds(st) {
+    var all = st.on.every(Boolean), none = !st.on.some(Boolean);
+    shellSet.holdRings = all ? '' : (none ? 'ingen' : st.on.map(function (v, i) { return v ? i + 1 : 0; }).filter(Boolean).join('; '));
+    shellSet.holdDepth = st.dep.map(function (v, i) { v = String(v).trim(); return v ? (i + 1) + ': ' + v : ''; }).filter(Boolean).join('; ');
+    try { window.localStorage.setItem(SHELL_KEY, JSON.stringify(shellSet)); } catch (err) { /* kun i hukommelsen */ }
+  }
+  var HOLD_PH = { top: 'topflange', centre: 'systemlinje', bottom: 'bundflange', none: '' };
+  function renderShellHolds(g) {
+    var box = $('shellHoldList'), radii = g && !g.errors.length ? g.info.radii : [], nr = radii.length;
+    var st = shellHoldState(nr), off = shellSet.holdPos === 'none';
+    if (nr) storeShellHolds(st);   // ringe, der ikke findes mere, fjernes
+    var sig = nr + '|' + radii.join(',') + '|' + shellSet.holdPos;
+    var ae = document.activeElement, typing = ae && ae.tagName === 'INPUT' && ae.type === 'text' && box.contains(ae);
+    if (!typing || box.dataset.sig !== sig) {
+      box.innerHTML = !nr ? '' : '<div class="shrow sh-head"><span>Ring</span><span style="text-align:right">Radius m</span><span>Fastholder</span><span>Fra oversiden mm</span></div>' +
+        radii.map(function (r, i) {
+          return '<div class="shrow"><span class="rl">UDV' + (i + 1) + '</span><span class="rv">' + esc(r.toFixed(3).replace('.', ',')) + '</span>' +
+            '<label><input type="checkbox" data-shold="' + i + '"' + (st.on[i] ? ' checked' : '') + (off ? ' disabled' : '') +
+            ' aria-label="Udvekslingsring ' + (i + 1) + ' fastholder bjælken"><span>Ja</span></label>' +
+            '<input type="text" inputmode="decimal" data-sdep="' + i + '" value="' + esc(st.dep[i]) + '" placeholder="' + esc(HOLD_PH[shellSet.holdPos] || '') + '"' +
+            (off || !st.on[i] ? ' disabled' : '') + ' aria-label="Sidefastholdelsens afstand fra oversiden ved udvekslingsring ' + (i + 1) + ' i mm"></div>';
+        }).join('');
+      box.dataset.sig = sig;
+    }
+    box.querySelectorAll('input[data-sdep]').forEach(function (el) {
+      var v = el.value.trim(), n = Number(v.replace(',', '.'));
+      el.setAttribute('aria-invalid', String(!!v && !(n >= 0)));
+    });
+  }
+  function onShellHoldEdit(e) {
+    var t = e.target, d = t.dataset || {};
+    if (d.shold === undefined && d.sdep === undefined) return;
+    e.stopPropagation();
+    var box = $('shellHoldList'), st = { on: [], dep: [] };
+    box.querySelectorAll('input[data-shold]').forEach(function (el) { st.on[Number(el.dataset.shold)] = el.checked; });
+    box.querySelectorAll('input[data-sdep]').forEach(function (el) { st.dep[Number(el.dataset.sdep)] = el.value; });
+    storeShellHolds(st);
+    if (d.shold !== undefined) { var inp = box.querySelector('input[data-sdep="' + d.shold + '"]'); if (inp) inp.disabled = !t.checked; }
+    updateShellInfo();
+  }
+  $('shellHoldList').addEventListener('input', onShellHoldEdit);
+  $('shellHoldList').addEventListener('change', onShellHoldEdit);
   function updateShellInfo() {
     var g = TR.computeGeometry(params), el = $('shellInfo');
+    renderShellHolds(g);
     if (g.errors.length) { el.textContent = 'Taget har fejl – ret dem først.'; return; }
     var op = shellOptions(g);
     if (op.errors.length) { el.innerHTML = '<b>Ret først:</b> ' + op.errors.map(esc).join(' '); return; }
