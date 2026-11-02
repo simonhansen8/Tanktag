@@ -2609,24 +2609,28 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           };
           if (p.secOn && j7 === jSec) {
             // inderste felt: sektionsspæret hviler midt på den lige korde og har knæk på cirklen udenfor, så
-            // halvfelterne ikke er plane. Hvert halvfelt deles langs linjen mellem midtpunkterne af dets inder- og
-            // yderkant (midt mellem radialbjælken og sektionsspæret), og hver halvdel deles i to plane trekanter, der
-            // bæres af bjælken på den side. Så får radialbjælken den samme jævnt voksende last som i fagene udenfor,
-            // og ikke en trekantlast, der starter i nul ved ringen og springer ved næste ring.
+            // radialbjælken og sektionsspæret ikke ligger i samme plan. FEM-Design kræver, at en flade er plan, og at
+            // dens bærende bjælke ligger i fladens plan (ellers mister fladen sin understøtning). Hvert halvfelt deles
+            // derfor midt mellem radialbjælken og sektionsspæret i to plane firkanter, der hver bæres af bjælken langs
+            // sin lange kant: én i planet gennem radialbjælken og midten af yderkanten, og én i planet gennem
+            // sektionsspæret og samme punkt. Midten af inderkanten projiceres ind i hvert af de to planer, så de to
+            // firkanters inderste hjørner ligger et par cm fra hinanden vinkelret på taget, men samme sted set oppefra.
+            // Radialbjælken får så den samme jævnt voksende last som i fagene udenfor. Udvekslingen langs inderkanten
+            // ligger ikke i firkanternes planer og bærer dem derfor ikke, heller ikke ved fladestørrelse "alle".
             var b0 = Q(r0, i7), cS = Cr(r1, i7), all = p.covers === 'all';
             var outerAt = function (h) { return !all ? [] : (j7 < radii.length ? udvAt(j7, h) : (edgeM.length ? [edgeM[i7][h]] : [])); };
-            var innerAt = function (h) { return all ? udvAt(j7 - 1, h) : []; };
             var mid = function (a, b) { return vscale(vadd(a, b), 0.5); };
-            var mi0 = mid(pts[0], b0), mo0 = mid(pts[1], cS), mi1 = mid(b0, pts[3]), mo1 = mid(cS, pts[2]);
+            // q projiceret ind i planet gennem a, b og c
+            var toPlane = function (q, a, b, c) {
+              var nn = unit(cross(vsub(b, a), vsub(c, a)));
+              return vsub(q, vscale(nn, dot(vsub(q, a), nn)));
+            };
+            var mo0 = mid(pts[1], cS), mi0 = mid(pts[0], b0), mo1 = mid(cS, pts[2]), mi1 = mid(b0, pts[3]);
             var secJ = secM[i7][j7];
-            covers.push({ points: [pts[0], pts[1], mo0], supports: [sup[0]].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 0 });
-            covers.push({ points: [pts[0], mo0, mi0], supports: [sup[0]].concat(innerAt(0)), bay: i7, interval: j7, half: 0, part: 1 });
-            covers.push({ points: [mi0, mo0, cS], supports: [secJ].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 2 });
-            covers.push({ points: [mi0, cS, b0], supports: [secJ].concat(innerAt(0)), bay: i7, interval: j7, half: 0, part: 3 });
-            covers.push({ points: [b0, cS, mo1], supports: [secJ].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 0 });
-            covers.push({ points: [b0, mo1, mi1], supports: [secJ].concat(innerAt(1)), bay: i7, interval: j7, half: 1, part: 1 });
-            covers.push({ points: [mi1, mo1, pts[2]], supports: [sup[1]].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 2 });
-            covers.push({ points: [mi1, pts[2], pts[3]], supports: [sup[1]].concat(innerAt(1)), bay: i7, interval: j7, half: 1, part: 3 });
+            covers.push({ points: [pts[0], pts[1], mo0, toPlane(mi0, pts[0], pts[1], mo0)], supports: [sup[0]].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 0 });
+            covers.push({ points: [toPlane(mi0, b0, cS, mo0), mo0, cS, b0], supports: [secJ].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 1 });
+            covers.push({ points: [b0, cS, mo1, toPlane(mi1, b0, cS, mo1)], supports: [secJ].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 0 });
+            covers.push({ points: [toPlane(mi1, pts[3], pts[2], mo1), mo1, pts[2], pts[3]], supports: [sup[1]].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 1 });
           } else if (p.secOn && j7 > jSec) {
             // fladen deles ved sektionsspæret, så det bærer sin del af lasten. Begge knæk ligger på cirklerne midt i
             // faget, så halvfelterne er plane trapezer
