@@ -2613,17 +2613,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             // dens bærende bjælke ligger i fladens plan (ellers mister fladen sin understøtning). Hvert halvfelt deles
             // derfor midt mellem radialbjælken og sektionsspæret i to plane firkanter, der hver bæres af bjælken langs
             // sin lange kant: én i planet gennem radialbjælken og midten af yderkanten, og én i planet gennem
-            // sektionsspæret og samme punkt. Midten af inderkanten projiceres ind i hvert af de to planer, så de to
-            // firkanters inderste hjørner ligger et par cm fra hinanden vinkelret på taget, men samme sted set oppefra.
+            // sektionsspæret og samme punkt. Midten af inderkanten flyttes lodret ind i hvert af de to planer, så de to
+            // firkanters inderste hjørner ligger et par cm over hinanden, men præcis på udvekslingen set oppefra (ingen
+            // revne eller overlap mellem fladerne i plan).
             // Radialbjælken får så den samme jævnt voksende last som i fagene udenfor. Udvekslingen langs inderkanten
             // ligger ikke i firkanternes planer og bærer dem derfor ikke, heller ikke ved fladestørrelse "alle".
             var b0 = Q(r0, i7), cS = Cr(r1, i7), all = p.covers === 'all';
             var outerAt = function (h) { return !all ? [] : (j7 < radii.length ? udvAt(j7, h) : (edgeM.length ? [edgeM[i7][h]] : [])); };
             var mid = function (a, b) { return vscale(vadd(a, b), 0.5); };
-            // q projiceret ind i planet gennem a, b og c
+            // q flyttet lodret ind i planet gennem a, b og c, så punktet set oppefra bliver liggende på kanten
             var toPlane = function (q, a, b, c) {
-              var nn = unit(cross(vsub(b, a), vsub(c, a)));
-              return vsub(q, vscale(nn, dot(vsub(q, a), nn)));
+              var nn = cross(vsub(b, a), vsub(c, a));
+              return [q[0], q[1], a[2] - (nn[0] * (q[0] - a[0]) + nn[1] * (q[1] - a[1])) / nn[2]];
             };
             var mo0 = mid(pts[1], cS), mi0 = mid(pts[0], b0), mo1 = mid(cS, pts[2]), mi1 = mid(b0, pts[3]);
             var secJ = secM[i7][j7];
