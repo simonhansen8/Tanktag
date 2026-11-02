@@ -819,7 +819,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label><input type="radio" name="covers" value="all" data-key="covers"><span>Til alle kanter</span></label>
         </div>
         <label class="check"><input type="checkbox" id="coverCenter" data-key="coverCenter"> <span>Flade inden for ringbjælken, båret af ringen</span></label>
-        <p class="hint">En flade pr. fag mellem to radialbjælker og to ringe, så fladelaster (egenlast af tagplade, sne, undertryk) kan lægges direkte på i FEM-Design.</p>
+        <label class="check"><input type="checkbox" id="coverOneWay" data-key="coverOneWay"> <span>Envejs bæreretning langs udvekslingerne</span></label>
+        <p class="hint">En flade pr. fag mellem to radialbjælker og to ringe, så fladelaster (egenlast af tagplade, sne, undertryk) kan lægges direkte på i FEM-Design. Med envejs bæreretning går lasten parallelt med udvekslingerne ind til radialbjælken (eller sektionsspæret), så hjørnet ved udvekslingens skrå kant ikke samles som en top i knuden. Gælder kun "Til radialbjælker"; centerpladen bærer altid i begge retninger.</p>
       </section>
       </div>
 
@@ -1701,6 +1702,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     holds: [],                 // ved holdMode 'nodes': [{ nodes: 'KS.1, KSM.7', x, y, rx, ry, rz }] – globale retninger og rotationer
     covers: 'radial',          // 'none' | 'radial' | 'all'  (lastfordelingsflader)
     coverCenter: true,         // flade inden for ringbjælken (bæres af ringen)
+    coverOneWay: true,         // fladerne mellem radialbjælkerne bærer kun parallelt med udvekslingerne (kun covers 'radial')
     bracing: 'KS.23-K3.22; KS.22-K3.23; K3.22-K2.23; K2.23-K1.22; K1.23-K2.22; K2.22-K3.23', // vindgitter, tegnes i fanen Vindgitter: "KS.1-K4.2; K4.2-K3.1" (K + ring.RB, R = ringbjælke, S = svøb, M/L = midt til næste RB/ring)
     bracingRepeat: 3,          // mønstret gentages så mange gange rundt om taget (1 = ingen gentagelse)
     profBrace: 'LE|70*7',      // vindgitteret skrives som gitterstænger (truss members): kun normalkraft, altid charnier
@@ -2117,6 +2119,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.udvRotations = jsString(q.udvRotations);
     q.secRing = toNum(q.secRing);
     q.coverCenter = q.coverCenter === true || q.coverCenter === 'true';
+    q.coverOneWay = q.coverOneWay !== false && q.coverOneWay !== 'false';
     q.udvRadii = q.udvRadii === null || q.udvRadii === undefined ? '' : String(q.udvRadii);
     q.bracing = q.bracing === null || q.bracing === undefined ? '' : modernBracing(q.bracing);
     q.bracingRepeat = toNum(q.bracingRepeat);
@@ -2628,17 +2631,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             };
             var mo0 = mid(pts[1], cS), mi0 = mid(pts[0], b0), mo1 = mid(cS, pts[2]), mi1 = mid(b0, pts[3]);
             var secJ = secM[i7][j7];
-            covers.push({ points: [pts[0], pts[1], mo0, toPlane(mi0, pts[0], pts[1], mo0)], supports: [sup[0]].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 0 });
-            covers.push({ points: [toPlane(mi0, b0, cS, mo0), mo0, cS, b0], supports: [secJ].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 1 });
-            covers.push({ points: [b0, cS, mo1, toPlane(mi1, b0, cS, mo1)], supports: [secJ].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 0 });
-            covers.push({ points: [toPlane(mi1, pts[3], pts[2], mo1), mo1, pts[2], pts[3]], supports: [sup[1]].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 1 });
+            covers.push({ points: [pts[0], pts[1], mo0, toPlane(mi0, pts[0], pts[1], mo0)], supports: [sup[0]].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 0, bearing: thetas[i7] + 3 * Math.PI / (4 * n) });
+            covers.push({ points: [toPlane(mi0, b0, cS, mo0), mo0, cS, b0], supports: [secJ].concat(outerAt(0)), bay: i7, interval: j7, half: 0, part: 1, bearing: thetas[i7] + 3 * Math.PI / (4 * n) });
+            covers.push({ points: [b0, cS, mo1, toPlane(mi1, b0, cS, mo1)], supports: [secJ].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 0, bearing: thetas[i7] + 5 * Math.PI / (4 * n) });
+            covers.push({ points: [toPlane(mi1, pts[3], pts[2], mo1), mo1, pts[2], pts[3]], supports: [sup[1]].concat(outerAt(1)), bay: i7, interval: j7, half: 1, part: 1, bearing: thetas[i7] + 5 * Math.PI / (4 * n) });
           } else if (p.secOn && j7 > jSec) {
             // fladen deles ved sektionsspæret, så det bærer sin del af lasten. Begge knæk ligger på cirklerne midt i
             // faget, så halvfelterne er plane trapezer
             var m0 = Cr(r0, i7), m1 = Cr(r1, i7);
-            covers.push({ points: [pts[0], pts[1], m1, m0], supports: [sup[0], secM[i7][j7]].concat(extFor(0)), bay: i7, interval: j7, half: 0 });
-            covers.push({ points: [m0, m1, pts[2], pts[3]], supports: [secM[i7][j7], sup[1]].concat(extFor(1)), bay: i7, interval: j7, half: 1 });
-          } else covers.push({ points: pts, supports: sup.concat(extFor()), bay: i7, interval: j7 });
+            covers.push({ points: [pts[0], pts[1], m1, m0], supports: [sup[0], secM[i7][j7]].concat(extFor(0)), bay: i7, interval: j7, half: 0, bearing: thetas[i7] + Math.PI / (2 * n) });
+            covers.push({ points: [m0, m1, pts[2], pts[3]], supports: [secM[i7][j7], sup[1]].concat(extFor(1)), bay: i7, interval: j7, half: 1, bearing: thetas[i7] + 3 * Math.PI / (2 * n) });
+          } else covers.push({ points: pts, supports: sup.concat(extFor()), bay: i7, interval: j7, bearing: thetas[i7] + Math.PI / n });
         }
       }
     }
@@ -2647,7 +2650,37 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       for (var i8 = 0; i8 < n; i8++) cp.push(P(rc, i8));
       covers.push({ points: cp, supports: ringM.slice(), bay: -1, interval: -1, center: true });
     }
-    covers.forEach(function (c, idx) { c.name = 'CO.' + (idx + 1); });
+    // envejs bæreretning: vandret og vinkelret på radius midt i fladen (parallelt med udvekslingerne, i feltet hvor
+    // sektionsspærene ender midt mellem inder- og yderkantens retning), drejet ind i fladens plan. Så rammer lasten
+    // fra hjørnet ved udvekslingens skrå kant bjælken inde på stykket i stedet for at samles i knuden.
+    covers.forEach(function (c, idx) {
+      c.name = 'CO.' + (idx + 1);
+      if (p.covers === 'radial' && p.coverOneWay && c.bearing !== undefined) {
+        var Pc = c.points, nn = unit(cross(vsub(Pc[1], Pc[0]), vsub(Pc[2], Pc[0])));
+        var tv = [-Math.sin(c.bearing), Math.cos(c.bearing), 0];
+        // hvor langt linjen fra hvert hjørne i retningen d rammer forbi den bærende bjælke (0 = alle rammer)
+        var missBy = function (d) {
+          var worst = 0;
+          Pc.forEach(function (v) {
+            var best = Infinity;
+            c.supports.forEach(function (m) {
+              var e = vsub(m.end, m.start), w = vsub(v, m.start), a = dot(d, d), b = dot(d, e), cc = dot(e, e), den = a * cc - b * b;
+              if (!(Math.abs(den) > 1e-12 * a * cc)) return;
+              var u = (a * dot(e, w) - b * dot(d, w)) / den;
+              best = Math.min(best, Math.max(0, -u, u - 1) * Math.sqrt(cc));
+            });
+            worst = Math.max(worst, best);
+          });
+          return worst;
+        };
+        // retningen vinkelret på radius, ellers den af fladens kanter, hvor lasten fra alle hjørner rammer en bjælke
+        var cands = [unit(vsub(tv, vscale(nn, dot(tv, nn))))];
+        for (var k = 0; k < Pc.length; k++) cands.push(unit(vsub(Pc[(k + 1) % Pc.length], Pc[k])));
+        var bestD = null, bestMiss = Infinity;
+        cands.forEach(function (d) { var mb = missBy(d); if (mb < bestMiss - 1e-9) { bestMiss = mb; bestD = d; } });
+        c.loadDir = bestD;
+      }
+    });
 
     // advarsler om stabilitet (kontrolleret med en uafhængig 3D-rammeberegning)
     if (p.connRadialRing === 'hinged') {
@@ -3741,6 +3774,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           L.push(I5 + '<ref guid="' + m.partGuid + '"/>');
         });
         L.push(I4 + '</supporting_structures>');
+        if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
         L.push(I3 + '</cover>');
       });
       L.push(I2 + '</advanced-fem>');
@@ -7027,6 +7061,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('holdField').hidden = p.support !== 'vertical';
     $('holdNodes').hidden = p.holdMode !== 'nodes';
     $('coverCenter').disabled = p.covers === 'none';
+    $('coverOneWay').disabled = p.covers !== 'radial';
     $('numUdv').disabled = TR.parseRadii(p.udvRadii).length > 0;
     var lab = { deg: ['Hældning', '°'], ratio: ['Hældning 1 :', 'x'], rise: ['Rejsning til ring', 'm'] }[p.slopeMode] || ['Hældning', ''];
     $('slopeLabel').textContent = lab[0];

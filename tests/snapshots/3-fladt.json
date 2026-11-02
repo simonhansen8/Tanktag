@@ -382,8 +382,8 @@
     ]
   },
   "struxml": {
-    "sha256": "e1e18af459a6143132c8148ba09bcde75d3ec7d8f2fa93d34852f3f71d530ee6",
-    "lines": 2777,
+    "sha256": "d32b4a47eaf9b75edc1338ab03db6cce50740dd307f2f060700e7263e585889a",
+    "lines": 2801,
     "elements": {
       "analytical": 72,
       "bar": 36,
@@ -404,6 +404,7 @@
       "entities": 1,
       "group": 12,
       "load": 103,
+      "load_bearing_direction": 24,
       "load_case": 6,
       "loads": 1,
       "local_x": 12,
