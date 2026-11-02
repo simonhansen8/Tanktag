@@ -81,6 +81,11 @@ p { margin: 0; }
 /* ---------- header ---------- */
 .masthead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
 .masthead .lede { color: var(--ink-2); max-width: 66ch; margin-top: 6px; }
+.masthead-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.updated { margin: 0; text-align: right; font-size: var(--step--1); color: var(--ink-2); line-height: 1.4; }
+.updated a { color: inherit; }
+.updated-ok { color: var(--ink-2); }
+.updated-stale { color: #b45309; font-weight: 600; }
 .stamp {
   font-family: var(--f-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: var(--step--1);
   color: var(--ink-2); border: 1px solid var(--rule); padding: 4px 10px; border-radius: 3px; white-space: nowrap;
@@ -506,8 +511,44 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       <h1>Tanktag til FEM-Design</h1>
       <p class="lede">Indstil radialbjælker, midterste ringbjælke, udvekslingsringe og laster, kontroller tegningen, og hent en StruXML-fil, som FEM-Design åbner direkte. Startværdierne er et kuppeltag på Ø34,14&nbsp;m med 24 radialbjælker, sektionsspær, 4 udvekslingsringe og vindgitter. Ret dem til den tank, du arbejder på.</p>
     </div>
-    <span class="stamp">StruXML · skema FD 24 / FD 25</span>
+    <div class="masthead-side">
+      <span class="stamp">StruXML · skema FD 24 / FD 25</span>
+      <p class="updated" id="updated" hidden></p>
+    </div>
   </header>
+<script>
+// "Sidst opdateret": hvornår den indlæste fil blev udgivet (Last-Modified fra GitHub Pages, ellers filens
+// ændringstid), sammenholdt med seneste commit på main fra GitHub's API, så man kan se om seneste PR er med.
+(function () {
+  var el = document.getElementById('updated');
+  if (!el || typeof fetch === 'undefined') return;
+  var REPO = 'simonhansen8/tanktag';
+  function fmt(d) {
+    return d.toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) +
+      ' kl. ' + d.toLocaleTimeString('da-DK', { hour: '2-digit', minute: '2-digit' });
+  }
+  var loaded = new Date(document.lastModified);
+  var hasLoaded = !isNaN(loaded.getTime());
+  function show(html, title) { el.innerHTML = html; if (title) el.title = title; el.hidden = false; }
+  if (hasLoaded) show('Sidst opdateret ' + fmt(loaded));
+  fetch('https://api.github.com/repos/' + REPO + '/commits/main', { headers: { Accept: 'application/vnd.github+json' } })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (c) {
+      var when = new Date(c.commit.committer.date);
+      var msg = String(c.commit.message || '').split('\n')[0];
+      var pr = msg.match(/\(#(\d+)\)\s*$/);
+      var ref = pr ? '<a href="https://github.com/' + REPO + '/pull/' + pr[1] + '" target="_blank" rel="noopener">#' + pr[1] + '</a>'
+                   : '<a href="' + c.html_url + '" target="_blank" rel="noopener">' + String(c.sha).slice(0, 7) + '</a>';
+      var line = 'Seneste PR ' + ref + ' · ' + fmt(when);
+      var stale = hasLoaded && loaded.getTime() < when.getTime() - 60000;
+      var first = hasLoaded ? 'Sidst opdateret ' + fmt(loaded) : '';
+      var status = stale ? '<span class="updated-stale">Nyere version findes · genindlæs (Ctrl+F5)</span>'
+                         : (hasLoaded ? '<span class="updated-ok">✓ nyeste version</span>' : '');
+      show([first, line, status].filter(Boolean).join('<br>'), msg);
+    })
+    .catch(function () { /* offline eller API-grænse: vis kun udgivelsestidspunktet */ });
+})();
+</script>
 
   <div class="bench">
     <form class="form" id="form" autocomplete="off" novalidate>
