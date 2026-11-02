@@ -647,3 +647,32 @@ test('delte flader i sektionsspærfeltet slutter tæt set oppefra', () => {
     });
   }
 });
+
+// fladerne mellem radialbjælkerne bærer i én retning parallelt med udvekslingerne (load_bearing_direction), som
+// ligger i fladens plan; centerpladen og fladestørrelse "alle" bærer i begge retninger
+test('envejs bæreretning på fladerne mellem radialbjælkerne', () => {
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const sub = (a, b) => a.map((v, i) => v - b[i]);
+  const cross = (u, v) => [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  g.covers.forEach((c) => {
+    if (c.center) { assert.equal(c.loadDir, undefined); return; }
+    assert.ok(c.loadDir, c.name);
+    const n = cross(sub(c.points[1], c.points[0]), sub(c.points[2], c.points[0]));
+    assert.ok(Math.abs(dot(c.loadDir, n)) < 1e-9 * Math.sqrt(dot(n, n)), c.name + ' retningen ligger i fladens plan');
+    assert.ok(Math.abs(Math.sqrt(dot(c.loadDir, c.loadDir)) - 1) < 1e-12);
+    // næsten vinkelret på den bærende radialbjælke eller sektionsspæret (højst en halv fagvinkel skæv)
+    const m = c.supports[0], e = sub(m.end, m.start);
+    assert.ok(Math.abs(dot(c.loadDir, e)) / Math.sqrt(dot(e, e)) < Math.sin(Math.PI / params.numRadial) + 1e-9, c.name);
+  });
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  assert.equal((xml.match(/<load_bearing_direction /g) || []).length, g.covers.length - 1);
+  [{ covers: 'all' }, { coverOneWay: false }].forEach((extra) => {
+    const p2 = Object.assign({}, params, extra);
+    const g2 = TR.computeGeometry(p2);
+    assert.ok(g2.covers.every((c) => !c.loadDir), JSON.stringify(extra));
+    assert.ok(!/<load_bearing_direction /.test(TR.buildStruxml(p2, LIB, { geometry: g2 })));
+  });
+});
