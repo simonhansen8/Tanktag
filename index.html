@@ -3766,6 +3766,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         }
         L.push(I5 + '</contour>');
         L.push(I4 + '</region>');
+        // skemaets rækkefølge: region, load_bearing_direction, supporting_structures, colouring
+        if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
         L.push(I4 + '<supporting_structures>');
         var seen = {};
         c.supports.forEach(function (m) {
@@ -3774,7 +3776,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           L.push(I5 + '<ref guid="' + m.partGuid + '"/>');
         });
         L.push(I4 + '</supporting_structures>');
-        if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
         L.push(I3 + '</cover>');
       });
       L.push(I2 + '</advanced-fem>');
