@@ -628,3 +628,22 @@ test('lastfordelingsfladerne er plane, og deres bærende bjælker ligger i flade
     });
   });
 });
+
+// i det inderste sektionsspærfelt ligger delelinjens inderste hjørner set oppefra præcis midt på udvekslingskorden,
+// så der hverken er revne eller overlap mellem fladerne i plan (kun et par cm lodret forskel)
+test('delte flader i sektionsspærfeltet slutter tæt set oppefra', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  const jSec = g.covers.filter((c) => c.part !== undefined).reduce((m, c) => Math.min(m, c.interval), Infinity);
+  for (let i = 0; i < params.numRadial; i++) {
+    const cs = g.covers.filter((c) => c.bay === i && c.interval === jSec);
+    assert.equal(cs.length, 4);
+    const A = cs[0].points[0], B0 = cs[1].points[3], E = cs[3].points[3];
+    [[cs[0].points[3], cs[1].points[0], A, B0], [cs[2].points[3], cs[3].points[0], B0, E]].forEach(([p, q, a, b]) => {
+      const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      assert.ok(Math.hypot(p[0] - m[0], p[1] - m[1]) < 1e-9 && Math.hypot(q[0] - m[0], q[1] - m[1]) < 1e-9, 'Fag ' + (i + 1));
+      assert.ok(Math.abs(p[2] - q[2]) < 0.05, 'Lodret forskel under 5 cm');
+    });
+  }
+});
