@@ -340,6 +340,35 @@ test('skalmodel: fastholdelserne som linjeunderstøtninger', () => {
   assert.ok(supports.some((s) => s.name === 'B.GL.R') && supports.some((s) => s.name === 'B.GL.S'));
 });
 
+test('skalmodel: vridningsfastholdt i topflange og midt på kroppen', () => {
+  const params = Object.assign({}, TR.DEFAULTS);
+  params.combos = TR.normCombos(params.combos);
+  const geom = TR.computeGeometry(params);
+  const op = TS.options({ supShell: 'topWeb', holdPos: 'none' }, geom);
+  assert.deepEqual(op.errors, []);
+  assert.equal(TS.supportText(op.o), 'ved ringbjælken gaffelleje og ved svøbet vridningsfastholdt i topflangen og midt på kroppen');
+  const { xml, rafter: R, supports } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
+  wellFormed(xml);
+  const last = R.pieces[R.pieces.length - 1], by = (n) => supports.find((s) => s.name === n);
+  // kun midten og overkanten på tværs, underkanten fri på tværs; lodret som altid
+  assert.deepEqual(by('GL.S').m, [false, true, true]);
+  assert.deepEqual(by('GL.SO').m, [false, true, true]);
+  assert.deepEqual(by('GL.SU').m, [false, false, true]);
+  assert.ok(same(by('GL.SO').pos, add(last.member.end, scale(last.mE, R.d))));
+  assert.ok(!supports.some((s) => /^GL\.S[OU]\d$/.test(s.name)));
+  // bjælkemodellen: på tværs og mod vridning som et gaffelleje
+  assert.deepEqual(by('B.GL.S').m, [false, true, true]);
+  assert.deepEqual(by('B.GL.S').r, [true, false, false]);
+  // alene ved begge ender er bjælken fastholdt mod vridning
+  assert.deepEqual(TS.options({ supRing: 'lateral', supShell: 'topWeb', holdPos: 'none' }, geom).errors, []);
+  // som linjer: endekanten kun i sin retning, de to vandrette fastholdelser som punkter
+  const L = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ supType: 'line', supShell: 'topWeb' }, geom).o);
+  assert.deepEqual(L.lineSupports.find((s) => s.name === 'GL.S').m, [true, false, false]);
+  assert.deepEqual(L.supports.find((s) => s.name === 'GL.S').m, [false, true, false]);
+  assert.deepEqual(L.supports.find((s) => s.name === 'GL.SO').m, [false, true, false]);
+  assert.ok(!L.supports.some((s) => s.name === 'GL.SU'));
+});
+
 test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tværs', () => {
   const params = Object.assign({}, TR.DEFAULTS);
   params.combos = TR.normCombos(params.combos);
