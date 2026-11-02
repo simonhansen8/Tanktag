@@ -669,8 +669,8 @@ test('envejs bæreretning på fladerne mellem radialbjælkerne', () => {
   });
   const xml = TR.buildStruxml(params, LIB, { geometry: g });
   assert.equal((xml.match(/<load_bearing_direction /g) || []).length, g.covers.length - 1);
-  // FEM-Design afviser filen, hvis retningen står efter supporting_structures
-  assert.equal((xml.match(/<\/region>\s*<load_bearing_direction [^>]*\/>\s*<supporting_structures>/g) || []).length, g.covers.length - 1);
+  // FEM-Design afviser filen, medmindre retningen står først i cover (før region), som i StruSofts femdesign-api
+  assert.equal((xml.match(/<cover [^>]*>\s*<load_bearing_direction [^>]*\/>\s*<region>/g) || []).length, g.covers.length - 1);
   [{ covers: 'all' }, { coverOneWay: false }].forEach((extra) => {
     const p2 = Object.assign({}, params, extra);
     const g2 = TR.computeGeometry(p2);
