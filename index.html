@@ -1546,7 +1546,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             </select>
           </div>
         </div>
-        <p class="hint">Et eget lasttilfælde med kombination. I skalmodellen fordeles N og M som spændinger over endetværsnittet (N/A ± M·z/I), i bjælkemodellen er de en punktlast og et punktmoment. Normalkraften og momentet kan virke i hver sin ende. I begge ender virker de med samme fortegn, så momentet er konstant langs bjælken. Virker normalkraften kun i den ende, hvor bjælken er fastholdt aksialt, går den direkte i lejet; vælg da aksial fastholdelse i den anden ende.</p>
+        <p class="hint">Et eget lasttilfælde med kombination. I skalmodellen fordeles N og M som spændinger over endetværsnittet (N/A ± M·z/I), i bjælkemodellen er de en punktlast og et punktmoment. Normalkraften og momentet kan virke i hver sin ende. I begge ender virker de med samme fortegn, så momentet er konstant langs bjælken. Normalkraften må ikke virke kun i den ende, hvor bjælken er fastholdt aksialt (eller indspændt), for så går den direkte i lejet. Momentet regnes om tyngdepunktet (systemlinjen); »tryk i overflangen« er det moment, der giver tryk i overflangen i den ende.</p>
       </section>
 
       <section class="group" aria-labelledby="g-shell-beam">
@@ -3960,7 +3960,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     holdStiff: '',      // stivhed i kN/m – tom = fast
     caseN: true, caseDown: true, caseUp: true,
     caseEnd: false,     // lasttilfælde med normalkraft og moment om den stærke akse i enden
-    endNAt: 'ring',     // hvor normalkraften virker: 'ring' (ved ringbjælken), 'shell' (ved svøbet) eller 'both' (begge ender)
+    endNAt: 'both',     // hvor normalkraften virker: 'ring' (ved ringbjælken), 'shell' (ved svøbet) eller 'both' (begge ender)
     endMAt: 'ring',     // hvor momentet virker, på samme måde
     endN: UNIT_N,       // normalkraften i kN (0 = ingen)
     endNDir: 'compression', // 'compression' (tryk) eller 'tension' (træk)
@@ -4046,6 +4046,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (['compression', 'tension'].indexOf(r.endNDir) < 0 || ['top', 'bottom'].indexOf(r.endMDir) < 0) e.push('Ukendt retning af normalkraft eller moment.');
       if (!(eN >= 0) || !(eM >= 0)) e.push('Normalkraften og momentet i enden skal være 0 eller større.');
       else if (!(eN > 0) && !(eM > 0)) e.push('Normalkraften eller momentet i enden skal være større end 0.');
+      // normalkraft i kun én ende, som også er fastholdt aksialt (eller indspændt), går direkte i lejet og giver ingen kraft i bjælken
+      var nEnd = r.endNAt === 'ring' || r.endNAt === 'shell' ? r.endNAt : null;
+      if (eN > 0 && nEnd && (r.axialAt === nEnd || (nEnd === 'ring' ? r.rotRing : r.rotShell) === 'fixed'))
+        e.push('Normalkraften virker kun ' + END_NAME[nEnd] + ', hvor bjælken også er fastholdt aksialt' + ((nEnd === 'ring' ? r.rotRing : r.rotShell) === 'fixed' ? ' (indspændt)' : '') +
+          ', så den går direkte i lejet. Lad den virke i begge ender, i den anden ende, eller flyt den aksiale fastholdelse.');
     }
     if (r.caseN && !(N > 0)) e.push('Trykket N skal være større end 0.');
     if ((r.caseDown || r.caseUp) && !(q > 0)) e.push('Linjelasten q skal være større end 0.');
