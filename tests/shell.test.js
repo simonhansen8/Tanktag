@@ -382,33 +382,36 @@ test('skalmodel: indspændt om den svage akse ved ringbjælken', () => {
   const params = Object.assign({}, TR.DEFAULTS);
   params.combos = TR.normCombos(params.combos);
   const geom = TR.computeGeometry(params);
-  // kræver endeplade
-  assert.match(TS.options({ weakRing: 'fixed' }, geom).errors.join(' '), /endeplade/);
-  assert.match(TS.options({ weakRing: 'x', endPlate: 20 }, geom).errors.join(' '), /svage akse/);
-  const op = TS.options({ weakRing: 'fixed', endPlate: 20 }, geom);
+  assert.match(TS.options({ weakRing: 'x' }, geom).errors.join(' '), /svage akse/);
+  assert.match(TS.options({ weakRing: 'fixed', supRing: 'free' }, geom).errors.join(' '), /fastholdt på tværs/);
+  assert.match(TS.options({ weakRing: 'fixed', weakDist: '0' }, geom).errors.join(' '), /Afstanden fra enden/);
+  const op = TS.options({ weakRing: 'fixed' }, geom);
   assert.deepEqual(op.errors, []);
+  assert.equal(op.o.weakDist, 0.29);
   assert.equal(TS.supportText(op.o), 'ved ringbjælken gaffelleje, indspændt om den svage akse og ved svøbet gaffelleje');
-  assert.match(TS.supportText(TS.options({ weakRing: 'fixed', rotRing: 'fixed', endPlate: 20 }, geom).o), /indspændt om den stærke og den svage akse/);
+  assert.match(TS.supportText(TS.options({ weakRing: 'fixed', rotRing: 'fixed' }, geom).o), /indspændt om den stærke og den svage akse/);
   const { xml, rafter: R, supports } = TS.buildRafterStruxml(TR, geom, LIB, op.o);
   wellFormed(xml);
   const first = R.pieces[0], by = (n) => supports.find((s) => s.name === n);
-  // to punkter aksialt i systemlinjens højde ved endepladens sider, på pladens kanter
-  ['GL.RV1', 'GL.RV2'].forEach((n) => {
-    assert.deepEqual(by(n).m, [true, false, false], n);
-    assert.ok(Math.abs(Math.abs(dot(sub(by(n).pos, first.member.start), first.y)) - R.dims.b / 2) < 1e-9, n);
-    assert.ok(Math.abs(dot(sub(by(n).pos, first.member.start), first.mS)) < 1e-9, n);
-  });
-  assert.ok(!by('GL.SV1') && !by('GL.SV2'));
-  // over- og underkanten stadig ikke aksialt: den stærke akse er fri
+  // gaffelleje: to vandrette fastholdelser 290 mm inde, i over- og underkanten, uden endeplade
+  const W = add(first.member.start, scale(first.x, 0.29));
+  assert.deepEqual(by('GL.RVO').m, [false, true, false]);
+  assert.deepEqual(by('GL.RVU').m, [false, true, false]);
+  assert.ok(same(by('GL.RVO').pos, add(W, scale(first.z, R.d))));
+  assert.ok(same(by('GL.RVU').pos, add(W, scale(first.z, -R.d))));
+  assert.ok(!by('GL.RV') && !supports.some((s) => /^GL\.SV/.test(s.name)));
+  // den stærke akse er stadig fri
   assert.equal(by('GL.RO').m[0], false);
-  assert.equal(by('GL.RU').m[0], false);
   // bjælkemodellen: rotationen om den svage akse fastholdt
   assert.deepEqual(by('B.GL.R').r, [true, false, true]);
-  assert.equal(by('B.GL.R').m[0], true);
   assert.deepEqual(by('B.GL.S').r, [true, false, false]);
-  // også med linjeunderstøtninger er det de to punkter
-  const L = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ weakRing: 'fixed', endPlate: 20, supType: 'line' }, geom).o);
-  assert.ok(L.supports.some((s) => s.name === 'GL.RV1') && L.supports.some((s) => s.name === 'GL.RV2'));
+  // i topflange og krop: overkanten og midten; afstanden kan ændres
+  const s2 = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ weakRing: 'fixed', supRing: 'topWeb', weakDist: '400' }, geom).o).supports;
+  assert.ok(same(s2.find((s) => s.name === 'GL.RV').pos, add(first.member.start, scale(first.x, 0.4))));
+  assert.ok(s2.some((s) => s.name === 'GL.RVO') && !s2.some((s) => s.name === 'GL.RVU'));
+  // også med linjeunderstøtninger er det punkter
+  const L = TS.buildRafterStruxml(TR, geom, LIB, TS.options({ weakRing: 'fixed', supType: 'line' }, geom).o);
+  assert.ok(L.supports.some((s) => s.name === 'GL.RVO') && L.supports.some((s) => s.name === 'GL.RVU'));
 });
 
 test('skalmodel: fuldt vridningsfastholdt leje – hele endetværsnittet på tværs', () => {
