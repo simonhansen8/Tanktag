@@ -655,7 +655,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </div>
         <div id="arcFields">
           <label class="check"><input type="checkbox" id="radialArc" data-key="radialArc"> <span>Buede radialbjælker uden opdeling</span></label>
-          <p class="hint">Hver radialbjælke skrives som ét buet element RB.i langs kuglen fra ringbjælken til svøbet i stedet for lige stykker RBi.1, RBi.2 … mellem udvekslingerne. Udvekslingerne ender på buen, og gangbro, kipningslast og temperatur lægges som buede linjelaster. β uden »Hele« omregnes til buen ud fra det længste stykke mellem udvekslingerne.</p>
+          <p class="hint">Hver radialbjælke skrives som ét buet element RB.i langs kuglen fra ringbjælken til svøbet i stedet for lige stykker RBi.1, RBi.2 … mellem udvekslingerne. Udvekslingerne ender på buen, og gangbro, kipningslast og temperatur lægges som buede linjelaster. FEM-Design kan ikke lade en buet bjælke bære en lastfordelingsflade, så fladerne ved radialbjælkerne skrives ikke i filen: deres fladelaster fordeles i bæreretningen til radialbjælkerne og sektionsspærene og lægges på dem som linjelaster med samme samlede kraft og angrebspunkt. Centerpladen er stadig en flade. β uden »Hele« omregnes til buen ud fra det længste stykke mellem udvekslingerne.</p>
         </div>
         <p class="hint" id="roofHint"></p>
         <div class="row">
@@ -2753,6 +2753,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }
     });
 
+    if (arcOn && covers.length && (p.covers === 'all' || !p.coverOneWay)) {
+      warnings.push('Med buede radialbjælker skrives fladerne ved radialbjælkerne ikke i filen. Deres laster fordeles envejs parallelt med udvekslingerne til radialbjælkerne og sektionsspærene som linjelaster, også ved fladestørrelse "Til alle kanter" eller bæring i begge retninger.');
+    }
     // advarsler om stabilitet (kontrolleret med en uafhængig 3D-rammeberegning)
     if (p.connRadialRing === 'hinged') {
       if (p.roofType === 'flat') {
@@ -3605,6 +3608,137 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return JSON.stringify(o).replace(/--/g, '- -');
   }
 
+  // ---------- fladelaster som linjelaster ved buede radialbjælker ----------
+  // FEM-Design kræver, at en lastfordelingsflades bærende bjælker ligger i fladens plan, og det kan en buet bjælke
+  // ikke. Fladerne, der bæres af en buet radialbjælke, skrives derfor ikke; deres fladelaster fordeles i stedet
+  // envejs i fladens bæreretning (ellers vinkelret på fagets midterlinje, parallelt med udvekslingerne) til
+  // radialbjælken og sektionsspæret på hver side og skrives som linjelaster på bjælkerne. En strimmel fordeles efter vægtstangsreglen mellem de to
+  // bjælker; bæres fladen kun af én bjælke, får den hele lasten. Lasten integreres i strimler, samles pr. bjælkestykke
+  // og global retning og skrives som lineært varierende linjelaster med samme kraft og samme angrebspunkt.
+  function arcCover(c) { return c.supports.some(function (m) { return !!m.arc; }); }
+  function arcCoverLineLoads(geom, loads) {
+    var STRIPS = 200, BINS = 24;
+    var perMember = [], memberIdx = new Map();
+    function slot(m, ci) {
+      var key = memberIdx.get(m);
+      if (key === undefined) {
+        var u = unit([m.end[0], m.end[1], 0]), rs = Math.hypot(m.start[0], m.start[1]), re = Math.hypot(m.end[0], m.end[1]);
+        key = perMember.length; memberIdx.set(m, key);
+        perMember.push({ m: m, u: u, rs: rs, re: re, cases: {} });
+      }
+      var o = perMember[key];
+      return o.cases[ci] || (o.cases[ci] = { bins: [], F: [0, 0, 0] });
+    }
+    loads.cases.forEach(function (cs, ci) {
+      cs.loads.forEach(function (Ld) {
+        if (Ld.kind !== 'surface' || !arcCover(Ld.panel.cover)) return;
+        var c = Ld.panel.cover, poly = (Ld.panel.points || c.points), pp = panelProps(poly);
+        var nz = Math.abs(pp.normal[2]);
+        // kraft pr. m² vandret projektion
+        var qv = vscale(Ld.dir, Ld.val * (Ld.projected ? Math.abs(dot(pp.normal, Ld.dir)) : 1) / nz);
+        var bm = c.supports.filter(function (m) { return m.group === 'radial' || m.group === 'sec'; });
+        // lastens retning i plan: fladens envejs bæreretning, ellers vinkelret på fagets midterlinje
+        var t = [-Math.sin(c.bearing), Math.cos(c.bearing)];
+        if (c.loadDir) { var tl = Math.hypot(c.loadDir[0], c.loadDir[1]); if (tl > 1e-9) t = [c.loadDir[0] / tl, c.loadDir[1] / tl]; }
+        var b = [t[1], -t[0]];
+        var hs = poly.map(function (q) { return q[0] * b[0] + q[1] * b[1]; });
+        var us = bm.map(function (m) { return unit([m.end[0], m.end[1], 0]); });
+        // strimler mellem hjørnernes niveauer, så bredden er lineær i hver strimmel (midtpunktsreglen er så eksakt)
+        var lv = hs.slice().sort(function (x, y) { return x - y; }), strips = [], span = lv[lv.length - 1] - lv[0];
+        for (var li = 0; li + 1 < lv.length; li++) {
+          var w = lv[li + 1] - lv[li];
+          if (!(w > 1e-12 * span)) continue;
+          var ns = Math.max(2, Math.ceil(STRIPS * w / span));
+          for (var si = 0; si < ns; si++) strips.push([lv[li] + (si + 0.5) * w / ns, w / ns]);
+        }
+        for (var k = 0; k < strips.length; k++) {
+          var h = strips[k][0], dh = strips[k][1], tau = [];
+          for (var e = 0; e < poly.length; e++) {
+            var A = poly[e], B = poly[(e + 1) % poly.length], ha = hs[e], hb = hs[(e + 1) % poly.length];
+            if ((ha - h) * (hb - h) > 0 || ha === hb) continue;
+            var f = (h - ha) / (hb - ha);
+            tau.push((A[0] + f * (B[0] - A[0])) * t[0] + (A[1] + f * (B[1] - A[1])) * t[1]);
+          }
+          if (tau.length < 2) continue;
+          var ta = Math.min.apply(null, tau), tb = Math.max.apply(null, tau), dA = (tb - ta) * dh;
+          if (!(dA > 0)) continue;
+          var tm = (ta + tb) / 2;
+          // bjælkernes punkt i strimlen og deres andel
+          var pos = us.map(function (u) { var rho = h / (u[0] * b[0] + u[1] * b[1]); return { rho: rho, tau: rho * (u[0] * t[0] + u[1] * t[1]) }; });
+          var share = [1];
+          if (bm.length === 2) {
+            var fB = Math.max(0, Math.min(1, (tm - pos[0].tau) / (pos[1].tau - pos[0].tau)));
+            share = [1 - fB, fB];
+          }
+          bm.forEach(function (m, i) {
+            if (!(share[i] > 0)) return;
+            var s = slot(m, ci), o = perMember[memberIdx.get(m)], dF = vscale(qv, dA * share[i]);
+            var x = Math.max(0, Math.min(1, (pos[i].rho - o.rs) / (o.re - o.rs)));
+            var bi = Math.min(BINS - 1, Math.floor(x * BINS));
+            var bin = s.bins[bi] || (s.bins[bi] = { F: [0, 0, 0], M: [0, 0, 0] });
+            bin.F = vadd(bin.F, dF); bin.M = vadd(bin.M, vscale(dF, x));
+            s.F = vadd(s.F, dF);
+          });
+        }
+      });
+    });
+    // lineær fordeling på [x0, x1] (brøkdele af stykket) med kraften F og momentet M om stykkets start, pr. brøkdel
+    function linFit(F, M, x0, x1) {
+      var L = x1 - x0, xb = F !== 0 ? M / F - x0 : L / 2;
+      return [2 * F / L * (2 - 3 * xb / L), 2 * F / L * (3 * xb / L - 1)];
+    }
+    var out = loads.cases.map(function () { return []; });
+    perMember.forEach(function (o) {
+      var m = o.m;
+      // punktet og dρ/ds (vandret længde pr. længde langs bjælken) i brøkdelen x af stykket
+      function at(x) {
+        var rho = o.rs + x * (o.re - o.rs);
+        if (m.arc) return { p: arcPointAt(m.arc, rho), k: Math.sqrt(Math.max(m.arc.r * m.arc.r - rho * rho, 0)) / m.arc.r };
+        return { p: vadd(m.start, vscale(vsub(m.end, m.start), x)), k: Math.abs(o.re - o.rs) / norm(vsub(m.end, m.start)) };
+      }
+      Object.keys(o.cases).forEach(function (ci) {
+        var s = o.cases[ci];
+        [0, 1, 2].forEach(function (ax) {
+          var Ftot = s.F[ax];
+          if (!(Math.abs(Ftot) > 1e-9)) return;
+          var sg = Ftot < 0 ? -1 : 1, dir = [0, 0, 0]; dir[ax] = sg;
+          // færrest mulige lige lange afsnit (1, 2, 4 … 24 bins), hvor den lineære fordeling følger strimlerne
+          var plan = null;
+          [1, 2, 4, 8, BINS].some(function (nseg) {
+            var per = BINS / nseg, segs = [], ok = true;
+            for (var g = 0; g < nseg; g++) {
+              var F = 0, M = 0, x0 = g / nseg, x1 = (g + 1) / nseg;
+              for (var bi = g * per; bi < (g + 1) * per; bi++) { var bn = s.bins[bi]; if (bn) { F += sg * bn.F[ax]; M += sg * bn.M[ax]; } }
+              if (!(Math.abs(F) > 1e-12)) { segs.push(null); continue; }
+              var v = linFit(F, M, x0, x1);
+              // kontrol: den summerede kraft fra afsnittets start til hver bins ende afviger højst 1,5 % af stykkets kraft
+              var cumFit = 0, cumStrip = 0;
+              for (var bj = g * per; bj < (g + 1) * per && ok; bj++) {
+                var xa = bj / BINS, xc = (bj + 1) / BINS, va = v[0] + (v[1] - v[0]) * (xa - x0) / (x1 - x0), vc = v[0] + (v[1] - v[0]) * (xc - x0) / (x1 - x0);
+                cumFit += (va + vc) / 2 * (xc - xa); cumStrip += s.bins[bj] ? sg * s.bins[bj].F[ax] : 0;
+                if (Math.abs(cumFit - cumStrip) > 0.015 * Math.abs(Ftot) + 1e-9) ok = false;
+              }
+              segs.push({ x0: x0, x1: x1, v: v, F: F });
+            }
+            plan = segs;
+            return ok;
+          });
+          plan.forEach(function (sgm) {
+            if (!sgm) return;
+            // pr. brøkdel → pr. meter langs bjælken: kraften pr. vandret meter gange dρ/ds; derefter skaleres, så
+            // kraften med FEM-Designs lineære fordeling langs bjælken er præcis F
+            var A = at(sgm.x0), B = at(sgm.x1), dRho = Math.abs(o.re - o.rs);
+            var len = m.arc ? memberLength({ arc: m.arc, start: A.p, end: B.p }) : norm(vsub(B.p, A.p));
+            var v0 = sgm.v[0] / dRho * A.k, v1 = sgm.v[1] / dRho * B.k, Fw = (v0 + v1) / 2 * len;
+            if (Fw !== 0) { var sc = sgm.F / Fw; v0 *= sc; v1 *= sc; }
+            out[ci].push({ kind: 'line', member: m, a: A.p, b: B.p, dir: dir, vals: [v0, v1], projected: false, fromCover: true });
+          });
+        });
+      });
+    });
+    return out;
+  }
+
   function buildStruxml(params, lib, opts) {
     opts = opts || {};
     var newGuid = opts.guid || randomGuid;
@@ -3755,6 +3889,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
 
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
+    // buede radialbjælker: fladelasterne på de flader, en buet bjælke bærer, skrives som linjelaster på bjælkerne
+    var arcLines = geom.info.radialArc ? arcCoverLineLoads(geom, loads) : null;
     if (loads.cases.length) {
       var lcGuids = loads.cases.map(function () { return newGuid(); });
       L.push(I2 + '<loads>');
@@ -3769,7 +3905,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         });
       });
       loads.cases.forEach(function (c, ci) {
-        c.loads.forEach(function (Ld) {
+        c.loads.concat(arcLines ? arcLines[ci] : []).forEach(function (Ld) {
           if (Ld.kind !== 'line') return;
           var ex = unit(vsub(Ld.b, Ld.a)), ny = localYFor(ex);
           L.push(I3 + '<line_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
@@ -3778,8 +3914,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             '<edge type="line">' + pt('point', Ld.a) + pt('point', Ld.b) + pt('normal', ny) + '</edge>'));
           L.push(I4 + pt('direction', Ld.dir));
           L.push(I4 + pt('normal', cross(ex, ny)));
-          [Ld.a, Ld.b].forEach(function (q) {
-            L.push(I4 + '<load x="' + fmt(q[0]) + '" y="' + fmt(q[1]) + '" z="' + fmt(q[2]) + '" val="' + fmt(Ld.val) + '"/>');
+          [Ld.a, Ld.b].forEach(function (q, qi) {
+            L.push(I4 + '<load x="' + fmt(q[0]) + '" y="' + fmt(q[1]) + '" z="' + fmt(q[2]) + '" val="' + fmt(Ld.vals ? Ld.vals[qi] : Ld.val) + '"/>');
           });
           L.push(I3 + '</line_load>');
         });
@@ -3787,6 +3923,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       loads.cases.forEach(function (c, ci) {
         c.loads.forEach(function (Ld) {
           if (Ld.kind !== 'surface') return;
+          if (arcLines && arcCover(Ld.panel.cover)) return;
           var pts = Ld.panel.points || Ld.panel.cover.points;
           L.push(I3 + '<surface_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added" load_projection="' + (Ld.projected ? 'true' : 'false') + '" load_type="force"' +
@@ -3864,9 +4001,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     L.push(I2 + '</supports>');
 
-    if (geom.covers.length) {
+    var fdCovers = geom.covers.filter(function (c) { return !geom.info.radialArc || !arcCover(c); });
+    if (fdCovers.length) {
       L.push(I2 + '<advanced-fem>');
-      geom.covers.forEach(function (c) {
+      fdCovers.forEach(function (c) {
         L.push(I3 + '<cover guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + c.name + '">');
         // skemaets rækkefølge (cover_type): load_bearing_direction, region, supporting_structures, colouring
         if (c.loadDir) L.push(I4 + pt('load_bearing_direction', c.loadDir));
@@ -3952,7 +4090,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
 
   var api = {
-    VERSION: VERSION, DEFAULTS: DEFAULTS, computeGeometry: computeGeometry, buildStruxml: buildStruxml,
+    VERSION: VERSION, DEFAULTS: DEFAULTS, computeGeometry: computeGeometry, buildStruxml: buildStruxml, arcCoverLineLoads: arcCoverLineLoads, memberLength: memberLength,
     quantities: quantities, findSection: findSection, parseRadii: parseRadii, normalizeParams: normalizeParams,
     computeLoads: computeLoads, mu1: mu1, CPE_PLACEHOLDER: CPE_PLACEHOLDER,
     FLAT_CPE: FLAT_CPE, splitBracing: splitBracing, modernBracing: modernBracing, udvProfileOf: udvProfileOf,
