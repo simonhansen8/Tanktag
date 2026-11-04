@@ -653,6 +653,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="lbl" for="domeRadius">Kuglens radius <span class="unit">m</span></label>
           <input class="num" type="text" inputmode="decimal" id="domeRadius" data-key="domeRadius">
         </div>
+        <div id="arcFields">
+          <label class="check"><input type="checkbox" id="radialArc" data-key="radialArc"> <span>Buede radialbjælker uden opdeling</span></label>
+          <p class="hint">Hver radialbjælke skrives som ét buet element RB.i langs kuglen fra ringbjælken til svøbet i stedet for lige stykker RBi.1, RBi.2 … mellem udvekslingerne. Udvekslingerne ender på buen, og gangbro, kipningslast og temperatur lægges som buede linjelaster. β uden »Hele« omregnes til buen ud fra det længste stykke mellem udvekslingerne.</p>
+        </div>
         <p class="hint" id="roofHint"></p>
         <div class="row">
           <div class="field">
@@ -849,9 +853,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="lbl" for="radialSpring">Radial fjederstivhed <span class="unit">kN/m</span></label>
           <input class="num" type="text" inputmode="decimal" id="radialSpring" data-key="radialSpring">
         </div>
-        <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid, medmindre de er buede)</span></span></label>
-        <label class="check"><input type="checkbox" id="radialArc" data-key="radialArc"> <span>Buede radialbjælker uden opdeling <span class="hint">(kun kuppeltag)</span></span></label>
-        <p class="hint">På kuppeltag skrives hver radialbjælke som ét buet element RB.i langs kuglen fra ringbjælken til svøbet i stedet for lige stykker RBi.1, RBi.2 … mellem udvekslingerne. Udvekslingerne ender på buen, og gangbro, kipningslast og temperatur lægges som buede linjelaster. β uden »Hele« omregnes til buen ud fra det længste stykke mellem udvekslingerne.</p>
+        <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid, medmindre de er buede under Tagform)</span></span></label>
       </section>
 
       <section class="group" aria-labelledby="g-cov">
@@ -7223,7 +7225,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('holdNodes').hidden = p.holdMode !== 'nodes';
     $('coverCenter').disabled = p.covers === 'none';
     $('coverOneWay').disabled = p.covers !== 'radial';
-    $('radialArc').disabled = p.roofType !== 'dome';
+    $('arcFields').hidden = p.roofType !== 'dome';
     $('numUdv').disabled = TR.parseRadii(p.udvRadii).length > 0;
     var lab = { deg: ['Hældning', '°'], ratio: ['Hældning 1 :', 'x'], rise: ['Rejsning til ring', 'm'] }[p.slopeMode] || ['Hældning', ''];
     $('slopeLabel').textContent = lab[0];
@@ -7300,7 +7302,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     } else if (p.roofType === 'dome') {
       var edgeDeg = Math.asin(info.R / p.domeRadius) * 180 / Math.PI;
       t = 'Rejsning til ring <span class="mono">' + nf(info.rise) + '</span> m · hældning ved svøb <span class="mono">' +
-        nf(edgeDeg, 1) + '°</span> · radialbjælkerne deles i lige stykker mellem ringene';
+        nf(edgeDeg, 1) + '°</span> · ' + (info.radialArc ? 'radialbjælkerne er buede uden opdeling' : 'radialbjælkerne deles i lige stykker mellem ringene');
     } else {
       t = 'Fladt tag i kote <span class="mono">' + kote(p.zSupport) + '</span>';
     }
