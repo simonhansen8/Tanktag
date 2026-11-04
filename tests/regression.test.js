@@ -678,3 +678,59 @@ test('envejs bæreretning på fladerne mellem radialbjælkerne', () => {
     assert.ok(!/<load_bearing_direction /.test(TR.buildStruxml(p2, LIB, { geometry: g2 })));
   });
 });
+
+test('buede radialbjælker på kuppeltag skrives som én buet stang pr. bjælke', () => {
+  const params = Object.assign({}, TR.DEFAULTS, {
+    radialArc: true, walkOn: true, kipOn: true, kipQ: 1, tempOn: true, resultPoints: true,
+    bkRadialStiffFull: true, bkRadialTopUnit: 'm', bkRadialTop: 4
+  });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  assert.deepEqual(g.errors, []);
+  assert.equal(g.info.radialArc, true);
+  const rb = g.members.filter((m) => m.group === 'radial' && m.index === 0);
+  assert.ok(rb.length > 1 && rb.every((m) => m.arcBar === 'RB.1' && m.arc), 'stykkerne hører til den buede RB.1');
+  // stykkernes ender ligger på buen
+  const a = rb[0].arc;
+  rb.forEach((m) => [m.start, m.end].forEach((q) => {
+    assert.ok(Math.abs(Math.hypot(q[0] - a.c[0], q[1] - a.c[1], q[2] - a.c[2]) - a.r) < 1e-9);
+  }));
+  const chord = (m) => Math.hypot(m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]);
+  const arcLen = rb.reduce((s, m) => s + 2 * a.r * Math.asin(chord(m) / (2 * a.r)), 0);
+  assert.ok(Math.abs(rb[0].fullLength - arcLen) < 1e-9, 'hele længden er buelængden');
+
+  const xml = TR.buildStruxml(params, LIB, { geometry: g });
+  const bars = xml.split('<bar ').slice(1);
+  const rbBars = bars.filter((b) => /^name="RB/.test(b));
+  assert.equal(rbBars.length, params.numRadial, 'én stang pr. radialbjælke');
+  const rb1 = rbBars.find((b) => b.startsWith('name="RB.1"'));
+  const cm = /<curve type="arc" radius="([^"]+)" start_angle="([^"]+)" end_angle="([^"]+)"><point x="([^"]+)" y="([^"]+)" z="([^"]+)"\/><normal [^>]+\/><x_axis x="([^"]+)" y="([^"]+)" z="([^"]+)"\/><\/curve>/.exec(rb1);
+  assert.ok(cm, 'RB.1 er en bue');
+  const [r, t0, t1, cx, cy, cz, xx, xy] = cm.slice(1).map(Number);
+  // vinklen måles fra x-aksen mod −z: start ved ringbjælken og slut ved svøbet
+  const at = (t) => [cx + r * Math.cos(t) * xx, cy + r * Math.cos(t) * xy, cz - r * Math.sin(t)];
+  const close = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]) < 1e-6;
+  assert.ok(t1 > t0);
+  assert.ok(close(at(t0), rb[0].start) && close(at(t1), rb[rb.length - 1].end));
+  // stærk akse over hele buen, kipning 4 m, svag akse β = 1 pr. stykke omregnet efter det længste stykke
+  const longest = Math.max(...rb.map((m) => 2 * a.r * Math.asin(chord(m) / (2 * a.r))));
+  const beta = (type) => Number(new RegExp('type="' + type + '" beta="([^"]+)"').exec(rb1)[1]);
+  assert.equal(beta('flexural_stiff'), 1);
+  assert.ok(Math.abs(beta('pressured_flange') - 4 / arcLen) < 1e-8);
+  assert.ok(Math.abs(beta('flexural_weak') - longest / arcLen) < 1e-8);
+  // fladerne, resultatpunkterne og filteret peger på den buede stang
+  const partGuid = /<bar_part guid="([^"]+)"/.exec(rb1)[1];
+  assert.ok(rb.every((m) => m.partGuid === partGuid));
+  assert.ok(!bars.some((b) => b.startsWith('name="RB1.')));
+  // gangbro, kipningslast og temperatur på radialbjælkerne er buede linjelaster
+  assert.ok(/<line_load [^>]+>\s*<edge type="arc"/.test(xml));
+  assert.ok(/<line_temperature_variation_load [^>]+>\s*<edge type="arc"/.test(xml));
+  assert.ok(!/<line_load [^>]+>\s*<edge type="line"/.test(xml), 'ingen lige linjelaster på radialbjælkerne');
+
+  // standard: lige stykker som før, og buen virker kun på kuppeltag
+  const g0 = TR.computeGeometry(Object.assign({}, TR.DEFAULTS));
+  assert.ok(g0.members.every((m) => !m.arc));
+  const cone = TR.computeGeometry(Object.assign({}, TR.DEFAULTS, { radialArc: true, roofType: 'cone', secOn: false }));
+  assert.deepEqual(cone.errors, []);
+  assert.ok(cone.members.every((m) => !m.arc));
+});

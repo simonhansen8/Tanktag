@@ -849,7 +849,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="lbl" for="radialSpring">Radial fjederstivhed <span class="unit">kN/m</span></label>
           <input class="num" type="text" inputmode="decimal" id="radialSpring" data-key="radialSpring">
         </div>
-        <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid)</span></span></label>
+        <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid, medmindre de er buede)</span></span></label>
+        <label class="check"><input type="checkbox" id="radialArc" data-key="radialArc"> <span>Buede radialbjælker uden opdeling <span class="hint">(kun kuppeltag)</span></span></label>
+        <p class="hint">På kuppeltag skrives hver radialbjælke som ét buet element RB.i langs kuglen fra ringbjælken til svøbet i stedet for lige stykker RBi.1, RBi.2 … mellem udvekslingerne. Udvekslingerne ender på buen, og gangbro, kipningslast og temperatur lægges som buede linjelaster. β uden »Hele« omregnes til buen ud fra det længste stykke mellem udvekslingerne.</p>
       </section>
 
       <section class="group" aria-labelledby="g-cov">
@@ -1658,7 +1660,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     <div class="note">
       <h3>Navne i FEM-Design</h3>
       <ul>
-        <li><code>RB.1</code>–<code>RB.n</code> radialbjælker, nummereret mod uret set oppefra; delte bjælker hedder <code>RB1.1</code>, <code>RB1.2</code> …</li>
+        <li><code>RB.1</code>–<code>RB.n</code> radialbjælker, nummereret mod uret set oppefra; delte bjælker hedder <code>RB1.1</code>, <code>RB1.2</code> …; med »Buede radialbjælker uden opdeling« er hver bjælke på kuppeltag én bue <code>RB.i</code> i FEM-Design</li>
         <li><code>RING.i</code> ringbjælke mellem RB.i og RB.i+1</li>
         <li><code>UDVk.i</code> udveksling i ring k (indefra) mellem RB.i og RB.i+1; i ringe, som sektionsspærene går igennem, er udvekslingen delt ved sektionsspæret i <code>UDVk.(2i−1)</code> fra RB.i og <code>UDVk.2i</code> til RB.i+1</li>
         <li><code>SEKi.j</code> sektionsspær i fag i (stykke j indefra), <code>SS.i</code> deres understøtninger</li>
@@ -1703,6 +1705,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     zSupport: 0,             // kote for understøtning (top af svøb) [m]
     rotationDeg: 0,          // vinkel for radialbjælke 1 målt fra global X [°] (med secAxes: vinklen for sektionsspær 1)
     splitRadial: false,      // del radialbjælker ved udvekslingsknuder
+    radialArc: false,        // kuppeltag: hver radialbjælke som ét buet element (cirkelbue) i FEM-Design
     edgeRing: true,          // kantring langs svøbet
     secOn: true,             // sektionsspær midt i hvert fag fra svøbet ind til en udvekslingsring
     secRing: 2,              // sektionsspærene går ind til denne udvekslingsring, talt fra svøbet (1 = yderste)
@@ -1854,6 +1857,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var y = cross(EZ, dir);
     if (norm(y) < 1e-9) return [1, 0, 0]; // lodret stang (forekommer ikke her)
     return unit(y);
+  }
+
+  // cirkelbue { c: centrum, r: radius, x: vinklens nulretning, n: normal }: vinklen til punktet q målt fra x mod n × x
+  function arcAngle(arc, q) {
+    var d = vsub(q, arc.c), y = cross(arc.n, arc.x);
+    return Math.atan2(dot(d, y), dot(d, arc.x));
+  }
+  // stangens længde: buelængden for et stykke af en buet radialbjælke, ellers den rette afstand
+  function memberLength(m) {
+    if (m.arc) return m.arc.r * Math.abs(arcAngle(m.arc, m.end) - arcAngle(m.arc, m.start));
+    return norm(vsub(m.end, m.start));
+  }
+  // punktet på en buet radialbjælke i vandret afstand rho fra tagets akse
+  function arcPointAt(arc, rho) {
+    return [arc.c[0] + rho * arc.x[0], arc.c[1] + rho * arc.x[1], arc.c[2] + Math.sqrt(Math.max(arc.r * arc.r - rho * rho, 0))];
   }
 
   // Talformat: 9 decimaler, uden overflødige nuller, aldrig "-0"
@@ -2132,7 +2150,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function bucklingBetas(p, m) {
     var pre = BUCKLING_GROUPS[m.group];
     if (!pre) return null;
-    var len = norm(vsub(m.end, m.start));
+    var len = memberLength(m);
     return BUCKLING.map(function (b) {
       var beta = p[pre + b.key];
       if (bucklingInMeters(p, pre, b.key)) return beta / len;
@@ -2151,6 +2169,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.numRadial = Math.round(toNum(q.numRadial));
     q.numUdv = Math.round(toNum(q.numUdv));
     q.splitRadial = q.splitRadial === true || q.splitRadial === 'true';
+    q.radialArc = q.radialArc === true || q.radialArc === 'true';
     q.edgeRing = q.edgeRing === true || q.edgeRing === 'true';
     q.secOn = q.secOn === true || q.secOn === 'true';
     q.secAxes = q.secAxes === true || q.secAxes === 'true';
@@ -2306,6 +2325,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
     var nodesR = [rc].concat(radii, [R]);
     var segmented = p.splitRadial || p.roofType === 'dome';
+    var arcOn = p.radialArc && p.roofType === 'dome';
     var members = [];
 
     function addMember(group, name, a, b, ly, c0, c1, extra) {
@@ -2329,8 +2349,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var a2 = P(nodesR[j2], i2), b2 = P(nodesR[j2 + 1], i2);
           var c0 = j2 === 0 ? p.connRadialRing : 'rigid';
           var c1 = j2 === nodesR.length - 2 ? (p.edgeRing ? p.connRadialShell : 'rigid') : 'rigid';
+          var ex2 = { index: i2, seg: j2 };
+          // buet radialbjælke: stykkerne ligger på samme cirkelbue (meridianen på kuglen) og skrives samlet som én
+          // buet stang RB.i i filen. Buens plan er lodret gennem bjælken; vinklen måles fra x (vandret udad) mod −z.
+          if (arcOn) {
+            var th2 = thetas[i2];
+            ex2.arc = { c: [0, 0, zc], r: Rs, x: [Math.cos(th2), Math.sin(th2), 0], n: [-Math.sin(th2), Math.cos(th2), 0] };
+            ex2.arcBar = 'RB.' + (i2 + 1);
+          }
           radialIdx[i2].push(addMember('radial', 'RB' + (i2 + 1) + '.' + (j2 + 1), a2, b2,
-            localYFor(vsub(b2, a2)), c0, c1, { index: i2, seg: j2 }));
+            localYFor(vsub(b2, a2)), c0, c1, ex2));
         }
       }
     }
@@ -2416,7 +2444,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // hele længden af hver radialbjælke og hvert sektionsspær (summen af stykkerne) til søjle- og kipningslængderne
     var fullLen = {};
     members.forEach(function (mb) {
-      if (BUCKLING_GROUPS[mb.group]) fullLen[mb.group + mb.index] = (fullLen[mb.group + mb.index] || 0) + norm(vsub(mb.end, mb.start));
+      if (BUCKLING_GROUPS[mb.group]) fullLen[mb.group + mb.index] = (fullLen[mb.group + mb.index] || 0) + memberLength(mb);
     });
     members.forEach(function (mb) { if (BUCKLING_GROUPS[mb.group]) mb.fullLength = fullLen[mb.group + mb.index]; });
 
@@ -2748,7 +2776,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       spacingShell: 2 * R * Math.sin(Math.PI / n),
       spacingShellSec: p.secOn ? 2 * R * Math.sin(Math.PI / (2 * n)) : null,   // radialbjælke til sektionsspær ved svøbet
       spacingRing: 2 * rc * Math.sin(Math.PI / n),
-      thetas: thetas, segmented: segmented, secRadius: p.secOn ? nodesR[jSec] : null, hold: hold, holdDeterminate: holdDeterminate,
+      thetas: thetas, segmented: segmented, radialArc: arcOn, secRadius: p.secOn ? nodesR[jSec] : null, hold: hold, holdDeterminate: holdDeterminate,
       brace: { lines: braceLines.length, valid: braceValid, members: nBrace, repeat: rep }
     };
 
@@ -2771,7 +2799,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var part = null;
       for (var i = 0; i < g.parts.length; i++) if (g.parts[i].profile === key) part = g.parts[i];
       if (!part) { part = { profile: key, count: 0, length: 0, mass: 0, kgpm: null }; g.parts.push(part); }
-      var L = norm(vsub(m.end, m.start));
+      var L = memberLength(m);
       g.count++; g.length += L; part.count++; part.length += L;
     });
     Object.keys(groups).forEach(function (k) {
@@ -2844,13 +2872,18 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function pointOnRadial(geom, frac) {
     var segs = geom.members.filter(function (m) { return m.group === 'radial' && m.index === 0; });
     var total = 0;
-    segs.forEach(function (m) { total += norm(vsub(m.end, m.start)); });
+    segs.forEach(function (m) { total += memberLength(m); });
     var target = frac * total, acc = 0;
     for (var i = 0; i < segs.length; i++) {
-      var Ls = norm(vsub(segs[i].end, segs[i].start));
+      var Ls = memberLength(segs[i]);
       if (acc + Ls >= target - 1e-12 || i === segs.length - 1) {
         var t = Ls > 0 ? (target - acc) / Ls : 0;
         t = Math.max(0, Math.min(1, t));
+        var arc = segs[i].arc;
+        if (arc) {
+          var a0 = arcAngle(arc, segs[i].start), ang = a0 + t * (arcAngle(arc, segs[i].end) - a0), y = cross(arc.n, arc.x);
+          return vadd(arc.c, vadd(vscale(arc.x, arc.r * Math.cos(ang)), vscale(y, arc.r * Math.sin(ang))));
+        }
         return vadd(segs[i].start, vscale(vsub(segs[i].end, segs[i].start), t));
       }
       acc += Ls;
@@ -3086,8 +3119,10 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var lo = Math.max(rs, wr0), hi = Math.min(re, wr1);
         if (!(hi - lo > 1e-6)) return;
         var d = vsub(m.end, m.start), a = vadd(m.start, vscale(d, (lo - rs) / (re - rs))), b = vadd(m.start, vscale(d, (hi - rs) / (re - rs)));
+        // på en buet radialbjælke ligger lasten på buen
+        if (m.arc) { a = arcPointAt(m.arc, lo); b = arcPointAt(m.arc, hi); }
         segs.push({ member: m, a: a, b: b });
-        wLen += norm(vsub(b, a));
+        wLen += m.arc ? memberLength({ arc: m.arc, start: a, end: b }) : norm(vsub(b, a));
         wPlan += hi - lo;
       });
       var qLine = p.walkQ * p.walkB;
@@ -3323,7 +3358,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       geom.members.forEach(function (m) {
         if (m.group !== 'radial' || m.index !== p.kipRB - 1) return;
         kSegs.push({ member: m, a: m.start, b: m.end });
-        kLen += norm(vsub(m.end, m.start));
+        kLen += memberLength(m);
         kPlan += Math.abs(Math.hypot(m.end[0], m.end[1]) - Math.hypot(m.start[0], m.start[1]));
       });
       res.kip = { rb: p.kipRB, rIn: info.rc, rOut: info.R, length: kLen, plan: kPlan, q: p.kipQ, segs: kSegs };
@@ -3527,6 +3562,25 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
   function pt(tag, v) { return '<' + tag + ' x="' + fmt(v[0]) + '" y="' + fmt(v[1]) + '" z="' + fmt(v[2]) + '"/>'; }
   function stiff(v) { return v >= FIXED ? '10000000000' : fmt(v); }
+  // kant af typen arc fra a til b på cirklen arc (FEM-Designs form med centrum, radius, vinkler, normal og x-akse).
+  // Vinklerne regnes mod uret om normalen fra x-aksen; går buen den anden vej, vendes normalen.
+  function arcEdge(tag, arc, a, b) {
+    var n = arc.n, t0 = arcAngle(arc, a), t1 = arcAngle(arc, b);
+    if (t1 < t0) { n = vscale(n, -1); var flip = { c: arc.c, r: arc.r, x: arc.x, n: n }; t0 = arcAngle(flip, a); t1 = arcAngle(flip, b); }
+    return '<' + tag + ' type="arc" radius="' + fmt(arc.r) + '" start_angle="' + fmt(t0) + '" end_angle="' + fmt(t1) + '">' +
+      pt('point', arc.c) + pt('normal', n) + pt('x_axis', arc.x) + '</' + tag + '>';
+  }
+  // β for en buet radialbjælke, der skrives som én stang: »hele længden« og kipningslængder i meter gælder buen,
+  // og β for hvert stykke mellem udvekslingerne omregnes til buen ud fra det længste stykke
+  function arcBucklingBetas(p, pcs) {
+    var pre = BUCKLING_GROUPS.radial, total = 0, longest = 0;
+    pcs.forEach(function (pc) { var l = memberLength(pc); total += l; longest = Math.max(longest, l); });
+    return BUCKLING.map(function (b) {
+      var beta = p[pre + b.key];
+      if (bucklingInMeters(p, pre, b.key)) return beta / total;
+      return p[pre + b.key + 'Full'] ? beta : beta * longest / total;
+    });
+  }
 
   function randomGuid() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -3611,10 +3665,17 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     L.push(I1 + '<entities>');
 
     var complexSections = [];
+    // buede radialbjælker: stykkerne RBi.1, RBi.2 … skrives som én buet stang RB.i, og alle stykker får dens bar_part
+    var arcBars = {};
+    geom.members.forEach(function (m) { if (m.arcBar) (arcBars[m.arcBar] || (arcBars[m.arcBar] = [])).push(m); });
     geom.members.forEach(function (m) {
+      var pcs = m.arcBar ? arcBars[m.arcBar] : null;
+      if (pcs && pcs[0] !== m) return;
       var s = secByKey[m.prof || groupProf[m.group]];
       var barGuid = newGuid(), partGuid = newGuid();
       m.partGuid = partGuid;
+      if (pcs) pcs.forEach(function (pc) { pc.partGuid = partGuid; });
+      var barName = pcs ? m.arcBar : m.name, lastPc = pcs ? pcs[pcs.length - 1] : m;
       if (m.truss) {
         // gitterstang (truss member): kun normalkraft, altid charnier – ingen forbindelser i filen,
         // lineært elastisk i både træk og tryk; den fysiske model i tyngdepunktet.
@@ -3650,16 +3711,20 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }
       var csGuid = newGuid();
       complexSections.push({ guid: csGuid, section: s.guid });
-      L.push(I2 + '<bar name="' + m.name + '" type="beam" guid="' + barGuid + '" last_change="' + stamp + '" action="added">');
-      L.push(I3 + '<bar_part guid="' + partGuid + '" last_change="' + stamp + '" action="added" name="' + m.name +
+      L.push(I2 + '<bar name="' + barName + '" type="beam" guid="' + barGuid + '" last_change="' + stamp + '" action="added">');
+      L.push(I3 + '<bar_part guid="' + partGuid + '" last_change="' + stamp + '" action="added" name="' + barName +
         '.1" complex_material="' + matGuid + '" made="' + s.made + '" complex_section="' + csGuid + '" ecc_calc="true">');
-      L.push(I4 + '<curve type="line">');
-      L.push(I5 + pt('point', m.start));
-      L.push(I5 + pt('point', m.end));
-      L.push(I4 + '</curve>');
+      if (pcs) L.push(I4 + arcEdge('curve', m.arc, m.start, lastPc.end));
+      else {
+        L.push(I4 + '<curve type="line">');
+        L.push(I5 + pt('point', m.start));
+        L.push(I5 + pt('point', m.end));
+        L.push(I4 + '</curve>');
+      }
+      // buen ligger i et lodret plan, og lokal y (vandret, vinkelret på planet) er den samme for alle stykker
       L.push(I4 + pt('local-y', exportLocalY(m, s)));
       L.push(I4 + connXml(m.connStart));
-      L.push(I4 + connXml(m.connEnd));
+      L.push(I4 + connXml(lastPc.connEnd));
       // den fysiske model (3D-visningen) placeres med tyngdepunktet på systemlinjen, ligesom den analytiske
       L.push(I4 + '<eccentricity use_default_physical_alignment="false">');
       L.push(I5 + '<analytical x="0" y="0" z="0"/>');
@@ -3668,11 +3733,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I5 + '<physical x="0" y="0" z="0"/>');
       L.push(I4 + '</eccentricity>');
       // søjle- og kipningslængder (β gange stangens længde) for radialbjælker og sektionsspær; lasten angriber overflangen
-      var betas = bucklingBetas(p, m);
+      var betas = pcs ? arcBucklingBetas(p, pcs) : bucklingBetas(p, m);
       if (betas) {
         L.push(I4 + '<buckling_data>');
         BUCKLING.forEach(function (b, bi) {
-          if (betas[bi] > 100) throw new Error(b.name + ' for ' + m.name + ' giver β = ' + fmt(betas[bi]) + ' af stykkets længde. FEM-Design tillader højst 100.');
+          if (betas[bi] > 100) throw new Error(b.name + ' for ' + barName + ' giver β = ' + fmt(betas[bi]) + ' af stykkets længde. FEM-Design tillader højst 100.');
           var flange = b.type.indexOf('pressured') === 0;
           L.push(I5 + '<buckling_length type="' + b.type + '" beta="' + fmt(betas[bi]) + '"' +
             (flange ? ' load_position="top" continously_restrained="false"' : ' sway="false"') + '>');
@@ -3707,7 +3772,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var ex = unit(vsub(Ld.b, Ld.a)), ny = localYFor(ex);
           L.push(I3 + '<line_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added" load_dir="constant" load_projection="' + (Ld.projected ? 'true' : 'false') + '" load_type="force">');
-          L.push(I4 + '<edge type="line">' + pt('point', Ld.a) + pt('point', Ld.b) + pt('normal', ny) + '</edge>');
+          L.push(I4 + (Ld.member && Ld.member.arc ? arcEdge('edge', Ld.member.arc, Ld.a, Ld.b) :
+            '<edge type="line">' + pt('point', Ld.a) + pt('point', Ld.b) + pt('normal', ny) + '</edge>'));
           L.push(I4 + pt('direction', Ld.dir));
           L.push(I4 + pt('normal', cross(ex, ny)));
           [Ld.a, Ld.b].forEach(function (q) {
@@ -3742,7 +3808,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var m = Ld.member, ex = unit(vsub(m.end, m.start)), ny = localYFor(ex);
           L.push(I3 + '<line_temperature_variation_load load_case="' + lcGuids[ci] + '" guid="' + newGuid() + '" last_change="' + stamp +
             '" action="added">');
-          L.push(I4 + '<edge type="line">' + pt('point', m.start) + pt('point', m.end) + pt('normal', ny) + '</edge>');
+          L.push(I4 + (m.arc ? arcEdge('edge', m.arc, m.start, m.end) :
+            '<edge type="line">' + pt('point', m.start) + pt('point', m.end) + pt('normal', ny) + '</edge>'));
           L.push(I4 + pt('direction', ny));
           L.push(I4 + pt('normal', cross(ex, ny)));
           [m.start, m.end].forEach(function (q) {
@@ -3863,7 +3930,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     function addToFilter(name, guid) {
       var f = filterOf[name];
       if (!f) { f = filterOf[name] = { name: name, guids: [] }; filters.push(f); }
-      f.guids.push(guid);
+      if (f.guids.indexOf(guid) < 0) f.guids.push(guid);
     }
     var filterNames = { radial: 'Radialbjælker', sec: 'Sektionsspær', ring: 'Ringbjælke', udv: 'Udvekslinger', edge: 'Kantring', brace: 'Vindgitter' };
     Object.keys(filterNames).forEach(function (g) {
@@ -6211,17 +6278,55 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   }
 
   // ---------- kobling til modellens stænger ----------
-  function len(m) { var d = [m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]]; return Math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]); }
+  function len(m) {
+    if (m.arc) {
+      // stykke af en buet radialbjælke: buelængden
+      var c = m.arc.c, u = [m.start[0] - c[0], m.start[1] - c[1], m.start[2] - c[2]], v = [m.end[0] - c[0], m.end[1] - c[1], m.end[2] - c[2]];
+      var cr = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+      return m.arc.r * Math.atan2(Math.sqrt(cr[0] * cr[0] + cr[1] * cr[1] + cr[2] * cr[2]), u[0] * v[0] + u[1] * v[1] + u[2] * v[2]);
+    }
+    var d = [m.end[0] - m.start[0], m.end[1] - m.start[1], m.end[2] - m.start[2]]; return Math.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+  }
+  // en buet radialbjælke er én stang RB.i i FEM-Design (RB.i.1, RB.i.2 … pr. del): delene fordeles på modellens
+  // stykker RBi.1, RBi.2 … efter deres placering langs buen, eller én til én, hvis længderne mangler
+  function splitArcParts(parts, geom, F) {
+    var pieces = {};
+    geom.members.forEach(function (m) { if (m.arcBar) (pieces[m.arcBar] || (pieces[m.arcBar] = [])).push(m); });
+    Object.keys(pieces).forEach(function (bar) {
+      var ps = parts[bar], pcs = pieces[bar];
+      if (!ps) return;
+      delete parts[bar];
+      ps.sort(function (a, b) { return a.part - b.part; });
+      var c0 = -1;
+      for (var c = 0; c < F.combos.length && c0 < 0; c++) if (ps.every(function (q) { return q.d.xs[c] !== null && q.d.xe[c] !== null; })) c0 = c;
+      if (c0 < 0) {
+        if (ps.length !== pcs.length) return;
+        ps.forEach(function (q, i) { (parts[pcs[i].name] = []).push({ part: 1, d: q.d }); });
+        return;
+      }
+      var ends = [], acc = 0;
+      pcs.forEach(function (m) { acc += len(m); ends.push(acc); });
+      var pos = 0;
+      ps.forEach(function (q) {
+        var l = q.d.xe[c0] - q.d.xs[c0], mid = pos + l / 2, k = 0;
+        pos += l;
+        while (k < ends.length - 1 && mid > ends[k]) k++;
+        var list = parts[pcs[k].name] || (parts[pcs[k].name] = []);
+        list.push({ part: list.length + 1, d: q.d });
+      });
+    });
+  }
   // FEM-Design tilføjer et løbenummer pr. stangdel: RB1.2 → RB1.2.1 (og RB1.2.2 …, hvis stangen er delt)
   function matchBars(F, geom) {
     var byName = {}, parts = {}, unknown = [];
-    geom.members.forEach(function (m) { byName[m.name] = m; });
+    geom.members.forEach(function (m) { byName[m.name] = m; if (m.arcBar) byName[m.arcBar] = m; });
     F.ids.forEach(function (id) {
       var name = id, part = 1;
       if (!byName[id]) { var mm = /^(.*)\.(\d+)$/.exec(id); if (mm && byName[mm[1]]) { name = mm[1]; part = Number(mm[2]); } }
       if (!byName[name]) { unknown.push(id); return; }
       (parts[name] || (parts[name] = [])).push({ part: part, d: F.bars[id] });
     });
+    splitArcParts(parts, geom, F);
     var bars = {}, mismatch = [], missing = [];
     geom.members.forEach(function (m) {
       var ps = parts[m.name];
@@ -7118,6 +7223,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('holdNodes').hidden = p.holdMode !== 'nodes';
     $('coverCenter').disabled = p.covers === 'none';
     $('coverOneWay').disabled = p.covers !== 'radial';
+    $('radialArc').disabled = p.roofType !== 'dome';
     $('numUdv').disabled = TR.parseRadii(p.udvRadii).length > 0;
     var lab = { deg: ['Hældning', '°'], ratio: ['Hældning 1 :', 'x'], rise: ['Rejsning til ring', 'm'] }[p.slopeMode] || ['Hældning', ''];
     $('slopeLabel').textContent = lab[0];
