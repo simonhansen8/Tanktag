@@ -248,12 +248,20 @@ test('skalmodel: regnearket til kalibrering af kipnings-β udfyldes', async () =
   assert.equal(cell(S, 'C' + (11 + lens.length)), '');
   // hvilken sektion er hvilken: nummereret fra ringbjælken, med stykkets navn og radier i kolonne J
   assert.match(txt(S, 'B10'), /1 = ved ringbjælken/);
-  assert.equal(txt(S, 'J10'), 'Stykke i modellen');
-  assert.match(txt(S, 'J11'), new RegExp('^' + R.pieces[0].member.name.replace('.', '\\.') + ', r = [\\d,]+–[\\d,]+ m, ved ringbjælken$'));
-  assert.match(txt(S, 'J' + (10 + lens.length)), /ved svøbet \(kantbjælken\)$/);
-  assert.ok(!S.includes('<c r="J' + (11 + lens.length) + '"'));
-  assert.match(S, /<dimension ref="B1:J60"\/>/);
-  assert.match(S, /<col min="10" max="10"/);
+  assert.equal(txt(S, 'K10'), 'Stykke i modellen');
+  assert.match(txt(S, 'K11'), new RegExp('^' + R.pieces[0].member.name.replace('.', '\\.') + ', r = [\\d,]+–[\\d,]+ m, ved ringbjælken$'));
+  assert.match(txt(S, 'K' + (10 + lens.length)), /ved svøbet \(kantbjælken\)$/);
+  assert.ok(!S.includes('<c r="K' + (11 + lens.length) + '"'));
+  assert.match(S, /<dimension ref="B1:K60"\/>/);
+  assert.match(S, /<col min="11" max="11"/);
+  // søjlevirkning: β søjle i kolonne J (formel), I_y og I_z udfyldt, α_cr tom, N_Ed = trykket
+  assert.ok(cell(S, 'J11').includes('Kalibrering!$C$74/D11'));
+  assert.ok(Math.abs(num(K, 'C72') - 11766.9) < 1);
+  assert.ok(Math.abs(num(K, 'C73') - 788.1) < 0.5);
+  assert.equal(cell(K, 'C67'), '');
+  assert.equal(num(K, 'C68'), 1);
+  assert.equal(txt(K, 'C70'), 'z');
+  assert.ok(cell(K, 'C74').includes('PI()*SQRT('));
   assert.match(txt(K, 'E5'), /sektion 1 er ved ringbjælken/);
   let x = 0, gov = 0;
   while (x + lens[gov] < tot / 2) x += lens[gov++];
