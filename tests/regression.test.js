@@ -725,7 +725,10 @@ test('buede radialbjælker på kuppeltag skrives som én buet stang pr. bjælke'
   // gangbro, kipningslast og temperatur på radialbjælkerne er buede linjelaster
   assert.ok(/<line_load [^>]+>\s*<edge type="arc"/.test(xml));
   assert.ok(/<line_temperature_variation_load [^>]+>\s*<edge type="arc"/.test(xml));
-  assert.ok(!/<line_load [^>]+>\s*<edge type="line"/.test(xml), 'ingen lige linjelaster på radialbjælkerne');
+  // kipningslasten på RB.1 er buet; lige linjelaster findes kun på de lige sektionsspær (fladelasterne)
+  const kipCase = /<load_case type="[^"]*" duration_class="[^"]*" guid="([^"]+)"[^>]*name="Kipning"/.exec(xml)[1];
+  const kipLoads = xml.split('<line_load ').slice(1).filter((b) => b.startsWith('load_case="' + kipCase + '"'));
+  assert.ok(kipLoads.length > 0 && kipLoads.every((b) => /<edge type="arc"/.test(b)));
 
   // standard: lige stykker som før, og buen virker kun på kuppeltag
   const g0 = TR.computeGeometry(Object.assign({}, TR.DEFAULTS));
@@ -733,4 +736,41 @@ test('buede radialbjælker på kuppeltag skrives som én buet stang pr. bjælke'
   const cone = TR.computeGeometry(Object.assign({}, TR.DEFAULTS, { radialArc: true, roofType: 'cone', secOn: false }));
   assert.deepEqual(cone.errors, []);
   assert.ok(cone.members.every((m) => !m.arc));
+});
+
+test('buede radialbjælker: fladelasterne ved bjælkerne skrives som linjelaster med samme kraft', () => {
+  const params = Object.assign({}, TR.DEFAULTS, { radialArc: true, walkOn: false });
+  params.combos = TR.normCombos(params.combos);
+  const g = TR.computeGeometry(params);
+  const L = TR.computeLoads(g);
+  const lines = TR.arcCoverLineLoads(g, L);
+  const arcCover = (c) => c.supports.some((m) => m.arc);
+  const nArc = g.covers.filter(arcCover).length;
+  assert.ok(nArc > 0 && nArc < g.covers.length);
+  L.cases.forEach((cs, ci) => {
+    const exp = [0, 0, 0], got = [0, 0, 0];
+    cs.loads.forEach((Ld) => {
+      if (Ld.kind !== 'surface' || !arcCover(Ld.panel.cover)) return;
+      const pp = Ld.panel, nd = Math.abs(pp.normal[0] * Ld.dir[0] + pp.normal[1] * Ld.dir[1] + pp.normal[2] * Ld.dir[2]);
+      const amt = Ld.val * pp.area * (Ld.projected ? nd : 1);
+      for (let k = 0; k < 3; k++) exp[k] += Ld.dir[k] * amt;
+    });
+    lines[ci].forEach((l) => {
+      const len = TR.memberLength({ arc: l.member.arc, start: l.a, end: l.b });
+      for (let k = 0; k < 3; k++) got[k] += l.dir[k] * (l.vals[0] + l.vals[1]) / 2 * len;
+    });
+    const mag = Math.hypot(...exp);
+    assert.ok(Math.hypot(got[0] - exp[0], got[1] - exp[1], got[2] - exp[2]) <= 1e-6 * Math.max(1, mag), cs.name + ': samme kraft');
+  });
+  // filen har kun de flader, der ikke bæres af en buet bjælke, og ingen fladelast på de øvrige
+  const xml = TR.buildStruxml(params, LIB, { geometry: g, loads: L });
+  assert.equal((xml.match(/<cover /g) || []).length, g.covers.length - nArc);
+  assert.ok(/<line_load [^>]+>\s*<edge type="arc"/.test(xml));
+  // en flade mellem to radialbjælker deler jævn egenlast ligeligt mellem dem
+  const dead = L.cases.findIndex((c) => c.key === 'dead');
+  const c0 = g.covers.find((c) => c.interval === 0);
+  const rb = c0.supports[0];
+  const onRb = lines[dead].filter((l) => l.member === rb).reduce((s, l) => s - l.dir[2] * (l.vals[0] + l.vals[1]) / 2 * TR.memberLength({ arc: rb.arc, start: l.a, end: l.b }), 0);
+  const both = L.cases[dead].loads.filter((Ld) => Ld.kind === 'surface' && Ld.panel.cover.supports.includes(rb)).reduce((s, Ld) => s + Ld.val * Ld.panel.area / 2, 0);
+  assert.ok(Math.abs(onRb - both) < 1e-6 * both);
 });
