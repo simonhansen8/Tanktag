@@ -63,6 +63,7 @@
         5.890486
       ],
       "segmented": true,
+      "radialArc": false,
       "secRadius": 11,
       "hold": [],
       "holdDeterminate": false,
@@ -1930,7 +1931,7 @@
     ]
   },
   "struxml": {
-    "sha256": "1a085d95069bec46eea573b6918ab84c862e66f168e23660c9f67ef6a831163f",
+    "sha256": "53e19f68ae26429541c2d4dd6cb7301bf5f671ae6aba8aa45beeea7d165a503d",
     "lines": 35103,
     "elements": {
       "analytical": 720,
