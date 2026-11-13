@@ -12,6 +12,10 @@ På kuppeltag kan *Buede radialbjælker uden opdeling* slås til (parameteren `r
 
 Under Laster kan lasttilfældet *Kipning* også slås til: en prøvelast med en lodret linjelast på hele den valgte radialbjælke fra ringbjælken til svøbet, standard 1 kN/m på den skrå længde, så momentkurven kan aflæses, når kipningslængderne sættes (fx M<sub>max</sub> til skalmodellens regneark). Lasten kan ændres, og en negativ værdi løfter spæret. Lasttilfældet skrives i StruXML-filen, men kommer ikke med i nogen lastkombination.
 
+## Løftesimulering
+
+Under Geometri kan *Løftesimulering* slås til (parameteren `liftOn`, standard fra): taget løftes i fire symmetriske punkter langs kantbjælken med 90° imellem, fra det første løftepunkt (`liftNode`, fx `KS.1` ved radialbjælke 1 eller `KSM.1` ved sektionsspæret efter den; antallet af radialbjælker skal være deleligt med 4). Understøtningerne ved svøbet erstattes af de fire løftepunkter `L.1`–`L.4`, enten lodret fastholdt med tre vandrette fastholdelser som ved *Kun lodret*, så taget er statisk bestemt vandret (`liftSupport = 'vertical'`), eller fastholdt i alle retninger (`'pinned'`). Svøbpladen under kantbjælken skrives som lodrette skalflader (`SVOB.i`, type wall) mellem knuderne langs svøbet med den valgte højde og tykkelse (`liftShellH` og `liftShellT` i mm, højde 0 = ingen svøbplade), så kantbjælken virker i fuld højde. Kun stålets egenlast er med: lasttilfældet *Egenlast* som dead load, så FEM-Design selv regner konstruktionens og svøbpladens vægt, plus tagpladen som fladelast, hvis `liftPlate` er sat. Kombinationerne er *Løft* (brud, med faktoren `liftGamma`) og *Løft, karakteristisk* (anvendelse, faktor 1). De øvrige laster og egne kombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares. Feltet under Løftesimulering viser løftepunkterne og et overslag over vægten pr. løftepunkt.
+
 ## Skalmodel af én radialbjælke
 
 Knappen *Hent skalmodel* under tegningen henter en lille StruXML-fil (`…_skal_RB1.struxml`) med radialbjælke RB.1 alene, til stabilitetsanalyse i FEM-Design. Ud fra de kritiske laster kan søjle- og kipningslængderne til den almindelige model udledes.

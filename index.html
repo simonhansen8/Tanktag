@@ -313,6 +313,7 @@ svg.lgsup.hold { stroke: var(--primer); }
 .drawing svg line, .drawing svg polyline, .drawing svg polygon, .drawing svg circle, .drawing svg rect { vector-effect: non-scaling-stroke; }
 .drawing svg.section { max-width: 900px; }
 .d-shell { stroke: var(--c-shell); fill: none; }
+.d-svob path { fill: var(--c-edge); fill-opacity: 0.18; stroke: var(--c-edge); stroke-opacity: 0.6; }
 .d-radial { stroke: var(--c-radial); }
 .d-ring { stroke: var(--c-ring); }
 .d-udv { stroke: var(--c-udv); }
@@ -854,6 +855,46 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <input class="num" type="text" inputmode="decimal" id="radialSpring" data-key="radialSpring">
         </div>
         <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid, medmindre de er buede under Tagform)</span></span></label>
+      </section>
+
+      <section class="group" aria-labelledby="g-lift">
+        <div class="toggle">
+          <h2 id="g-lift">Løftesimulering</h2>
+          <label class="check"><input type="checkbox" id="liftOn" data-key="liftOn"> <span>Løft taget</span></label>
+        </div>
+        <fieldset class="sub" id="liftFields">
+          <p class="hint">Taget løftes i fire symmetriske punkter langs kantbjælken med 90° imellem. Understøtningerne ved svøbet erstattes af de fire løftepunkter, og kun stålets egenlast er med: konstruktionens egenvægt og svøbpladen (FEM-Design regner den selv) og tagpladen, hvis den er med. Øvrige laster og lastkombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares. Svøbpladen ligger under kantbjælken som lodrette skalflader med den valgte højde, så kantbjælken virker i fuld højde.</p>
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="liftNode">Første løftepunkt</label>
+              <input type="text" id="liftNode" data-key="liftNode" spellcheck="false" autocomplete="off" placeholder="fx KS.1">
+            </div>
+            <div class="field">
+              <label class="lbl" for="liftGamma">Faktor i »Løft« <span class="unit">γ</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftGamma" data-key="liftGamma">
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="liftShellH">Svøbpladens højde <span class="unit">mm</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftShellH" data-key="liftShellH">
+            </div>
+            <div class="field">
+              <label class="lbl" for="liftShellT">Svøbpladens tykkelse <span class="unit">mm</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftShellT" data-key="liftShellT">
+            </div>
+          </div>
+          <div class="field">
+            <span class="lbl">Løftepunkterne</span>
+            <div class="seg" role="radiogroup" aria-label="Løftepunkternes fastholdelse">
+              <label><input type="radio" name="liftSupport" value="vertical" data-key="liftSupport"><span>Lodret + 3 vandrette</span></label>
+              <label><input type="radio" name="liftSupport" value="pinned" data-key="liftSupport"><span>Fastholdt</span></label>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="liftPlate" data-key="liftPlate"> <span>Tagpladens egenvægt med <span class="hint">(tykkelsen under Laster › Egenlast)</span></span></label>
+          <p class="calc" id="liftCalc"></p>
+          <p class="hint">Første løftepunkt skrives med navnet fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Antallet af radialbjælker skal være deleligt med 4. »Lodret + 3 vandrette« holder taget lodret i alle fire punkter og vandret som ved Kun lodret (X i ét punkt og Y i to), så taget er statisk bestemt vandret og ikke får tvang fra løftet. »Fastholdt« holder alle fire punkter i alle retninger. Svøbpladens højde 0 giver ingen svøbplade. Kombinationerne er »Løft« (brud, med faktoren) og »Løft, karakteristisk« (anvendelse, faktor 1).</p>
+        </fieldset>
       </section>
 
       <section class="group" aria-labelledby="g-cov">
@@ -1815,10 +1856,20 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     kipQ: 1,                   // lodret linjelast [kN/m] på den skrå længde; positiv nedad
     rotTestCombo: true,        // egen kombination "Rotationsstivhed" med faktor 1 som anvendelse, karakteristisk (til NLE i FEM-Design)
 
+    // --- løftesimulering: taget løftes i fire symmetriske punkter langs kantbjælken, kun stålets egenlast ---
+    liftOn: false,             // løftevariant: understøtningerne erstattes af fire løftepunkter, og kun egenlasten er med
+    liftNode: 'KS.1',          // første løftepunkt (KS.i eller KSM.i); de tre andre ligger 90°, 180° og 270° derfra
+    liftSupport: 'vertical',   // 'vertical' (lodret + tre vandrette fastholdelser, statisk bestemt) | 'pinned' (fastholdt i alle retninger)
+    liftShellH: 1000,          // højden af svøbpladen under kantbjælken [mm] (0 = ingen svøbplade)
+    liftShellT: 8,             // svøbpladens tykkelse [mm]
+    liftPlate: true,           // tagpladens egenvægt (plateT) med i egenlasten
+    liftGamma: 1.0,            // faktor på egenlasten i kombinationen "Løft"
+
     // --- lastkombinationer: [{ name: 'KB1', type: 'ultimate_ordinary', f: { dead: '1,2', snowUniform: '1,5' } }] ---
     combos: []
   };
 
+  var LIFT_COMBO_NAME = 'Løft';
   var FIXED = 1e10; // kN/m – stiv (samme værdi som FEM-Design selv eksporterer)
   var STEEL_G = 78.5; // kN/m³
   var TERRAIN = { '0': [0.003, 1], 'I': [0.01, 1], 'II': [0.05, 2], 'III': [0.3, 5], 'IV': [1.0, 10] };
@@ -2187,12 +2238,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.bracingRepeat = toNum(q.bracingRepeat);
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
-      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'kipRB', 'kipQ', 'braceCompLimit']
+      'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'kipRB', 'kipQ', 'braceCompLimit',
+      'liftShellH', 'liftShellT', 'liftGamma']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
-      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'kipOn', 'braceTensionOnly', 'resultPoints']
+      'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'kipOn', 'braceTensionOnly', 'resultPoints', 'liftOn', 'liftPlate']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
-    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir'].forEach(function (k) {
+    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir', 'liftNode'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
     });
     Object.keys(BUCKLING_GROUPS).forEach(function (g) {
@@ -2206,6 +2258,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.combos = normCombos(q.combos);
     q.holdMode = q.holdMode === 'nodes' ? 'nodes' : 'auto';
     q.holds = normHolds(q.holds);
+    q.liftSupport = q.liftSupport === 'pinned' ? 'pinned' : 'vertical';
     return q;
   }
 
@@ -2592,10 +2645,36 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         });
       }
     }
+    // løftesimulering: understøtningerne erstattes af fire løftepunkter langs kantbjælken med 90° imellem,
+    // fra det valgte punkt (KS.i ved radialbjælke i eller KSM.i midt i faget efter den, ved sektionsspæret)
+    var liftErrors = [], liftNodes = [];
+    if (p.liftOn) {
+      var lm = /^KS(M?)\.(\d+)$/i.exec(String(p.liftNode).trim()), lmid = !!(lm && lm[1]), li0 = lm ? parseInt(lm[2], 10) : 0;
+      if (n % 4 !== 0) liftErrors.push('Løft: antallet af radialbjælker skal være deleligt med 4, så de fire løftepunkter ligger symmetrisk på knuder langs kantbjælken.');
+      else if (!lm || li0 < 1 || li0 > n) liftErrors.push('Løft: første løftepunkt skal være en knude langs kantbjælken, KS.1–KS.' + n + (p.secOn ? ' eller KSM.1–KSM.' + n : '') + '.');
+      else if (lmid && !p.secOn) liftErrors.push('Løft: KSM-knuderne findes kun med sektionsspær. Brug KS.1–KS.' + n + '.');
+      if (!(p.liftShellH >= 0 && p.liftShellH <= 20000)) liftErrors.push('Løft: svøbpladens højde skal ligge mellem 0 og 20000 mm.');
+      if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
+      if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
+      if (!liftErrors.length) {
+        supports = [];
+        for (var lk = 0; lk < 4; lk++) {
+          var li = (li0 - 1 + lk * n / 4) % n, lth = thetas[li] + (lmid ? Math.PI / n : 0), lnm = 'KS' + (lmid ? 'M' : '') + '.' + (li + 1);
+          liftNodes.push(lnm);
+          supports.push({
+            name: 'L.' + (lk + 1), node: lnm, pos: lmid ? Cpt(li) : P(R, li), rho: R, lift: true,
+            localX: [Math.cos(lth), Math.sin(lth), 0], localY: [-Math.sin(lth), Math.cos(lth), 0],
+            motions: { x: FIXED, y: FIXED, z: FIXED }, rotations: { x: 0, y: 0, z: 0 }
+          });
+        }
+      }
+      errors.push.apply(errors, liftErrors);
+    }
     // kun lodrette understøtninger: tre vandrette fastholdelser gør taget statisk bestemt vandret, så hverken
     // temperatur eller svøbets udvidelse giver tvang. X ved understøtningen nærmest 0°, Y nærmest 90° og Y
     // længst fra den i X-retningen (normalt ved 180°), så taget heller ikke kan dreje om den lodrette akse.
-    var hold = [], holdErrors = [], holdCustom = p.support === 'vertical' && p.holdMode === 'nodes', holdDeterminate = false;
+    var vertOnly = p.liftOn ? p.liftSupport === 'vertical' : p.support === 'vertical';
+    var hold = [], holdErrors = [], holdCustom = !p.liftOn && p.support === 'vertical' && p.holdMode === 'nodes', holdDeterminate = false;
     if (holdCustom) {
       // valgte knuder: hver række fastholder sine knuder i de afkrydsede globale retninger, resten er kun lodret
       supports.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
@@ -2639,7 +2718,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           ' vandret. Tilføj fastholdelser, så de ikke alle peger mod samme punkt eller er parallelle.' : 'Ingen understøtninger er fastholdt vandret, så taget kan forskydes og dreje frit.');
       }
       holdDeterminate = rk === 3 && rows.length === 3;
-    } else if (p.support === 'vertical') {
+    } else if (vertOnly && supports.length) {
       supports.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
       var pick = function (score, skip) {
         var best = -1, bv = -Infinity;
@@ -2662,6 +2741,19 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         hold.push({ name: s.name, dir: h[2], lock: h[3], vec: h[1] === 'x' ? [1, 0] : [0, 1], pos: s.pos });
       });
       holdDeterminate = true;
+    }
+    // løftesimulering: svøbpladen under kantbjælken som lodrette skalflader (wall) med den valgte højde, én flade
+    // mellem hver to knuder langs svøbet (KS.i, KSM.i, KS.i+1), så kantbjælken og pladen virker sammen i fuld højde
+    var shellPlates = [];
+    if (p.liftOn && !liftErrors.length && p.liftShellH > 0) {
+      var hS = p.liftShellH / 1000, downS = [0, 0, -hS], nS = 0;
+      for (var iS = 0; iS < n; iS++) {
+        var ptsS = p.secOn ? [P(R, iS), Cpt(iS), P(R, iS + 1)] : [P(R, iS), P(R, iS + 1)];
+        for (var kS = 0; kS < ptsS.length - 1; kS++) {
+          var aS = ptsS[kS], bS = ptsS[kS + 1];
+          shellPlates.push({ name: 'SVOB.' + (++nS), t: p.liftShellT / 1000, h: hS, pts: [aS, bS, vadd(bS, downS), vadd(aS, downS)] });
+        }
+      }
     }
     // lastfordelingsflader
     var covers = [];
@@ -2785,8 +2877,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       brace: { lines: braceLines.length, valid: braceValid, members: nBrace, repeat: rep }
     };
 
+    if (p.liftOn && !liftErrors.length) info.lift = { nodes: liftNodes, support: p.liftSupport, plates: shellPlates.length };
     return {
-      params: p, errors: [], warnings: warnings, members: members, supports: supports, covers: covers,
+      params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers, shellPlates: shellPlates,
       info: info, zOf: zOf, braceErrors: braceErrors, holdErrors: holdErrors, bracePoints: bracePoints, braceLines: braceLines,
       braceLineOk: lineRefs.map(function (x) { return !!x; })
     };
@@ -2941,6 +3034,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     };
     if (!geom || (geom.errors && geom.errors.length)) return res;
     var p = geom.params, info = geom.info, E = res.errors, W = res.warnings;
+    // løftesimulering: kun stålets egenlast (konstruktionen og svøbpladen som FEM-Designs dead_load, og tagpladen,
+    // hvis den er med), i kombinationerne "Løft" (brud) og "Løft, karakteristisk" (anvendelse). Øvrige laster og
+    // brugerens kombinationer er slået fra uden at ændre deres indstillinger.
+    if (p.liftOn) {
+      p = Object.assign({}, p, {
+        loadsOn: true, deadOn: true, deadSelf: true, deadExtra: 0, plateT: p.liftPlate ? p.plateT : 0,
+        liveOn: false, snowOn: false, windOn: false, pressOn: false, tempOn: false, walkOn: false, rotTestOn: false, kipOn: false,
+        combos: [], rotTestCombo: false
+      });
+    }
     res.any = p.loadsOn && (p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn || p.tempOn || p.walkOn || p.rotTestOn || p.kipOn);
     if (!res.any) return res;
     function chk(ok, msg) { if (!ok) E.push(msg); }
@@ -3022,7 +3125,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       chk(p.tempAlpha > 0 && p.tempAlpha <= 30, 'α skal ligge mellem 0 og 30 · 10⁻⁶/K.');
     }
     // fladelasterne kræver lastfordelingsflader; temperaturen ligger på bjælkerne og understøtningerne
-    var needCovers = p.deadOn || p.liveOn || p.snowOn || p.windOn || p.pressOn;
+    var needCovers = (p.deadOn && !(p.liftOn && p.plateT === 0)) || p.liveOn || p.snowOn || p.windOn || p.pressOn;
     if (needCovers && !geom.covers.length) {
       E.push('Lasterne lægges på lastfordelingsfladerne. Vælg "Til radialbjælker" eller "Til alle kanter" under Lastfordelingsflader, eller slå lasterne fra.');
     }
@@ -3425,6 +3528,19 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           index: -1, auto: true, name: ROT_COMBO_NAME, type: 'serviceability_characteristic',
           items: [{ key: rc.key, ci: res.cases.indexOf(rc), name: rc.name, gamma: 1 }], badKeys: [], missing: [], ignored: [],
           nameErr: false, typeErr: false, F: rc.F.slice(), Fz: rc.Fz, Fh: rc.Fh, ok: true, export: true
+        });
+      }
+    }
+    if (p.liftOn) {
+      var dc = res.cases.filter(function (c) { return c.key === 'dead'; })[0];
+      if (dc) {
+        [[LIFT_COMBO_NAME, 'ultimate_ordinary', p.liftGamma], [LIFT_COMBO_NAME + ', karakteristisk', 'serviceability_characteristic', 1]].forEach(function (lc) {
+          var F = vscale(dc.F, lc[2]);
+          res.combos.push({
+            index: -1, auto: true, name: lc[0], type: lc[1],
+            items: [{ key: dc.key, ci: res.cases.indexOf(dc), name: dc.name, gamma: lc[2] }], badKeys: [], missing: [], ignored: [],
+            nameErr: false, typeErr: false, F: F, Fz: -F[2], Fh: Math.sqrt(F[0] * F[0] + F[1] * F[1]), ok: true, export: true
+          });
         });
       }
     }
@@ -3886,6 +4002,25 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I3 + '</bar_part>');
       L.push(I3 + '<end/>');
       L.push(I2 + '</bar>');
+    });
+
+    // løftesimulering: svøbpladen som lodrette skalflader under kantbjælken
+    (geom.shellPlates || []).forEach(function (pl) {
+      var Q = pl.pts, lx = unit(vsub(Q[1], Q[0])), ly = unit(vsub(Q[3], Q[0])), nz = cross(lx, ly);
+      L.push(I2 + '<slab name="' + pl.name + '" type="wall" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
+      L.push(I3 + '<slab_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + pl.name + '.1" complex_material="' +
+        matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="0">');
+      L.push(I4 + '<contour>');
+      for (var k = 0; k < Q.length; k++) L.push(I5 + '<edge type="line">' + pt('point', Q[k]) + pt('point', Q[(k + 1) % Q.length]) + pt('normal', nz) + '</edge>');
+      L.push(I4 + '</contour>');
+      L.push(I4 + '<thickness x="' + fmt(Q[0][0]) + '" y="' + fmt(Q[0][1]) + '" z="' + fmt(Q[0][2]) + '" val="' + fmt(pl.t) + '"/>');
+      L.push(I4 + pt('local_pos', Q[0]));
+      L.push(I4 + pt('local_x', lx));
+      L.push(I4 + pt('local_y', ly));
+      L.push(I4 + '<end/>');
+      L.push(I3 + '</slab_part>');
+      L.push(I3 + '<end/>');
+      L.push(I2 + '</slab>');
     });
 
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
@@ -7380,6 +7515,13 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('tempFields').disabled = !(on && p.tempOn);
     $('rotTestFields').disabled = !(on && p.rotTestOn);
     $('kipFields').disabled = !(on && p.kipOn);
+    $('liftFields').disabled = !p.liftOn;
+    // løftesimulering: kun egenlasten, så de øvrige laster er slået fra (indstillingerne bevares)
+    if (p.liftOn) {
+      ['loadsOn', 'deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn', 'kipOn'].forEach(function (k) { $(k).disabled = true; });
+      ['liveFields', 'walkFields', 'snowFields', 'windFields', 'pressFields', 'tempFields', 'rotTestFields', 'kipFields'].forEach(function (k) { $(k).disabled = true; });
+      $('deadFields').disabled = false;
+    }
     $('braceCompLimit').disabled = !p.braceTensionOnly;
     var dome = p.roofType === 'dome';
     $('asymDir').disabled = !(on && ((p.snowOn && (p.snowAsym || (dome && p.snowHalf))) || (p.liveOn && p.liveHalf)));
@@ -7417,6 +7559,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   function updateSupportHint(g) {
     var p = g.params, el = $('supportHint');
+    if (p.liftOn) { el.textContent = 'Løftesimulering er valgt: understøtningerne ved svøbet er erstattet af de fire løftepunkter under Løftesimulering.'; return; }
     if (p.support !== 'vertical') { el.textContent = 'Lodret og tangentielt altid fastholdt; rotationer fri.'; return; }
     if (p.holdMode === 'nodes') {
       var ok = !g.errors.length && !(g.holdErrors || []).length && g.info.hold.length;
@@ -7453,13 +7596,35 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     var dead = '', snow = '', wind = '', windHint = '', press = '', temp = '', walk = '';
     var sg = function (x, d) { return (x > 0 ? '+' : (x < 0 ? '−' : '')) + nf(Math.abs(x), d); };
     if (ok && L.dead) {
-      dead = 'g = ' + nf(L.dead.plate, 3) + ' (tagplade) + ' + nf(p.deadExtra, 3) + ' = ' + nf(L.dead.g, 3) + ' kN/m²';
-      if (p.deadSelf && LIB) {
+      dead = 'g = ' + nf(L.dead.plate, 3) + ' (tagplade) + ' + nf(L.dead.g - L.dead.plate, 3) + ' = ' + nf(L.dead.g, 3) + ' kN/m²';
+      if ((p.deadSelf || p.liftOn) && LIB) {
         var q = TR.quantities(g, LIB), m = 0;
         Object.keys(q).forEach(function (k) { m += q[k].mass || 0; });
         dead += '<br>+ konstruktionen ≈ ' + nf(m * 9.81 / 1000, 1) + ' kN (FEM-Design regner den)';
       }
+      if (p.liftOn) dead += '<br>Løftesimulering: kun stålets egenlast, se Løftesimulering under Geometri.';
     }
+    var lift = '';
+    if (p.liftOn && !g.errors.length && g.info.lift) {
+      var lw = { plate: 0, shell: 0, steel: null };
+      var dc = ok ? L.cases.filter(function (c) { return c.key === 'dead'; })[0] : null;
+      if (dc) lw.plate = dc.Fz;
+      (g.shellPlates || []).forEach(function (pl) {
+        lw.shell += TR.memberLength({ start: pl.pts[0], end: pl.pts[1] }) * pl.h * pl.t * 78.5;
+      });
+      if (LIB) {
+        var lq = TR.quantities(g, LIB), lm = 0;
+        Object.keys(lq).forEach(function (k) { lm += lq[k].mass || 0; });
+        lw.steel = lm * 9.81 / 1000;
+      }
+      lift = 'Løftepunkter: ' + esc(g.info.lift.nodes.join(', ')) +
+        '<br>Konstruktionen ' + (lw.steel === null ? '–' : '≈ ' + nf(lw.steel, 1) + ' kN') + ' · svøbplade ≈ ' + nf(lw.shell, 1) + ' kN · tagplade ≈ ' + nf(lw.plate, 1) + ' kN';
+      if (lw.steel !== null) {
+        var lt = lw.steel + lw.shell + lw.plate;
+        lift += '<br>I alt ≈ ' + nf(lt, 1) + ' kN, ≈ ' + nf(lt / 4, 1) + ' kN pr. løftepunkt (karakteristisk, ved jævn fordeling)';
+      }
+    }
+    $('liftCalc').innerHTML = lift;
     if (ok && L.snow) {
       var slopes = L.panels.map(function (pp) { return pp.slope; });
       var aMin = Math.min.apply(null, slopes), aMax = Math.max.apply(null, slopes);
@@ -7610,8 +7775,10 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   var SUP_FIXED = 1e10;   // samme som FIXED i beregningskernen
   // vandrette retninger, der er fastholdt eller fjedrende (enhedsvektorer i planen), og fastholdte rotationer for én understøtning.
   // Ved Kun lodret er de vandrette fastholdelser i globalt X og Y, ellers radialt og tangentielt.
+  // kun lodrette understøtninger med enkelte vandrette fastholdelser i globalt X og Y (også løftepunkterne)
+  function supVertical(p) { return p.liftOn ? p.liftSupport === 'vertical' : p.support === 'vertical'; }
   function supRestraints(sp, p) {
-    var glob = p.support === 'vertical', links = [], rots = [];
+    var glob = supVertical(p), links = [], rots = [];
     [['x', sp.localX], ['y', sp.localY]].forEach(function (t) {
       var v = sp.motions[t[0]];
       if (!(v > 0)) return;
@@ -7940,9 +8107,10 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     // understøtningsforhold i snittets plan: fast leje når de er radialt fastholdt, ellers rullende leje (ved radial fjeder med fjederen
     // vandret ud mod svøbet). Det tangentielle og de enkelte vandrette fastholdelser ved Kun lodret ses i plan og 3D.
     if (showSup) {
-      var tip = p.support === 'vertical' ? 'Understøtning ved svøbet: kun lodret fastholdt. De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.'
-        : (g.supports[0] ? supText(g.supports[0], p).replace(/^[^:]*: /, 'Understøtning ved svøbet: ') : '');
-      var rFix = p.support === 'pinned', rSpring = p.support === 'radialSpring';
+      var tip = p.liftOn ? 'Løftesimulering: fire løftepunkter langs kantbjælken (' + g.supports.map(function (s) { return s.node; }).join(', ') + '). Se dem i plan og 3D.'
+        : (p.support === 'vertical' ? 'Understøtning ved svøbet: kun lodret fastholdt. De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.'
+        : (g.supports[0] ? supText(g.supports[0], p).replace(/^[^:]*: /, 'Understøtning ved svøbet: ') : ''));
+      var rFix = p.liftOn ? p.liftSupport === 'pinned' : p.support === 'pinned', rSpring = !p.liftOn && p.support === 'radialSpring';
       out.push('<g class="d-supl" stroke-width="' + (1.4 * k).toFixed(2) + '" stroke-linecap="round">' + [-1, 1].map(function (sg) {
         var x = X(sg * R), y = Y(z0) + 2 * k, h = 11 * k, w = 8 * k, cr = 2.2 * k, gy = rFix ? y + h : y + h + 2 * cr + 0.4 * k, o = ['<g><title>' + esc(tip) + '</title>'];
         if (rSpring) o.push(linkSym([x, Y(z0)], [sg, 0], 34 * k, k, true));
@@ -8109,6 +8277,17 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       out.push(lineEl('', P([R * Math.cos(a), R * Math.sin(a), z0]), P([R * Math.cos(a), R * Math.sin(a), z0 - wall]), ' stroke-dasharray="4 5"'));
     }
     out.push('</g>');
+    // løftesimulering: svøbpladen under kantbjælken, bagerst først
+    if (g.shellPlates && g.shellPlates.length) {
+      var pls = g.shellPlates.map(function (pl) {
+        var c = vscale3(pl.pts.reduce(function (a, q) { return vadd3(a, q); }, [0, 0, 0]), 1 / pl.pts.length);
+        return { pl: pl, d: c[0] * f[0] + c[1] * f[1] + (c[2] - cz) * f[2] };
+      }).sort(function (a, b) { return a.d - b.d; });
+      out.push('<g class="d-svob" stroke-width="' + (0.8 * k).toFixed(2) + '">' + pls.map(function (it) {
+        return '<path d="M' + it.pl.pts.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join('L') + 'Z"><title>' +
+          esc(it.pl.name + ' · svøbplade ' + nf(it.pl.h * 1000, 0) + ' × ' + nf(it.pl.t * 1000, 0) + ' mm') + '</title></path>';
+      }).join('') + '</g>');
+    }
     var items = g.members.map(function (m) {
       var mid = [(m.start[0] + m.end[0]) / 2, (m.start[1] + m.end[1]) / 2, (m.start[2] + m.end[2]) / 2 - cz];
       return { m: m, d: mid[0] * f[0] + mid[1] * f[1] + mid[2] * f[2] };
@@ -8382,7 +8561,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       html.push('<span><i class="swatch sw-' + grp.key + '"></i>' + esc(grp.name) + ' <b>' + esc(keys.map(profLabel).join(', ')) + '</b></span>');
     });
     if (showSup && g.supports && g.supports.length) {
-      var sr = g.supports.map(function (sp) { return supRestraints(sp, p); }), vert = p.support === 'vertical';
+      var sr = g.supports.map(function (sp) { return supRestraints(sp, p); }), vert = supVertical(p);
       var lgLink = '<svg class="lgsup" viewBox="0 0 22 14"><line x1="2" y1="7" x2="15" y2="7"/><line x1="15" y1="2" x2="15" y2="12"/><line x1="15" y1="4" x2="19" y2="8" stroke-width="0.8"/><line x1="15" y1="8" x2="19" y2="12" stroke-width="0.8"/></svg>';
       html.push('<span><i class="tri"></i>Understøtning, lodret fastholdt</span>');
       if (view !== 'section' && sr.some(function (r) { return r.links.some(function (l) { return !l.spring; }); })) {
