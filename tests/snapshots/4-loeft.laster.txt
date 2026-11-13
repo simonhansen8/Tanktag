@@ -1,0 +1,30 @@
+Dokumentationen gælder de aktuelle parametre og svarer til lasttilfældene og lastkombinationerne i StruXML-filen. Fladelasterne ligger på lastfordelingsfladerne (CO.i), som FEM-Design fordeler til bjælkerne langs fladernes kanter. Lodrette resultanter regnes positive nedad.
+
+1. Grundlag
+===========
+Tag:	Tank Ø34,140 m, kuppeltag med kuglens radius 51,180 m, rejsning f = 2,921 m til ringbjælken, 24 radialbjælker
+Lastfordelingsflader:	217 stk., areal 939,25 m² og 912,80 m² i vandret projektion
+Normer:	DS/EN 1990, DS/EN 1991-1-1, -1-3, -1-4 og -4 samt DS/EN 1993-4-2, alle med dansk nationalt anneks
+
+Lasttilfælde	Lastvarighed	Laster	Lodret, kN	Vandret, kN
+Egenlast	Permanent	217	368,66	0,00
+
+2. Egenlast
+===========
+Tagpladen og den øvrige permanente last virker lodret på fladernes skrå areal. Konstruktionens egen vægt regner FEM-Design selv, fordi lasttilfældet har typen dead load.
+
+Del	Udtryk	Værdi
+Tagplade	g_plade = t · γ_stål = 5 mm · 78,5 kN/m³	0,393 kN/m²
+Øvrig permanent last	angivet	0,000 kN/m²
+I alt	g = g_plade + g_øvrig	0,393 kN/m²
+
+Lodret resultant i filen: 368,66 kN nedad (kontrol: g · A = 0,393 · 939,25 = 368,66 kN).
+
+3. Lastkombinationer
+====================
+Kombinationerne står i StruXML-filen med disse faktorer. Den lodrette resultant er summen af lasttilfældenes resultanter gange faktorerne.
+
+2 kombinationer
+Kombination	Type	Lasttilfælde med faktor	Lodret, kN
+Løft	Brud, almindelig	1,1 · Egenlast	405,52
+Løft, karakteristisk	Anvendelse, karakteristisk	1 · Egenlast	368,66
