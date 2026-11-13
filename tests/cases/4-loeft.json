@@ -1,5 +1,5 @@
 {
-  "description": "Løftesimulering af standardtaget: fire løftepunkter fra KS.1 langs kantbjælken (KS.1, KS.7, KS.13, KS.19), lodret og statisk bestemt vandret, svøbplade 1200 × 10 mm under kantbjælken som lodrette skalflader, kun stålets egenlast med tagpladen og kombinationerne Løft (faktor 1,1) og Løft, karakteristisk. De øvrige laster står til, men er slået fra af løftet.",
+  "description": "Løftesimulering af standardtaget: fire løftepunkter fra KS.1 langs kantbjælken (KS.1, KS.7, KS.13, KS.19), lodret og statisk bestemt vandret, svøbplade 1200 × 10 mm lagt ind i kantbjælkens T 120-tværsnit, kun stålets egenlast med tagpladen og kombinationerne Løft (faktor 1,1) og Løft, karakteristisk. De øvrige laster står til, men er slået fra af løftet.",
   "params": {
     "liftOn": true, "liftNode": "KS.1", "liftSupport": "vertical",
     "liftShellH": 1200, "liftShellT": 10, "liftPlate": true, "liftGamma": 1.1
