@@ -124,7 +124,7 @@
           "KS.19"
         ],
         "support": "vertical",
-        "plates": 48
+        "edgeProfile": "KB|T|120#1200*10"
       }
     },
     "warnings": [
@@ -219,16 +219,16 @@
     "edge": {
       "count": 48,
       "length": 107.177416,
-      "profile": "T|120",
-      "mass": 2490.720228,
-      "kgpm": 23.239226,
+      "profile": "KB|T|120#1200*10",
+      "mass": 12590.010199,
+      "kgpm": 117.468872,
       "parts": [
         {
-          "profile": "T|120",
+          "profile": "KB|T|120#1200*10",
           "count": 48,
           "length": 107.177416,
-          "mass": 2490.720228,
-          "kgpm": 23.239226
+          "mass": 12590.010199,
+          "kgpm": 117.468872
         }
       ]
     },
@@ -329,8 +329,8 @@
   "proposedCombos": null,
   "windDoc": null,
   "struxml": {
-    "sha256": "3b98bf3d2114aad617035206448ef92b98f73464c4bab26da94140808bf129b5",
-    "lines": 17673,
+    "sha256": "f5e26a8b1f7a4e7a74bddd66c9653d8d7ca43f2bd75c4e334748031f54b9cc6a",
+    "lines": 16905,
     "elements": {
       "analytical": 720,
       "bar": 378,
@@ -340,16 +340,16 @@
       "complex_section": 360,
       "compression": 18,
       "connectivity": 720,
-      "contour": 489,
+      "contour": 441,
       "cover": 217,
       "curve": 378,
       "database": 1,
       "direction": 217,
       "ecc": 720,
       "eccentricity": 378,
-      "edge": 2060,
+      "edge": 1890,
       "elastic": 36,
-      "end": 1580,
+      "end": 1484,
       "entities": 1,
       "group": 4,
       "load": 217,
@@ -357,16 +357,15 @@
       "load_case": 3,
       "load_combination": 2,
       "loads": 1,
-      "local_pos": 48,
-      "local_x": 52,
-      "local_y": 52,
+      "local_x": 4,
+      "local_y": 4,
       "material": 1,
       "materials": 1,
       "members": 10,
       "motions": 4,
-      "normal": 2060,
+      "normal": 1890,
       "physical": 756,
-      "point": 4848,
+      "point": 4514,
       "point_support": 4,
       "position": 676,
       "ref": 360,
@@ -376,17 +375,14 @@
       "rotations": 4,
       "section": 727,
       "sections": 1,
-      "slab": 48,
-      "slab_part": 48,
       "steel": 1,
       "supporting_structures": 217,
       "supports": 1,
       "surface_load": 217,
       "tension": 18,
-      "thickness": 48,
       "truss_behaviour": 18,
       "user_defined_filter": 10,
-      "x_axis": 28
+      "x_axis": 22
     }
   }
 }

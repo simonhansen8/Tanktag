@@ -313,7 +313,6 @@ svg.lgsup.hold { stroke: var(--primer); }
 .drawing svg line, .drawing svg polyline, .drawing svg polygon, .drawing svg circle, .drawing svg rect { vector-effect: non-scaling-stroke; }
 .drawing svg.section { max-width: 900px; }
 .d-shell { stroke: var(--c-shell); fill: none; }
-.d-svob path { fill: var(--c-edge); fill-opacity: 0.18; stroke: var(--c-edge); stroke-opacity: 0.6; }
 .d-radial { stroke: var(--c-radial); }
 .d-ring { stroke: var(--c-ring); }
 .d-udv { stroke: var(--c-udv); }
@@ -863,7 +862,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <label class="check"><input type="checkbox" id="liftOn" data-key="liftOn"> <span>Løft taget</span></label>
         </div>
         <fieldset class="sub" id="liftFields">
-          <p class="hint">Taget løftes i fire symmetriske punkter langs kantbjælken med 90° imellem. Understøtningerne ved svøbet erstattes af de fire løftepunkter, og kun stålets egenlast er med: konstruktionens egenvægt og svøbpladen (FEM-Design regner den selv) og tagpladen, hvis den er med. Øvrige laster og lastkombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares. Svøbpladen ligger under kantbjælken som lodrette skalflader med den valgte højde, så kantbjælken virker i fuld højde.</p>
+          <p class="hint">Taget løftes i fire symmetriske punkter langs kantbjælken med 90° imellem. Understøtningerne ved svøbet erstattes af de fire løftepunkter, og kun stålets egenlast er med: konstruktionens egenvægt inkl. svøbpladen i kantbjælken (FEM-Design regner den selv) og tagpladen, hvis den er med. Øvrige laster og lastkombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares. Svøbpladen lægges ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt.</p>
           <div class="row">
             <div class="field">
               <label class="lbl" for="liftNode">Første løftepunkt</label>
@@ -893,7 +892,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           </div>
           <label class="check"><input type="checkbox" id="liftPlate" data-key="liftPlate"> <span>Tagpladens egenvægt med <span class="hint">(tykkelsen under Laster › Egenlast)</span></span></label>
           <p class="calc" id="liftCalc"></p>
-          <p class="hint">Første løftepunkt skrives med navnet fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Antallet af radialbjælker skal være deleligt med 4. »Lodret + 3 vandrette« holder taget lodret i alle fire punkter og vandret som ved Kun lodret (X i ét punkt og Y i to), så taget er statisk bestemt vandret og ikke får tvang fra løftet. »Fastholdt« holder alle fire punkter i alle retninger. Svøbpladens højde 0 giver ingen svøbplade. Kombinationerne er »Løft« (brud, med faktoren) og »Løft, karakteristisk« (anvendelse, faktor 1).</p>
+          <p class="hint">Første løftepunkt skrives med navnet fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Antallet af radialbjælker skal være deleligt med 4. »Lodret + 3 vandrette« holder taget lodret i alle fire punkter og vandret som ved Kun lodret (X i ét punkt og Y i to), så taget er statisk bestemt vandret og ikke får tvang fra løftet. »Fastholdt« holder alle fire punkter i alle retninger. Det kræver kantring af T-profil (T eller svejst T). Svøbpladens højde 0 giver kantbjælken uden svøb. Kombinationerne er »Løft« (brud, med faktoren) og »Løft, karakteristisk« (anvendelse, faktor 1).</p>
         </fieldset>
       </section>
 
@@ -2038,6 +2037,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var p = profileParts(key);
     if (p && lib && p.family === 'TS') return weldedTSection(p.size);
     if (p && lib && p.family === 'CS') return weldedCSection(p.size);
+    if (p && lib && p.family === 'KB') return edgeShellSection(lib, p.size);
     if (!p || !lib || !lib.sections[p.family]) return null;
     var rows = lib.sections[p.family];
     for (var i = 0; i < rows.length; i++) {
@@ -2107,6 +2107,53 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var P = [[x0, -yt], [x2, -yt], [x2, -yi], [x1, -yi], [x1, yi], [x2, yi], [x2, yt], [x0, yt]];
     return { family: 'CS', size: String(size), area: area, h: hw + 2 * tf, b: bf, xml: plateSectionXml('Svejst C', size, P) };
   }
+  // løftesimulering: kantbjælken med svøbpladen under (familie KB), størrelse "T|120#1000*8" = kantbjælkens profil
+  // (T eller svejst T) + svøbpladens højde * tykkelse i mm. Pladen sidder midt under T'ets krop, så tværsnittet får
+  // den fulde højde h + svøbpladens højde. Omridset er T'ets eget omrids (buerne som korte linjer), skåret 3 mm over
+  // krops spids og forlænget med pladen, flyttet så origo ligger i det nye tyngdepunkt. Skrives som svejst brugertværsnit.
+  var KB_RE = /^(.+)#(\d+(?:\.\d+)?)\*(\d+(?:\.\d+)?)$/;
+  function edgeShellKey(prof, h, t) { return 'KB|' + prof + '#' + fmt(h) + '*' + fmt(t); }
+  function edgeShellSection(lib, size) {
+    var m = KB_RE.exec(String(size));
+    if (!m) return null;
+    var baseKey = m[1], pp = profileParts(baseKey), hs = Number(m[2]) / 1000, ts = Number(m[3]) / 1000;
+    if (!pp || (pp.family !== 'T' && pp.family !== 'TS') || !(hs > 0 && ts > 0)) return null;
+    var base = findSection(lib, baseKey);
+    if (!base) return null;
+    var rings = sectionOutline(base.xml);
+    if (rings.length !== 1) return null;
+    var P = rings[0], yMin = Infinity;
+    P.forEach(function (q) { yMin = Math.min(yMin, q[1]); });
+    var yCut = yMin + 0.003;
+    // omridset skåret til y ≥ yCut (halvplan); den nye kant langs y = yCut gennemløbes fra venstre mod højre (mod uret)
+    var Q = [], cutAt = -1;
+    for (var i = 0; i < P.length; i++) {
+      var a = P[i], b = P[(i + 1) % P.length], ina = a[1] >= yCut, inb = b[1] >= yCut;
+      if (ina) Q.push(a);
+      if (ina !== inb) {
+        var x = a[0] + (b[0] - a[0]) * (yCut - a[1]) / (b[1] - a[1]);
+        Q.push([x, yCut]);
+        if (ina) cutAt = Q.length - 1;   // går ned under snittet: herfra følger pladen
+      }
+    }
+    if (cutAt < 0) return null;
+    var w = ts / 2, yb = yMin - hs;
+    Q.splice(cutAt + 1, 0, [-w, yCut], [-w, yb], [w, yb], [w, yCut]);
+    // dobbeltpunkter væk (når pladen er lige så bred som kroppen ved snittet)
+    Q = Q.filter(function (q, k) { var r = Q[(k + 1) % Q.length]; return Math.abs(q[0] - r[0]) > 1e-9 || Math.abs(q[1] - r[1]) > 1e-9; });
+    // areal og tyngdepunkt (shoelace), og origo flyttet til tyngdepunktet
+    var A = 0, cx = 0, cy = 0;
+    for (var k = 0; k < Q.length; k++) {
+      var p0 = Q[k], p1 = Q[(k + 1) % Q.length], c = p0[0] * p1[1] - p1[0] * p0[1];
+      A += c; cx += (p0[0] + p1[0]) * c; cy += (p0[1] + p1[1]) * c;
+    }
+    A /= 2; cx /= 6 * A; cy /= 6 * A;
+    if (!(A > 0)) return null;
+    Q = Q.map(function (q) { return [q[0] - cx, q[1] - cy]; });
+    var label = String(pp.family === 'TS' ? 'T ' + pp.size + ' svejst' : 'T ' + pp.size) + ' + svøb ' + fmt(hs * 1000) + '*' + fmt(ts * 1000);
+    return { family: 'KB', size: String(size), area: A, h: base.h + hs, b: base.b, xml: plateSectionXml('Kantbjælke', label, Q) };
+  }
+
   // biblioteket med de svejste C- og T-profiler som egne familier lige efter UAP og T (til profilvælgeren)
   function addBuiltSections(lib) {
     var out = {};
@@ -2656,6 +2703,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!(p.liftShellH >= 0 && p.liftShellH <= 20000)) liftErrors.push('Løft: svøbpladens højde skal ligge mellem 0 og 20000 mm.');
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
+      if (p.liftShellH > 0) {
+        var lpp = profileParts(p.profEdge);
+        if (!p.edgeRing) liftErrors.push('Løft: svøbpladen lægges i kantbjælkens tværsnit. Slå »Kantring langs svøbet« til, eller sæt svøbpladens højde til 0.');
+        else if (!lpp || (lpp.family !== 'T' && lpp.family !== 'TS')) liftErrors.push('Løft: svøbpladen kan kun lægges under en kantbjælke af T-profil (T eller svejst T).');
+      }
       if (!liftErrors.length) {
         supports = [];
         for (var lk = 0; lk < 4; lk++) {
@@ -2742,18 +2794,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       });
       holdDeterminate = true;
     }
-    // løftesimulering: svøbpladen under kantbjælken som lodrette skalflader (wall) med den valgte højde, én flade
-    // mellem hver to knuder langs svøbet (KS.i, KSM.i, KS.i+1), så kantbjælken og pladen virker sammen i fuld højde
-    var shellPlates = [];
-    if (p.liftOn && !liftErrors.length && p.liftShellH > 0) {
-      var hS = p.liftShellH / 1000, downS = [0, 0, -hS], nS = 0;
-      for (var iS = 0; iS < n; iS++) {
-        var ptsS = p.secOn ? [P(R, iS), Cpt(iS), P(R, iS + 1)] : [P(R, iS), P(R, iS + 1)];
-        for (var kS = 0; kS < ptsS.length - 1; kS++) {
-          var aS = ptsS[kS], bS = ptsS[kS + 1];
-          shellPlates.push({ name: 'SVOB.' + (++nS), t: p.liftShellT / 1000, h: hS, pts: [aS, bS, vadd(bS, downS), vadd(aS, downS)] });
-        }
-      }
+    // løftesimulering: kantbjælken får svøbpladen med i tværsnittet (et T med forlænget krop), så den virker i fuld højde
+    var liftEdge = null;
+    if (p.liftOn && !liftErrors.length && p.liftShellH > 0 && edgeM.length) {
+      liftEdge = edgeShellKey(p.profEdge, p.liftShellH, p.liftShellT);
+      members.forEach(function (mb) { if (mb.group === 'edge') mb.prof = liftEdge; });
     }
     // lastfordelingsflader
     var covers = [];
@@ -2877,9 +2922,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       brace: { lines: braceLines.length, valid: braceValid, members: nBrace, repeat: rep }
     };
 
-    if (p.liftOn && !liftErrors.length) info.lift = { nodes: liftNodes, support: p.liftSupport, plates: shellPlates.length };
+    if (p.liftOn && !liftErrors.length) info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge };
     return {
-      params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers, shellPlates: shellPlates,
+      params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers,
       info: info, zOf: zOf, braceErrors: braceErrors, holdErrors: holdErrors, bracePoints: bracePoints, braceLines: braceLines,
       braceLineOk: lineRefs.map(function (x) { return !!x; })
     };
@@ -3885,7 +3930,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     Object.keys(groupProf).forEach(function (g) {
       if (!geom.members.some(function (m) { return m.group === g; })) return;
       if (g === 'udv') { for (var k = 1; k <= geom.info.radii.length; k++) profKeys.push(udvProfileOf(p, k)); }
-      else profKeys.push(groupProf[g]);
+      else geom.members.forEach(function (m) { if (m.group === g && profKeys.indexOf(m.prof || groupProf[g]) < 0) profKeys.push(m.prof || groupProf[g]); });
     });
     var usedSections = {}, sectionOrder = [], secByKey = {};
     profKeys.forEach(function (key) {
@@ -3894,7 +3939,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       // men med den stærke akse om lokal y. FEM-Designs ståldimensionering regner ikke et rektangel med stærk akse om z.
       var fl = profileParts(key), turned = !!fl && fl.family === 'FL';
       var s = findSection(lib, turned ? 'FLS|' + fl.size : key);
-      if (!s) throw new Error('Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
+      if (!s) throw new Error(fl && fl.family === 'KB' ? 'Kantbjælken med svøbpladen kunne ikke laves af profilet ' + fl.size.split('#')[0].replace('|', ' ') + '.' :
+        'Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
       var sg = attr(s.xml, 'guid');
       if (!usedSections[sg]) { usedSections[sg] = s; sectionOrder.push(sg); }
       s.guid = sg;
@@ -4002,25 +4048,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I3 + '</bar_part>');
       L.push(I3 + '<end/>');
       L.push(I2 + '</bar>');
-    });
-
-    // løftesimulering: svøbpladen som lodrette skalflader under kantbjælken
-    (geom.shellPlates || []).forEach(function (pl) {
-      var Q = pl.pts, lx = unit(vsub(Q[1], Q[0])), ly = unit(vsub(Q[3], Q[0])), nz = cross(lx, ly);
-      L.push(I2 + '<slab name="' + pl.name + '" type="wall" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
-      L.push(I3 + '<slab_part guid="' + newGuid() + '" last_change="' + stamp + '" action="added" name="' + pl.name + '.1" complex_material="' +
-        matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="0">');
-      L.push(I4 + '<contour>');
-      for (var k = 0; k < Q.length; k++) L.push(I5 + '<edge type="line">' + pt('point', Q[k]) + pt('point', Q[(k + 1) % Q.length]) + pt('normal', nz) + '</edge>');
-      L.push(I4 + '</contour>');
-      L.push(I4 + '<thickness x="' + fmt(Q[0][0]) + '" y="' + fmt(Q[0][1]) + '" z="' + fmt(Q[0][2]) + '" val="' + fmt(pl.t) + '"/>');
-      L.push(I4 + pt('local_pos', Q[0]));
-      L.push(I4 + pt('local_x', lx));
-      L.push(I4 + pt('local_y', ly));
-      L.push(I4 + '<end/>');
-      L.push(I3 + '</slab_part>');
-      L.push(I3 + '<end/>');
-      L.push(I2 + '</slab>');
     });
 
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
@@ -4232,7 +4259,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
     weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections,
-    BUCKLING: BUCKLING, BUCKLING_UNIT: BUCKLING_UNIT, bucklingBetas: bucklingBetas
+    BUCKLING: BUCKLING, BUCKLING_UNIT: BUCKLING_UNIT, bucklingBetas: bucklingBetas, edgeShellKey: edgeShellKey
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -7362,6 +7389,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (fam === 'FL' || fam === 'FLS') return 'FL ' + sizeLabel(size) + (fam === 'FL' ? ' liggende' : ' stående');
     if (fam === 'TS') return 'T ' + sizeLabel(size).replace('+', ' + ') + ' svejst';
     if (fam === 'CS') return 'C ' + sizeLabel(size).replace('+', ' + ') + ' svejst';
+    if (fam === 'KB') { var kb = size.split('#'); return profLabel(kb[0]) + ' + svøb ' + sizeLabel(kb[1] || ''); }
     var famShort = fam === 'LE' || fam === 'LU' ? 'L' : fam;
     return famShort + ' ' + sizeLabel(size);
   }
@@ -7606,21 +7634,20 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     }
     var lift = '';
     if (p.liftOn && !g.errors.length && g.info.lift) {
-      var lw = { plate: 0, shell: 0, steel: null };
+      var lw = { plate: 0, steel: null };
       var dc = ok ? L.cases.filter(function (c) { return c.key === 'dead'; })[0] : null;
       if (dc) lw.plate = dc.Fz;
-      (g.shellPlates || []).forEach(function (pl) {
-        lw.shell += TR.memberLength({ start: pl.pts[0], end: pl.pts[1] }) * pl.h * pl.t * 78.5;
-      });
       if (LIB) {
         var lq = TR.quantities(g, LIB), lm = 0;
         Object.keys(lq).forEach(function (k) { lm += lq[k].mass || 0; });
         lw.steel = lm * 9.81 / 1000;
       }
+      var le = g.info.lift.edgeProfile, ls = le && LIB ? TR.findSection(LIB, le) : null;
       lift = 'Løftepunkter: ' + esc(g.info.lift.nodes.join(', ')) +
-        '<br>Konstruktionen ' + (lw.steel === null ? '–' : '≈ ' + nf(lw.steel, 1) + ' kN') + ' · svøbplade ≈ ' + nf(lw.shell, 1) + ' kN · tagplade ≈ ' + nf(lw.plate, 1) + ' kN';
+        (le ? '<br>Kantbjælke ' + esc(profLabel(le)) + (ls ? ': A = ' + nf(ls.area * 1e4, 1) + ' cm², h = ' + nf(ls.h * 1000, 0) + ' mm' : ' – tværsnittet kunne ikke laves') : '') +
+        '<br>Konstruktionen inkl. svøb ' + (lw.steel === null ? '–' : '≈ ' + nf(lw.steel, 1) + ' kN') + ' · tagplade ≈ ' + nf(lw.plate, 1) + ' kN';
       if (lw.steel !== null) {
-        var lt = lw.steel + lw.shell + lw.plate;
+        var lt = lw.steel + lw.plate;
         lift += '<br>I alt ≈ ' + nf(lt, 1) + ' kN, ≈ ' + nf(lt / 4, 1) + ' kN pr. løftepunkt (karakteristisk, ved jævn fordeling)';
       }
     }
@@ -8277,17 +8304,6 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       out.push(lineEl('', P([R * Math.cos(a), R * Math.sin(a), z0]), P([R * Math.cos(a), R * Math.sin(a), z0 - wall]), ' stroke-dasharray="4 5"'));
     }
     out.push('</g>');
-    // løftesimulering: svøbpladen under kantbjælken, bagerst først
-    if (g.shellPlates && g.shellPlates.length) {
-      var pls = g.shellPlates.map(function (pl) {
-        var c = vscale3(pl.pts.reduce(function (a, q) { return vadd3(a, q); }, [0, 0, 0]), 1 / pl.pts.length);
-        return { pl: pl, d: c[0] * f[0] + c[1] * f[1] + (c[2] - cz) * f[2] };
-      }).sort(function (a, b) { return a.d - b.d; });
-      out.push('<g class="d-svob" stroke-width="' + (0.8 * k).toFixed(2) + '">' + pls.map(function (it) {
-        return '<path d="M' + it.pl.pts.map(function (q) { var t = P(q); return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join('L') + 'Z"><title>' +
-          esc(it.pl.name + ' · svøbplade ' + nf(it.pl.h * 1000, 0) + ' × ' + nf(it.pl.t * 1000, 0) + ' mm') + '</title></path>';
-      }).join('') + '</g>');
-    }
     var items = g.members.map(function (m) {
       var mid = [(m.start[0] + m.end[0]) / 2, (m.start[1] + m.end[1]) / 2, (m.start[2] + m.end[2]) / 2 - cz];
       return { m: m, d: mid[0] * f[0] + mid[1] * f[1] + mid[2] * f[2] };
