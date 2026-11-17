@@ -1630,8 +1630,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </div>
         <div class="actions">
           <button type="button" class="btn small" id="btnCopyParams">Kopiér parametre</button>
-          <button type="button" class="btn small" id="btnImport">Indlæs fil</button>
-          <input type="file" id="fileImport" class="visually-hidden" accept=".struxml,.json,.xml,.txt" tabindex="-1">
+          <button type="button" class="btn small" id="btnSaveProject" title="Gem hele projektet i én fil: parametre, lastkombinationer, indlæste kræfter fra FEM-Design, valgte knuder, samlinger, skalmodel og øvrige indstillinger. Filen åbnes igen med Indlæs fil, også på en anden computer.">Gem projekt</button>
+          <button type="button" class="btn small" id="btnImport" title="Åbn en projektfil (.tanktag.json), eller hent parametrene fra en StruXML-fil eller en JSON-fil med parametre">Indlæs fil</button>
+          <input type="file" id="fileImport" class="visually-hidden" accept=".json,.struxml,.xml,.txt" tabindex="-1">
           <button type="button" class="btn primary" id="btnExport">Hent til FEM-Design</button>
         </div>
       </div>
@@ -10510,6 +10511,124 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (data) copyDoc(LD.text(data), LD.clipboardHtml(data), ldMsg, 'loadDocArea');
   });
 
+  // ---------- projektfil: hele projektet i én fil ----------
+  // Filen har format 'tanktag-projekt' og et versionsnummer. Den indeholder parametrene og alt det, siden ellers
+  // gemmer i browseren (indlæste kræfter, knudevalg, samlinger, skalmodel, forslag til kombinationer, visning).
+  // Nyere versioner af filen skal kunne læse ældre: tilføj felter, og læs manglende felter som standard.
+  var PROJECT_FORMAT = 'tanktag-projekt', PROJECT_VERSION = 1, PROJECT_FLASH = STORE_KEY + '-projekt-indlaest';
+  // nøgler i localStorage (efter STORE_KEY), som projektfilen fører med; andre nøgler med samme forspil kommer med i "ekstra"
+  var PROJECT_KEYS = { conn: '-conn', samlinger: '-conn-samlinger', connLabels: '-conn-labels', skal: '-skal', gen: '-gen', sup: '-sup', prof: '-prof', mid: '-mid' };
+  function projectData() {
+    var extra = {}, known = {};
+    Object.keys(PROJECT_KEYS).forEach(function (k) { known[STORE_KEY + PROJECT_KEYS[k]] = true; });
+    known[STORE_KEY] = true; known[PROJECT_FLASH] = true;
+    try {
+      for (var i = 0; i < window.localStorage.length; i++) {
+        var key = window.localStorage.key(i);
+        if (key && key.indexOf(STORE_KEY) === 0 && !known[key]) extra[key.slice(STORE_KEY.length)] = window.localStorage.getItem(key);
+      }
+    } catch (e) { /* ingen lagring – resten kommer fra hukommelsen */ }
+    var A = asg();
+    return {
+      format: PROJECT_FORMAT,
+      version: PROJECT_VERSION,
+      saved: new Date().toISOString(),
+      params: JSON.parse(JSON.stringify(params)),
+      conn: { F: conn.F, file: conn.file, sel: conn.sel.slice() },
+      samlinger: { names: A.names.slice(), sel: A.sel.map(function (l) { return l.slice(); }), roles: A.roles.slice(), seeded: A.seeded.slice() },
+      skal: Object.assign({}, shellSet),
+      gen: Object.assign({}, genSet),
+      view: { sup: showSup, prof: showProf, mid: !!bstate.mid, connLabels: conn.labels },
+      extra: extra
+    };
+  }
+  function isProject(o) { return !!(o && typeof o === 'object' && o.format === PROJECT_FORMAT); }
+  // parametre fra en fil: kun kendte nøgler, og ældre filer omregnes som ved Indlæs fil
+  function paramsFrom(obj) {
+    var next = Object.assign({}, TR.DEFAULTS);
+    Object.keys(TR.DEFAULTS).forEach(function (k) { if (k in obj && obj[k] !== null) next[k] = obj[k]; });
+    // filer fra før version 1.7 har radialbjælke 1 i vinklen – behold den drejning
+    if ('rotationDeg' in obj && !('secAxes' in obj)) next.secAxes = false;
+    // filer fra før version 1.10 havde ingen gangbro – læg ikke en ind
+    if ('loadsOn' in obj && !('walkOn' in obj)) next.walkOn = false;
+    next.combos = TR.normCombos(next.combos);
+    return next;
+  }
+  // projektets indhold som localStorage-nøgler (værdier som tekst), så siden kan genstartes med projektet
+  function projectStore(o) {
+    var st = {}, v = o.view || {};
+    st[STORE_KEY] = JSON.stringify(paramsFrom(o.params && typeof o.params === 'object' ? o.params : {}));
+    if (o.conn && typeof o.conn === 'object') st[STORE_KEY + PROJECT_KEYS.conn] = JSON.stringify({ F: o.conn.F || null, file: o.conn.file || '', sel: Array.isArray(o.conn.sel) ? o.conn.sel : [] });
+    if (o.samlinger && typeof o.samlinger === 'object') st[STORE_KEY + PROJECT_KEYS.samlinger] = JSON.stringify(o.samlinger);
+    if (o.skal && typeof o.skal === 'object') st[STORE_KEY + PROJECT_KEYS.skal] = JSON.stringify(o.skal);
+    if (o.gen && typeof o.gen === 'object') st[STORE_KEY + PROJECT_KEYS.gen] = JSON.stringify(o.gen);
+    if ('sup' in v) st[STORE_KEY + PROJECT_KEYS.sup] = v.sup === false ? '0' : '1';
+    if ('prof' in v) st[STORE_KEY + PROJECT_KEYS.prof] = v.prof === false ? '0' : '1';
+    if ('mid' in v) st[STORE_KEY + PROJECT_KEYS.mid] = v.mid === false ? '0' : '1';
+    if (v.connLabels === 'none' || v.connLabels === 'sel' || v.connLabels === 'all') st[STORE_KEY + PROJECT_KEYS.connLabels] = v.connLabels;
+    if (o.extra && typeof o.extra === 'object') Object.keys(o.extra).forEach(function (k) {
+      if (typeof o.extra[k] === 'string' && !((STORE_KEY + k) in st)) st[STORE_KEY + k] = o.extra[k];
+    });
+    return st;
+  }
+  function loadProject(o, name) {
+    var st = projectStore(o), newer = Number(o.version) > PROJECT_VERSION, ok = false;
+    try {
+      // fjern det nuværende projekt (fx kræfter fra et andet tag), og læg det nye i browseren
+      var old = [];
+      for (var i = 0; i < window.localStorage.length; i++) { var key = window.localStorage.key(i); if (key && key.indexOf(STORE_KEY) === 0) old.push(key); }
+      old.forEach(function (k) { window.localStorage.removeItem(k); });
+      Object.keys(st).forEach(function (k) { window.localStorage.setItem(k, st[k]); });
+      ok = Object.keys(st).every(function (k) { return window.localStorage.getItem(k) === st[k]; });
+      if (ok) window.localStorage.setItem(PROJECT_FLASH, JSON.stringify({ name: name, saved: o.saved || '', newer: newer }));
+    } catch (e) { ok = false; }
+    clearTimeout(saveTimer);
+    if (ok) { window.location.reload(); return; }
+    // browseren tillader ikke lagring: indlæs det vigtigste i hukommelsen, så længe siden er åben
+    cOpen = []; comboUndo = null; comboMsg(''); comboSig = '';
+    params = JSON.parse(st[STORE_KEY]);
+    if (o.conn && o.conn.F && Array.isArray(o.conn.F.combos) && Array.isArray(o.conn.F.ids) && o.conn.F.bars) { conn.F = o.conn.F; conn.file = String(o.conn.file || ''); } else { conn.F = null; conn.file = ''; }
+    conn.sel = o.conn && Array.isArray(o.conn.sel) ? o.conn.sel.map(String) : [];
+    conn.asg = null;
+    if (o.samlinger && typeof o.samlinger === 'object') {
+      var a = TC.newAssign(), s = o.samlinger;
+      for (var n = 0; n < TC.N_SAML; n++) {
+        if (Array.isArray(s.names)) a.names[n] = String(s.names[n] || '');
+        if (Array.isArray(s.sel) && Array.isArray(s.sel[n])) a.sel[n] = s.sel[n].map(String);
+        if (Array.isArray(s.roles) && Array.isArray(s.roles[n])) a.roles[n] = s.roles[n].map(String);
+      }
+      if (Array.isArray(s.seeded)) a.seeded = s.seeded.map(Number);
+      conn.asg = a;
+    }
+    if (o.skal && typeof o.skal === 'object') { shellSet = Object.assign({}, window.TankShell.DEFAULTS, o.skal); fillShell(); }
+    if (o.gen && typeof o.gen === 'object') { Object.assign(genSet, o.gen); genFill(); }
+    fillForm();
+    render();
+    addStatus('bad', '', 'Projektet er indlæst fra <span class="mono">' + esc(name) + '</span>, men browseren tillader ikke at gemme det, så det forsvinder, når siden lukkes. Gem projektet igen, før du lukker siden.');
+  }
+  $('btnSaveProject').addEventListener('click', function () {
+    var data, name = fileBase(TR.normalizeParams(params)) + '.tanktag.json';
+    try { data = JSON.stringify(projectData(), null, 1); } catch (e) {
+      addStatus('bad', 'Projektet kunne ikke gemmes: ' + (e && e.message ? e.message : e));
+      return;
+    }
+    if (directDownload(data, name, 'application/json')) {
+      addStatus('ok', '', 'Henter <span class="mono">' + esc(name) + '</span> med hele projektet' + (conn.F ? ', også de indlæste kræfter fra FEM-Design' : '') +
+        '. Åbn den igen med <b>Indlæs fil</b>, også på en anden computer.');
+    } else addStatus('bad', 'Browseren tillod ikke at gemme filen.');
+  });
+  // besked efter genstart med et indlæst projekt
+  try {
+    var flash = JSON.parse(window.localStorage.getItem(PROJECT_FLASH) || 'null');
+    window.localStorage.removeItem(PROJECT_FLASH);
+    if (flash && typeof flash === 'object') {
+      var when = flash.saved ? new Date(flash.saved) : null;
+      statusExtra = [ '<div class="msg ' + (flash.newer ? 'bad' : 'ok') + '" data-export="1">Projektet er indlæst fra <span class="mono">' + esc(flash.name || '') + '</span>' +
+        (when && !isNaN(when) ? ', gemt ' + esc(when.toLocaleString('da-DK', { dateStyle: 'short', timeStyle: 'short' })) : '') + '.' +
+        (flash.newer ? ' Filen er gemt med en nyere version af værktøjet, så noget kan mangle. Brug den nyeste version.' : '') + '</div>' ];
+    }
+  } catch (e) { /* ok */ }
+
   // ---------- indlæs ----------
   $('btnImport').addEventListener('click', function () { $('fileImport').click(); });
   $('fileImport').addEventListener('change', function () {
@@ -10524,13 +10643,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         addStatus('bad', 'Filen indeholder ingen parametre fra tanktag-generatoren.');
         return;
       }
-      var next = Object.assign({}, TR.DEFAULTS);
-      Object.keys(TR.DEFAULTS).forEach(function (k) { if (k in obj && obj[k] !== null) next[k] = obj[k]; });
-      // filer fra før version 1.7 har radialbjælke 1 i vinklen – behold den drejning
-      if ('rotationDeg' in obj && !('secAxes' in obj)) next.secAxes = false;
-      // filer fra før version 1.10 havde ingen gangbro – læg ikke en ind
-      if ('loadsOn' in obj && !('walkOn' in obj)) next.walkOn = false;
-      next.combos = TR.normCombos(next.combos);
+      if (isProject(obj)) { loadProject(obj, file.name); return; }
+      var next = paramsFrom(obj);
       cOpen = []; comboUndo = null; comboMsg(''); comboSig = '';
       params = next;
       storeParams();
