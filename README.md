@@ -42,6 +42,12 @@ Værktøjet er én selvstændig HTML-fil uden build-trin.
 
 Den eneste eksterne afhængighed er skrifttyperne fra Google Fonts; uden netværk falder siden tilbage til systemskrifter. Profilbiblioteket er indlejret i filen. Indstillingerne gemmes i browserens `localStorage`.
 
+## Gem og indlæs projekt
+
+Knappen *Gem projekt* over tegningen henter hele projektet som én fil (`….tanktag.json`): parametrene og lastkombinationerne, de indlæste kræfter fra FEM-Design, knudevalget til lastudtrækket, samling 1–7 med navne, knuder og stangroller, skalmodellens indstillinger, forslaget til lastkombinationer og visningsvalgene. *Indlæs fil* åbner projektfilen igen, også på en anden computer: det nuværende projekt i browseren erstattes, og siden genstartes med det indlæste. Tillader browseren ikke lagring, indlæses projektet kun, så længe siden er åben. *Indlæs fil* læser stadig også parametrene fra en StruXML-fil eller en JSON-fil fra *Kopiér parametre*.
+
+Filen har `format: "tanktag-projekt"` og et versionsnummer (`version`, nu 1). Nye felter skal kunne mangle i ældre filer, så de stadig kan indlæses; parametrene går gennem samme omregning af ældre filer som ved *Indlæs fil*. Andre nøgler i `localStorage`, der begynder med `tanktag-fd-params-v1`, kommer med i feltet `extra`, så nye indstillinger følger med, også før projektfilen kender dem.
+
 ## Struktur
 
 ```
