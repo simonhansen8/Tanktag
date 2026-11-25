@@ -7664,7 +7664,15 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         snow = 's = μ · C_e · C_t · s_k, C_e · C_t · s_k = ' + nf(L.snow.s0, 3) + ' kN/m²<br>' +
           'Krumt tag: h = ' + nf(sd.h, 2) + ' m, b = ' + nf(sd.b, 2) + ' m → μ3 = 0,2 + 10 h/b = ' + nf(sd.mu3, 3) +
           '<br>Jævn: μ = 0,8 → ' + nf(0.8 * L.snow.s0, 3) + ' kN/m²';
-        if (p.snowAsym) snow += '<br>Ensidig: ½μ3 = ' + nf(0.5 * sd.mu3, 3) + ' på luvsiden, μ3 = ' + nf(sd.mu3, 3) + ' på læsiden → op til ' + nf(sd.mu3 * L.snow.s0, 3) + ' kN/m²';
+        if (p.snowAsym) {
+          snow += '<br>Ensidig: ½μ3 = ' + nf(0.5 * sd.mu3, 3) + ' på luvsiden, μ3 = ' + nf(sd.mu3, 3) + ' på læsiden → profilets top ' + nf(sd.mu3 * L.snow.s0, 3) + ' kN/m²';
+          // hver flade (eller del ved skillelinjen) får middel-μ over sit areal, så den påførte last er lavere end profilets top
+          var ac = L.cases.filter(function (c) { return c.key === 'snowAsym'; })[0];
+          if (ac && ac.parts) {
+            var pmax = function (lee) { return Math.max.apply(null, [0].concat(ac.parts.filter(function (q) { return q.lee === lee; }).map(function (q) { return q.mu; }))); };
+            snow += '<br>Påført (middel-μ pr. flade): højst ' + nf(pmax(true) * L.snow.s0, 3) + ' kN/m² på læsiden, ' + nf(pmax(false) * L.snow.s0, 3) + ' kN/m² på luvsiden';
+          }
+        }
         if (sd.half) snow += '<br>Halvt tag: μ1 = ' + rng(m1a, m1b, 2) + ' på læsiden → ' + rng(m1a * L.snow.s0, m1b * L.snow.s0, 3) + ' kN/m², μ = ' + nf(sd.half.muW, 2) + ' på luvsiden → ' + nf(sd.half.muW * L.snow.s0, 3) + ' kN/m²';
       } else {
       snow = 's = μ1 · C_e · C_t · s_k, C_e · C_t · s_k = ' + nf(L.snow.s0, 3) + ' kN/m²<br>' +
