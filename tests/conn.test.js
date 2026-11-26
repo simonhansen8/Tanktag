@@ -166,6 +166,14 @@ test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark
   const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype' && r[5] === 'Kombination');
   assert.equal(head.length, 12, 'kun stangenderne og de seks kræfter, ingen N-, V- eller UR-kolonner');
   const data = rows.slice(rows.indexOf(head) + 1, rows.indexOf(head) + 1 + se.ends[1].length);
+  // den største kraft i hver af de seks kolonner markeres rød (betinget formatering i Kræfter 1, sheet2)
+  const parts = TC.unzip(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+  const k1 = new TextDecoder().decode(await TC.inflate(parts['xl/worksheets/sheet2.xml']));
+  const last = se.ends[1].length + 1;
+  ['G', 'H', 'I', 'J', 'K', 'L'].forEach((c) => {
+    assert.ok(k1.includes('<conditionalFormatting sqref="' + c + '2:' + c + last + '"><cfRule type="expression" dxfId="1"'), 'rød markering i kolonne ' + c);
+    assert.ok(k1.includes('ABS(' + c + '2)=MAX(MAX(' + c + '$2:' + c + '$' + last + '),-MIN(' + c + '$2:' + c + '$' + last + '))'));
+  });
   assert.ok(data.every((r) => r[2] === 'RB mod centrum'));
   const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig');
   assert.equal(ks7[6], se.ends[1].find((e) => e[0] === 'KS.7' && e[5] === '5 STR Sne, ensidig')[6]);
