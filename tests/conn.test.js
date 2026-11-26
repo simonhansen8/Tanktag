@@ -161,13 +161,10 @@ test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark
 
   const buf = await TC.samlingerXlsx(N, M, F.combos, asg);
   const rows = await TC.readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
-  assert.ok(rows.some((r) => r[0] === 'N_Rd'), 'fanen Samling 1 har eftervisningen');
-  assert.ok(rows.some((r) => r[0] === 'Samling 2: IPE 330 til ringbjælke'), 'fanen Samling 2');
-  assert.ok(rows.some((r) => r[0] === 'u(V_y,Rd, V_y,Ed)'), 'samling 2 eftervises for V_y,Ed');
-  assert.ok(rows.some((r) => r[0] === 'Samling 3: IPE 180 til tagkant'), 'fanen Samling 3');
-  assert.ok(rows.some((r) => r[0] === 'u(V_z,Rd, V_z,Ed)'), 'samling 3 eftervises for V_z,Ed');
+  assert.ok(rows.some((r) => r[0] === 'Tildeling af samlinger'), 'fanen Tildeling');
+  assert.ok(!rows.some((r) => r[0] === 'N_Rd' || /^Samling \d+:/.test(String(r[0]))), 'ingen eftervisning af samlingerne');
   const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype' && r[5] === 'Kombination');
-  assert.deepEqual(head.slice(12), ['Første', 'N_d [kN]', 'V_d [kN]', 'UR_N', 'UR_V', 'UR']);
+  assert.equal(head.length, 12, 'kun stangenderne og de seks kræfter, ingen N-, V- eller UR-kolonner');
   const data = rows.slice(rows.indexOf(head) + 1, rows.indexOf(head) + 1 + se.ends[1].length);
   assert.ok(data.every((r) => r[2] === 'RB mod centrum'));
   const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig');
