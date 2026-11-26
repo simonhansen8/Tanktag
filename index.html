@@ -7096,8 +7096,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // den største kraft (numerisk) i hver af de seks kolonner markeres med rød baggrund
     var cf = ends.length ? COMP_LABEL.map(function (c, k) {
       var col = colName(6 + k), r = col + '$2:' + col + '$' + last, mx = 'MAX(MAX(' + r + '),-MIN(' + r + '))';
-      // en kolonne, der kun er nul, markeres ikke
-      return { ref: col + '2:' + col + last, formula: 'AND(' + mx + '>0,ABS(' + col + '2)=' + mx + ')', dxf: 1 };
+      // en kolonne, der kun er nul (vist med tre decimaler), markeres ikke
+      return { ref: col + '2:' + col + last, formula: 'AND(ROUND(' + mx + ',3)>0,ABS(' + col + '2)=' + mx + ')', dxf: 1 };
     }) : [];
     return {
       name: 'Kræfter ' + n, rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9], cf: cf,
