@@ -6951,7 +6951,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
     '<xf numFmtId="1" fontId="1" fillId="3" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1"/>' +
     '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
-    '<dxfs count="1"><dxf><font><b/><color rgb="FFC00000"/></font></dxf></dxfs></styleSheet>';
+    '<dxfs count="2"><dxf><font><b/><color rgb="FFC00000"/></font></dxf>' +
+    '<dxf><font><b/><color rgb="FF9C0006"/></font><fill><patternFill patternType="solid"><bgColor rgb="FFFFC7CE"/></patternFill></fill></dxf></dxfs></styleSheet>';
 
   // et ark: rows = [[celle, ...], ...], celle = tal, tekst, {f: formel, s: format} eller {v: værdi, s: format}
   function sheetXml(sh) {
@@ -6977,7 +6978,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     });
     o.push('</sheetData>');
     (sh.cf || []).forEach(function (x, k) {
-      o.push('<conditionalFormatting sqref="' + x.ref + '"><cfRule type="' + (x.formula ? 'expression' : 'cellIs') + '" dxfId="0" priority="' + (k + 1) + '"' +
+      o.push('<conditionalFormatting sqref="' + x.ref + '"><cfRule type="' + (x.formula ? 'expression' : 'cellIs') + '" dxfId="' + (x.dxf || 0) + '" priority="' + (k + 1) + '"' +
         (x.formula ? '' : ' operator="greaterThan"') + '><formula>' + xmlEsc(x.formula || x.gt) + '</formula></cfRule></conditionalFormatting>');
     });
     if (sh.lists) o.push('<dataValidations count="' + sh.lists.length + '">' + sh.lists.map(function (x) {
@@ -7092,8 +7093,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     ends.forEach(function (e) {
       K.push(e.slice(0, 6).concat(e.slice(6).map(function (v) { return { v: v, s: XS.n3 }; })));
     });
+    // den største kraft (numerisk) i hver af de seks kolonner markeres med rød baggrund
+    var cf = ends.length ? COMP_LABEL.map(function (c, k) {
+      var col = colName(6 + k), r = col + '$2:' + col + '$' + last;
+      return { ref: col + '2:' + col + last, formula: 'ABS(' + col + '2)=MAX(MAX(' + r + '),-MIN(' + r + '))', dxf: 1 };
+    }) : [];
     return {
-      name: 'Kræfter ' + n, rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9],
+      name: 'Kræfter ' + n, rows: K, freeze: 2, widths: [9, 26, 16, 10, 7, 26, 9, 9, 9, 9, 9, 9], cf: cf,
       table: { name: 'Kraefter' + n, ref: 'A1:' + colName(END_HEAD.length - 1) + last, cols: END_HEAD.map(function (h) { return { name: h, calc: null }; }) }
     };
   }
