@@ -172,7 +172,8 @@ test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark
   const last = se.ends[1].length + 1;
   ['G', 'H', 'I', 'J', 'K', 'L'].forEach((c) => {
     assert.ok(k1.includes('<conditionalFormatting sqref="' + c + '2:' + c + last + '"><cfRule type="expression" dxfId="1"'), 'rød markering i kolonne ' + c);
-    assert.ok(k1.includes('ABS(' + c + '2)=MAX(MAX(' + c + '$2:' + c + '$' + last + '),-MIN(' + c + '$2:' + c + '$' + last + '))'));
+    const mx = 'MAX(MAX(' + c + '$2:' + c + '$' + last + '),-MIN(' + c + '$2:' + c + '$' + last + '))';
+    assert.ok(k1.includes('AND(' + mx + '&gt;0,ABS(' + c + '2)=' + mx + ')'), 'kun den største, og ikke når kolonnen er nul');
   });
   assert.ok(data.every((r) => r[2] === 'RB mod centrum'));
   const ks7 = data.find((r) => r[0] === 'KS.7' && r[5] === '5 STR Sne, ensidig');
