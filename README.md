@@ -74,7 +74,7 @@ npm run test:update  # skriv nyt facit efter en tilsigtet ændring
 - `tests/snapshots/<tag>.struxml.gz`: hele StruXML-filen med faste GUID'er og tidsstempel.
 - `tests/fixtures/endelaster.txt.gz`: en rigtig liste *Bars, End forces* fra FEM-Design for standardtaget. `tests/conn.test.js` læser den, kontrollerer at *Internal forces* og en dansk Excel-CSV giver det samme, og sammenligner de dimensionerende tilfælde med `tests/snapshots/samlinger-endelaster.csv`.
 
-Under Samlinger vælger fanerne over *Vælg knuder*, om knuderne vælges til lastudtrækket eller til en af samling 1–7, og planen viser de knuder, der er valgt til den aktive fane. For hver samling angives også, hvilke stænger i knuden den gælder for. *Hent samlinger (Excel)* henter ét Excel-ark med fanen *Tildeling* og for hver samling en fane *Kræfter n* med stangendernes kræfter i alle kombinationer. Selve samlingerne eftervises ikke i Tanktag eller i arket.
+Under Samlinger vælger fanerne over *Vælg knuder*, om knuderne vælges til lastudtrækket eller til en af samling 1–7, og planen viser de knuder, der er valgt til den aktive fane. For hver samling angives også, hvilke stænger i knuden den gælder for. *Hent samlinger (Excel)* henter ét Excel-ark med en fane *Kræfter n* pr. samling med stangendernes kræfter i alle kombinationer; den største kraft i hver kolonne er markeret med rødt. Selve samlingerne eftervises ikke i Tanktag eller i arket.
 
 Facit er kun så godt, som det er kontrolleret: tjek tallene mod håndberegning eller FEM-Design, før et nyt facit godkendes. Ændrede facitfiler i en PR viser præcis, hvad ændringen har flyttet. Testen kører automatisk på GitHub ved hver PR og push til `main`.
 

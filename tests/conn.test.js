@@ -161,14 +161,14 @@ test('samlinger: knuder og stænger valgt til hver samling, hentet som Excel-ark
 
   const buf = await TC.samlingerXlsx(N, M, F.combos, asg);
   const rows = await TC.readXlsx(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
-  assert.ok(rows.some((r) => r[0] === 'Tildeling af samlinger'), 'fanen Tildeling');
+  assert.ok(!rows.some((r) => r[0] === 'Tildeling af samlinger'), 'ingen fane Tildeling');
   assert.ok(!rows.some((r) => r[0] === 'N_Rd' || /^Samling \d+:/.test(String(r[0]))), 'ingen eftervisning af samlingerne');
   const head = rows.find((r) => r[0] === 'Knude' && r[1] === 'Knudetype' && r[5] === 'Kombination');
   assert.equal(head.length, 12, 'kun stangenderne og de seks kræfter, ingen N-, V- eller UR-kolonner');
   const data = rows.slice(rows.indexOf(head) + 1, rows.indexOf(head) + 1 + se.ends[1].length);
-  // den største kraft i hver af de seks kolonner markeres rød (betinget formatering i Kræfter 1, sheet2)
+  // den største kraft i hver af de seks kolonner markeres rød (betinget formatering i Kræfter 1, sheet1)
   const parts = TC.unzip(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
-  const k1 = new TextDecoder().decode(await TC.inflate(parts['xl/worksheets/sheet2.xml']));
+  const k1 = new TextDecoder().decode(await TC.inflate(parts['xl/worksheets/sheet1.xml']));
   const last = se.ends[1].length + 1;
   ['G', 'H', 'I', 'J', 'K', 'L'].forEach((c) => {
     assert.ok(k1.includes('<conditionalFormatting sqref="' + c + '2:' + c + last + '"><cfRule type="expression" dxfId="1"'), 'rød markering i kolonne ' + c);

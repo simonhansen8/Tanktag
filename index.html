@@ -7105,25 +7105,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     };
   }
 
-  // ét Excel-ark med alle samlinger: tildelingen og for hver samling stangenderne med kræfterne
+  // ét Excel-ark med en fane pr. samling med stangenderne og kræfterne
   function samlingerXlsx(nodeSet, M, combos, asg) {
     var se = samlingEnds(nodeSet, M, combos, asg), sheets = [];
-    var T = [
-      [{ v: 'Tildeling af samlinger', s: XS.title }],
-      [{ v: 'Hvilke stangender i hvilke knuder hver samling gælder for, som de er sat i Tanktag.', s: XS.note }],
-      ['Samling', 'Beskrivelse', 'Stangender', 'Fane'].map(function (h) { return { v: h, s: XS.th }; })
-    ];
     for (var n = 1; n <= N_SAML; n++) {
-      var cnt = se.list.filter(function (x) { return x[5] === n; }).length;
-      T.push([n, asg.names[n - 1] || '', cnt, se.ends[n].length ? 'Kræfter ' + n : '']);
-    }
-    T.push([]);
-    T.push(['Knude', 'Knudetype', 'Stang', 'Stang-id', 'Ende', 'Samling'].map(function (h) { return { v: h, s: XS.th }; }));
-    se.list.forEach(function (x) { T.push(x); });
-    sheets.push({ name: 'Tildeling', rows: T, first: true, widths: [10, 30, 18, 10, 8, 9] });
-    for (n = 1; n <= N_SAML; n++) {
       if (se.ends[n].length) sheets.push(forcesSheet(n, se.ends[n]));
     }
+    if (!sheets.length) sheets.push({ name: 'Kræfter', rows: [[{ v: 'Ingen knuder med kræfter er valgt til samlingerne.', s: XS.note }]] });
+    sheets[0].first = true;
     return xlsx(sheets);
   }
 
