@@ -1391,8 +1391,14 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
                 <select id="liftTieProf-size" aria-label="Profilstørrelse, trækstænger"></select>
               </div>
             </div>
+            <div class="row">
+              <div class="field">
+                <label class="lbl" for="liftTieE">E-modul <span class="unit">MPa</span></label>
+                <input class="num" type="text" inputmode="decimal" id="liftTieE" data-key="liftTieE" placeholder="stålets (210000)">
+              </div>
+            </div>
             <label class="check"><input type="checkbox" id="liftTieTension" data-key="liftTieTension"> <span>Kun træk <span class="hint">(intet tryk – kræver ikke-lineær beregning i FEM-Design)</span></span></label>
-            <p class="hint">Med trækstænger fjernes de vandrette fastholdelser (R og T) fra rækkerne herover, og knuderne forbindes i stedet med trækstænger af det valgte profil i knudernes kote: »På tværs« mellem modstående knuder gennem centrum, »Rundt« mellem naboknuderne hele vejen rundt. Lodrette fastholdelser og rotationer bliver. Stængerne skrives som gitterstænger (TS.1, TS.2, …). Trækstængerne holder ikke taget som et stift legeme, så ved »Lodret + manglende vandrette« tilføjes de fastholdelser, der så mangler, i løftepunkterne.</p>
+            <p class="hint">Med trækstænger fjernes de vandrette fastholdelser (R og T) fra rækkerne herover, og knuderne forbindes i stedet med trækstænger af det valgte profil i knudernes kote: »På tværs« mellem modstående knuder gennem centrum, »Rundt« mellem naboknuderne hele vejen rundt. Lodrette fastholdelser og rotationer bliver. Stængerne skrives som gitterstænger (TS.1, TS.2, …). Med et E-modul skrives de med en kopi af stålkvaliteten med det E (og G = E / 2(1 + ν)); tomt felt er stålets. Trækstængerne holder ikke taget som et stift legeme, så ved »Lodret + manglende vandrette« tilføjes de fastholdelser, der så mangler, i løftepunkterne.</p>
           </div>
           <p class="hint">»Jævnt fordelt« sætter det valgte antal understøtninger med lige stor afstand rundt langs kantbjælken fra den første knude; antallet skal gå op i antallet af knuder langs kantbjælken (radialbjælker, og med sektionsspær også KSM-knuderne), og rammer en af dem et løftepunkt, lægges den oven i løftepunktets fastholdelse. »Valgte knuder« sætter understøtninger i de knuder, der står i feltet, adskilt af komma; »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse. Ved »Lodret + manglende vandrette« bliver alle disse understøtninger, som de er, og der tilføjes kun det, der mangler for at holde taget vandret.</p>
         </fieldset>
@@ -1954,7 +1960,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
                                // i knudens lokale system (r radialt, t tangentielt, z lodret); k = fjederstivhed [kN/m], tom = stiv
     liftTies: 'none',          // trækstænger i stedet for de vandrette understøtninger fra rækkerne: 'none' | 'across' (modstående knuder) | 'ring' (nabo-knuder rundt)
     liftTieProf: 'FL|100*10',  // trækstængernes profil (gitterstænger)
-    liftTieTension: true,      // kun træk (sprød, intet tryk) – kræver ikke-lineær beregning i FEM-Design
+    liftTieTension: true,
+    liftTieE: '',              // trækstængernes E-modul [MPa]; tom = stålets (skrives som en kopi af stålkvaliteten med dette E)      // kun træk (sprød, intet tryk) – kræver ikke-lineær beregning i FEM-Design
     liftEdgeModel: 'bar',      // kantbjælken i løftet: 'bar' (profil, evt. med svøbpladen i tværsnittet) | 'shell' (stålskaller: flange, krop og svøb)
     liftShellH: 1000,          // højden af svøbpladen under kantbjælken [mm] (0 = ingen svøbplade)
     liftShellT: 8,             // svøbpladens tykkelse [mm]
@@ -2487,6 +2494,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.liftTies = q.liftTies === 'across' || q.liftTies === 'ring' ? q.liftTies : 'none';
     q.liftTieTension = q.liftTieTension !== false && q.liftTieTension !== 'false';
     q.liftTieProf = jsString(q.liftTieProf) || 'FL|100*10';
+    q.liftTieE = q.liftTieE === null || q.liftTieE === undefined || String(q.liftTieE).trim() === '' ? '' : toNum(q.liftTieE);
     q.liftHolds = normLiftHolds(q.liftHolds);
     return q;
   }
@@ -2908,6 +2916,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
       if (p.liftTies !== 'none' && !profileParts(p.liftTieProf)) liftErrors.push('Løft: vælg et profil til trækstængerne.');
+      if (p.liftTies !== 'none' && p.liftTieE !== '' && !(p.liftTieE > 0 && p.liftTieE <= 1e7)) liftErrors.push('Løft: trækstængernes E-modul skal være større end 0 MPa (tom = stålets).');
       if (p.liftEdgeModel === 'shell') {
         var lps = profileParts(p.profEdge);
         if (!p.edgeRing) liftErrors.push('Løft: kantbjælken som stålskaller kræver »Kantring langs svøbet«.');
@@ -4282,6 +4291,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var mat = lib.materials[p.material];
     if (!mat) throw new Error('Materialet "' + p.material + '" findes ikke i biblioteket.');
     var matGuid = attr(mat, 'guid');
+    // trækstænger i løftet med eget E-modul: en kopi af stålkvaliteten med det valgte E (og G = E / 2(1 + ν))
+    var tieMat = null, tieMatGuid = matGuid;
+    if (p.liftOn && p.liftTieE !== '' && p.liftTieE > 0 && geom.members.some(function (m) { return m.group === 'tie'; }) &&
+        Math.abs(p.liftTieE - Number(attr(mat, 'Ek'))) > 1e-9) {
+      tieMatGuid = newGuid();
+      var nu = Number(attr(mat, 'nu')) || 0.3;
+      tieMat = setAttr(setAttr(setAttr(setAttr(mat, 'guid', tieMatGuid), 'name', attr(mat, 'name') + ' TS E' + fmt(p.liftTieE)),
+        'Ek', fmt(p.liftTieE)), 'G', fmt(Math.round(p.liftTieE / (2 * (1 + nu)))));
+    }
     // partialkoefficienter: _0 = vedvarende/midlertidig, _1 = ulykke
     mat = setAttr(mat, 'gammaM0_0', fmt(p.gammaM0));
     mat = setAttr(mat, 'gammaM1_0', fmt(p.gammaM1));
@@ -4350,7 +4368,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         // complex_section peger direkte på tværsnittet – FEM-Design kender ikke sammensatte tværsnit på gitterstænger.
         L.push(I2 + '<bar name="' + m.name + '" type="truss" guid="' + barGuid + '" last_change="' + stamp + '" action="added">');
         L.push(I3 + '<bar_part guid="' + partGuid + '" last_change="' + stamp + '" action="added" name="' + m.name +
-          '.1" complex_material="' + matGuid + '" made="' + s.made + '" complex_section="' + s.guid + '" ecc_calc="true">');
+          '.1" complex_material="' + (m.group === 'tie' ? tieMatGuid : matGuid) + '" made="' + s.made + '" complex_section="' + s.guid + '" ecc_calc="true">');
         L.push(I4 + '<curve type="line">');
         L.push(I5 + pt('point', m.start));
         L.push(I5 + pt('point', m.end));
@@ -4619,6 +4637,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     L.push(I1 + '</sections>');
     L.push(I1 + '<materials>');
     L.push(I2 + mat);
+    if (tieMat) L.push(I2 + tieMat);
     L.push(I1 + '</materials>');
     // brugerdefinerede filtre (højst 15 tegn i navnet): én pr. stangtype og én pr. udvekslingsring,
     // så hver type kan vises eller skjules for sig i FEM-Design. Medlemmerne er bar_part-guids.
@@ -7776,7 +7795,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var k = el.dataset.key;
       if (k === 'udvRadii' || k === 'windDirs') { el.setAttribute('aria-invalid', String(TR.parseRadii(el.value).some(function (r) { return !isFinite(r); }))); return; }
       var v = String(el.value).trim().replace(',', '.');
-      if ((k === 'walkRin' || k === 'walkRout' || k === 'snowAsymMu') && v === '') { el.setAttribute('aria-invalid', 'false'); return; }   // tomt = standardværdien
+      if ((k === 'walkRin' || k === 'walkRout' || k === 'snowAsymMu' || k === 'liftTieE') && v === '') { el.setAttribute('aria-invalid', 'false'); return; }   // tomt = standardværdien
       el.setAttribute('aria-invalid', String(v === '' || !isFinite(Number(v))));
     });
   }

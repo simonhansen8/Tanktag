@@ -937,3 +937,22 @@ test('løft: trækstænger af fladstål i stedet for de vandrette understøtning
   // uden trækstænger er alt som før
   assert.equal(ties(geo({})).length, 0);
 });
+
+test('løft: trækstængernes E-modul', () => {
+  const base = { liftOn: true, liftShellH: 0, secAxes: false, liftTies: 'across', liftHolds: [{ even: true, count: 8, start: 'KS.1', r: true }] };
+  const geo = (o) => TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, base, o)));
+  const g = geo({ liftTieE: '100000' });
+  assert.deepEqual(g.errors, []);
+  const xml = TR.buildStruxml(g.params, LIB, { geometry: g });
+  const mats = [...xml.matchAll(/<material guid="([^"]+)"[^>]*name="([^"]+)"><steel[^>]*Ek="([^"]+)"[^>]*G="([^"]+)"/g)];
+  assert.equal(mats.length, 2);
+  const tm = mats.find((m) => m[3] === '100000');
+  assert.ok(tm && /TS E100000/.test(tm[2]) && tm[4] === '38462');
+  // kun trækstængerne bruger den
+  const uses = [...xml.matchAll(/<bar name="([^"]+)"[^>]*>\s*<bar_part[^>]*complex_material="([^"]+)"/g)].filter((m) => m[2] === tm[1]).map((m) => m[1]);
+  assert.deepEqual(uses, ['TS.1', 'TS.2', 'TS.3', 'TS.4']);
+  // tom = stålets: ingen ekstra materiale
+  const x0 = TR.buildStruxml(geo({}).params, LIB, { geometry: geo({}) });
+  assert.equal((x0.match(/<material guid=/g) || []).length, 1);
+  assert.ok(geo({ liftTieE: '-5' }).errors.some((e) => /E-modul/.test(e)));
+});
