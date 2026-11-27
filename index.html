@@ -237,6 +237,12 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .holdrow .hd input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
 .liftholds .holdrow { grid-template-columns: minmax(0, 1fr) 64px 32px; }
 .liftholds .holdrow .hd { grid-column: 1 / 3; grid-row: 2; justify-self: start; }
+.liftholds .evn { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.liftholds .evn input { min-height: 32px; padding: 4px 9px; font-family: var(--f-data); font-size: 0.85rem; min-width: 0; }
+.liftholds .evn input[type="number"] { width: 64px; flex: none; }
+.liftholds .evn input[type="text"] { flex: 1 1 72px; width: 72px; }
+.liftholds .evn span { font-size: 0.8rem; color: var(--ink-2); white-space: nowrap; }
+.liftholds .evn input[aria-invalid="true"] { border-color: var(--bad); }
 .liftholds .holdrow + .holdrow { border-top: 1px solid var(--rule); padding-top: 6px; }
 .holdrow .hd span { display: block; min-width: 30px; padding: 6px 5px; text-align: center; font-family: var(--f-data); font-size: 0.78rem; color: var(--ink-2); }
 .holdrow .hd input:checked + span { background: var(--ink); color: var(--sheet); font-weight: 500; }
@@ -1363,16 +1369,24 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <fieldset class="sub" id="liftSupFields">
           <div class="holdlist liftholds" id="liftHoldList" role="group" aria-label="Understøtninger langs kantbjælken i løftet"></div>
           <div class="tools">
-            <button type="button" class="btn small" id="liftHoldAdd">Tilføj række</button>
+            <button type="button" class="btn small" id="liftHoldEven">Jævnt fordelt</button>
+            <button type="button" class="btn small" id="liftHoldAdd">Valgte knuder</button>
             <button type="button" class="btn small" id="liftHoldRadial">Radialt i alle knuder</button>
           </div>
-          <p class="hint">Hver række sætter understøtninger i de knuder langs kantbjælken, der står i feltet, adskilt af komma. »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse (ved »Kun lodret« eller »Fastholdt«).</p>
+          <p class="hint">»Jævnt fordelt« sætter det valgte antal understøtninger med lige stor afstand rundt langs kantbjælken fra den første knude; antallet skal gå op i antallet af knuder langs kantbjælken (radialbjælker, og med sektionsspær også KSM-knuderne), og rammer en af dem et løftepunkt, lægges den oven i løftepunktets fastholdelse (ved »Lodret + 3 vandrette« springes løftepunkterne over). »Valgte knuder« sætter understøtninger i de knuder, der står i feltet, adskilt af komma; »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse (ved »Kun lodret« eller »Fastholdt«).</p>
         </fieldset>
       </section>
 
       <section class="group" aria-labelledby="g-liftshell">
-        <h2 id="g-liftshell">Svøbplade i kantbjælken</h2>
+        <h2 id="g-liftshell">Kantbjælke og svøbplade</h2>
         <fieldset class="sub" id="liftShellFields">
+          <div class="field">
+            <span class="lbl">Kantbjælken i FEM-Design</span>
+            <div class="seg" role="radiogroup" aria-label="Kantbjælkens model">
+              <label><input type="radio" name="liftEdgeModel" value="bar" data-key="liftEdgeModel"><span>Profil</span></label>
+              <label><input type="radio" name="liftEdgeModel" value="shell" data-key="liftEdgeModel"><span>Stålskaller</span></label>
+            </div>
+          </div>
           <div class="row">
             <div class="field">
               <label class="lbl" for="liftShellH">Svøbpladens højde <span class="unit">mm</span></label>
@@ -1383,7 +1397,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
               <input class="num" type="text" inputmode="decimal" id="liftShellT" data-key="liftShellT">
             </div>
           </div>
-          <p class="hint">Svøbpladen lægges ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt. Det kræver kantring af T-profil (T eller svejst T). Højden 0 giver kantbjælken uden svøb.</p>
+          <p class="hint">Som <b>stålskaller</b> skrives kantbjælken som plader i stedet for stænger: flangen som vandrette plader i sin midterflade, kroppen og svøbpladen som lodrette plader under den, langs hvert stykke af kantbjælken mellem knuderne. Kroppen og svøbet deles i knudernes kote (tværsnittets tyngdepunkt, som i profilmodellen), så radialbjælkerne og understøtningerne ender på en pladekant. Flangens tykkelse sættes, så pladerne har profilets areal. Lastfordelingsfladerne bæres af flangepladerne. Tegningerne her viser stadig kantbjælken som profil.</p>
+          <p class="hint">Som <b>profil</b> lægges svøbpladen ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt. Det kræver kantring af T-profil (T eller svejst T). Højden 0 giver kantbjælken uden svøb.</p>
         </fieldset>
       </section>
       </div>
@@ -1916,6 +1931,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     liftSupport: 'vertical',   // 'vertical' (lodret + tre vandrette fastholdelser, statisk bestemt) | 'zOnly' (kun lodret) | 'pinned' (fastholdt i alle retninger)
     liftHolds: [],             // ekstra understøtninger langs kantbjælken i løftet: [{ nodes: 'alle' | 'KS.2, KS.3', z, r, t, rr, rt, rz, k }]
                                // i knudens lokale system (r radialt, t tangentielt, z lodret); k = fjederstivhed [kN/m], tom = stiv
+    liftEdgeModel: 'bar',      // kantbjælken i løftet: 'bar' (profil, evt. med svøbpladen i tværsnittet) | 'shell' (stålskaller: flange, krop og svøb)
     liftShellH: 1000,          // højden af svøbpladen under kantbjælken [mm] (0 = ingen svøbplade)
     liftShellT: 8,             // svøbpladens tykkelse [mm]
     liftPlate: true,           // tagpladens egenvægt (plateT) med i egenlasten
@@ -2050,6 +2066,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var o = { nodes: jsString(h.nodes) };
       LIFT_HOLD_DIRS.forEach(function (k) { o[k] = h[k] === true || h[k] === 'true'; });
       o.k = h.k === null || h.k === undefined ? '' : String(h.k);
+      if (h.even === true || h.even === 'true') {   // jævnt fordelt: antal og første knude i stedet for en liste
+        o.even = true;
+        o.count = h.count === null || h.count === undefined ? '' : String(h.count);
+        o.start = h.start === null || h.start === undefined || String(h.start).trim() === '' ? 'KS.1' : String(h.start);
+      }
       out.push(o);
     });
     return out;
@@ -2226,6 +2247,64 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return { family: 'KB', size: String(size), area: A, h: base.h + hs, b: base.b, xml: plateSectionXml('Kantbjælke', label, Q) };
   }
 
+
+  // løftesimulering med kantbjælken som stålskaller: T-profilets flange og krop og svøbpladen under kroppen som plader
+  // langs hvert stykke af kantbjælken (kanterne følger korderne, så taget bliver et facetteret cylinderafsnit).
+  // Højderne regnes fra tværsnittets tyngdepunkt (med svøbpladen), som er knudernes kote ligesom i bjælkemodellen.
+  // Kroppen og svøbet deles i knudens kote, så radialbjælkerne og understøtningerne ender på en pladekant.
+  // Flangen ligger i sin midterflade med bredden b, geringet i knuderne, så nabopladerne mødes.
+  function edgeShellDims(lib, p) {
+    var base = findSection(lib, p.profEdge);
+    if (!base) throw new Error('Profilet "' + String(p.profEdge).replace('|', ' ') + '" findes ikke i biblioteket.');
+    var rings = sectionOutline(base.xml);
+    if (rings.length !== 1) throw new Error('Kunne ikke læse omridset af kantbjælkens profil ' + String(p.profEdge).replace('|', ' ') + '.');
+    var P = rings[0], yTop = -Infinity, yMin = Infinity;
+    P.forEach(function (q) { yTop = Math.max(yTop, q[1]); yMin = Math.min(yMin, q[1]); });
+    var width = function (y) {   // bredden af omridset i højden y
+      var xs = [];
+      for (var i = 0; i < P.length; i++) {
+        var a = P[i], b = P[(i + 1) % P.length];
+        if ((a[1] - y) * (b[1] - y) < 0) xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]));
+      }
+      xs.sort(function (u, v) { return u - v; });
+      var w = 0;
+      for (var k = 0; k + 1 < xs.length; k += 2) w += xs[k + 1] - xs[k];
+      return w;
+    };
+    var h = yTop - yMin, b = base.b, tw = width(yMin + 0.3 * h);
+    // flangens tykkelse ud fra arealet, så skallerne har samme areal som profilet: A = b·tf + tw·(h − tf)
+    var tf = (base.area - tw * h) / (b - tw);
+    if (!(tw > 0 && tw < b && tf > 0 && tf < h)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(p.profEdge).replace('|', ' ') + '.');
+    var hs = p.liftShellH > 0 ? p.liftShellH / 1000 : 0, ts = hs > 0 ? p.liftShellT / 1000 : 0;
+    var As = hs * ts, yc = As > 0 ? As * (yMin - hs / 2) / (base.area + As) : 0;   // tyngdepunktet med svøbpladen (T'ets i 0)
+    return { b: b, tf: tf, tw: tw, hs: hs, ts: ts, zFl: yTop - tf / 2 - yc, zTip: yMin - yc, zBot: yMin - hs - yc };
+  }
+  function edgeShellPlates(lib, geom) {
+    var p = geom.params, D = edgeShellDims(lib, p), out = [], k = 0;
+    geom.members.forEach(function (m) {
+      if (m.group !== 'edge') return;
+      k++;
+      var a = m.start, b = m.end, up = function (q, z) { return [q[0], q[1], q[2] + z]; };
+      // flangen: geringet langs den radiale retning i knuderne (halvdelen af vinklen mellem korderne)
+      var ra = unit([a[0], a[1], 0]), rb = unit([b[0], b[1], 0]), cosH = Math.max(1e-6, dot(ra, rb) > -1 ? Math.sqrt((1 + dot(ra, rb)) / 2) : 1e-6);
+      var o = D.b / 2 / cosH;
+      out.push({ member: m, name: 'KBF.' + k, type: 'plate', t: D.tf, flange: true,
+        pts: [up(vadd(a, vscale(ra, -o)), D.zFl), up(vadd(b, vscale(rb, -o)), D.zFl), up(vadd(b, vscale(rb, o)), D.zFl), up(vadd(a, vscale(ra, o)), D.zFl)] });
+      // krop og svøb: lodrette plader mellem niveauerne, delt i knudens kote (0)
+      var lv = [D.zFl, D.zTip, 0];
+      if (D.hs > 0) lv.push(D.zBot);
+      lv = lv.filter(function (z, i) { return lv.indexOf(z) === i; }).sort(function (u, v) { return v - u; });
+      var nW = 0, nS = 0;
+      for (var i = 0; i + 1 < lv.length; i++) {
+        var z1 = lv[i], z2 = lv[i + 1];
+        if (z1 - z2 < 1e-9) continue;
+        var svob = z2 >= D.zTip - 1e-9 ? false : true, nm = svob ? 'KBS' + (++nS) : 'KBK' + (++nW);
+        out.push({ member: m, name: nm + '.' + k, type: 'wall', t: svob ? D.ts : D.tw, pts: [up(a, z2), up(b, z2), up(b, z1), up(a, z1)] });
+      }
+    });
+    return { dims: D, plates: out };
+  }
+
   // biblioteket med de svejste C- og T-profiler som egne familier lige efter UAP og T (til profilvælgeren)
   function addBuiltSections(lib) {
     var out = {};
@@ -2379,6 +2458,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.holds = normHolds(q.holds);
     q.liftSupport = q.liftSupport === 'pinned' || q.liftSupport === 'zOnly' ? q.liftSupport : 'vertical';
     q.liftPoints = q.liftPoints === 'nodes' ? 'nodes' : 'even';
+    q.liftEdgeModel = q.liftEdgeModel === 'shell' ? 'shell' : 'bar';
     q.liftHolds = normLiftHolds(q.liftHolds);
     return q;
   }
@@ -2799,7 +2879,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!(p.liftShellH >= 0 && p.liftShellH <= 20000)) liftErrors.push('Løft: svøbpladens højde skal ligge mellem 0 og 20000 mm.');
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
-      if (p.liftShellH > 0) {
+      if (p.liftEdgeModel === 'shell') {
+        var lps = profileParts(p.profEdge);
+        if (!p.edgeRing) liftErrors.push('Løft: kantbjælken som stålskaller kræver »Kantring langs svøbet«.');
+        else if (!lps || (lps.family !== 'T' && lps.family !== 'TS')) liftErrors.push('Løft: kantbjælken kan kun laves som stålskaller af et T-profil (T eller svejst T).');
+      } else if (p.liftShellH > 0) {
         var lpp = profileParts(p.profEdge);
         if (!p.edgeRing) liftErrors.push('Løft: svøbpladen lægges i kantbjælkens tværsnit. Slå »Kantring langs svøbet« til, eller sæt svøbpladens højde til 0.');
         else if (!lpp || (lpp.family !== 'T' && lpp.family !== 'TS')) liftErrors.push('Løft: svøbpladen kan kun lægges under en kantbjælke af T-profil (T eller svejst T).');
@@ -2809,14 +2893,33 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       liftPts.forEach(function (e) { isLift[e.name] = true; });
       var extraBy = {}, extraOrder = [];
       p.liftHolds.forEach(function (h, k) {
-        var label = 'Løft, understøtning ' + (k + 1) + ': ', all = /^\s*(alle|\*)\s*$/i.test(h.nodes);
-        var toks = all ? [] : String(h.nodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
-        if (!all && !toks.length) { liftHoldErrors.push(label + 'skriv en eller flere knuder, fx "KS.2, KS.3", eller "alle".'); return; }
+        var label = 'Løft, understøtning ' + (k + 1) + ': ', all = !h.even && /^\s*(alle|\*)\s*$/i.test(h.nodes);
+        var toks = all || h.even ? [] : String(h.nodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
+        if (!all && !h.even && !toks.length) { liftHoldErrors.push(label + 'skriv en eller flere knuder, fx "KS.2, KS.3", eller "alle".'); return; }
         if (!LIFT_HOLD_DIRS.some(function (d) { return h[d]; })) { liftHoldErrors.push(label + 'vælg mindst én retning.'); return; }
         var kv = String(h.k).trim() === '' ? FIXED : toNum(h.k);
         if (!(kv > 0)) { liftHoldErrors.push(label + 'fjederstivheden skal være større end 0 (tom = stiv).'); return; }
         var list = [];
-        if (all) {
+        if (h.even) {
+          // jævnt fordelt rundt langs kantbjælken fra den første knude; knuderne i rækkefølge KS.1, (KSM.1,) KS.2, …
+          var ring = [];
+          for (var a2 = 0; a2 < n; a2++) {
+            ring.push('KS.' + (a2 + 1));
+            if (p.secOn) ring.push('KSM.' + (a2 + 1));
+          }
+          var cnt = toNum(h.count), st = edgeNode(h.start), i0 = st ? ring.indexOf(st.name) : -1;
+          if (!(cnt >= 1 && Math.round(cnt) === cnt && cnt <= ring.length)) { liftHoldErrors.push(label + 'antallet skal være et helt tal mellem 1 og ' + ring.length + '.'); return; }
+          if (ring.length % cnt !== 0) {
+            var ok = [];
+            for (var d2 = 1; d2 <= ring.length; d2++) if (ring.length % d2 === 0) ok.push(d2);
+            liftHoldErrors.push(label + 'der er ' + ring.length + ' knuder langs kantbjælken, så antallet skal gå op i det (' + ok.join(', ') + ').');
+            return;
+          }
+          if (i0 < 0) { liftHoldErrors.push(label + 'første knude skal være ' + edgeHint + '.'); return; }
+          for (var c2 = 0; c2 < cnt; c2++) list.push(edgeNode(ring[(i0 + c2 * ring.length / cnt) % ring.length]));
+          // i løftepunkterne lægges rækken oven i deres fastholdelse, undtagen ved »Lodret + 3 vandrette«, hvor de springes over
+          if (p.liftSupport === 'vertical') list = list.filter(function (e) { return !isLift[e.name]; });
+        } else if (all) {
           for (var a1 = 0; a1 < n; a1++) {
             list.push(edgeNode('KS.' + (a1 + 1)));
             if (p.secOn) list.push(edgeNode('KSM.' + (a1 + 1)));
@@ -2966,7 +3069,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     }
     // løftesimulering: kantbjælken får svøbpladen med i tværsnittet (et T med forlænget krop), så den virker i fuld højde
     var liftEdge = null;
-    if (p.liftOn && !liftErrors.length && p.liftShellH > 0 && edgeM.length) {
+    if (p.liftOn && !liftErrors.length && p.liftShellH > 0 && edgeM.length && p.liftEdgeModel !== 'shell') {
       liftEdge = edgeShellKey(p.profEdge, p.liftShellH, p.liftShellT);
       members.forEach(function (mb) { if (mb.group === 'edge') mb.prof = liftEdge; });
     }
@@ -3093,7 +3196,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     };
 
     if (p.liftOn && !liftErrors.length) {
-      info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge, extra: liftExtra.map(function (s) { return s.node; }) };
+      info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge, edgeShells: p.liftEdgeModel === 'shell' && edgeM.length > 0, extra: liftExtra.map(function (s) { return s.node; }) };
     }
     return {
       params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers,
@@ -4097,6 +4200,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     mat = setAttr(mat, 'gammaM2_1', fmt(p.gammaMacc));
 
     var groupProf = { radial: p.profRadial, sec: p.profSec, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace };
+    // løft med kantbjælken som stålskaller: kantbjælkens stænger skrives ikke, men som plader (se edgeShellPlates)
+    var edgeShells = !!(geom.info.lift && geom.info.lift.edgeShells) ? edgeShellPlates(lib, geom) : null;
+    if (edgeShells) delete groupProf.edge;
     // profiler i fast rækkefølge: grupperne, og for udvekslingerne hver ring indefra
     var profKeys = [];
     Object.keys(groupProf).forEach(function (g) {
@@ -4139,6 +4245,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var arcBars = {};
     geom.members.forEach(function (m) { if (m.arcBar) (arcBars[m.arcBar] || (arcBars[m.arcBar] = [])).push(m); });
     geom.members.forEach(function (m) {
+      if (edgeShells && m.group === 'edge') return;
       var pcs = m.arcBar ? arcBars[m.arcBar] : null;
       if (pcs && pcs[0] !== m) return;
       var s = secByKey[m.prof || groupProf[m.group]];
@@ -4221,6 +4328,30 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       L.push(I3 + '<end/>');
       L.push(I2 + '</bar>');
     });
+
+    // kantbjælken som stålskaller (løft): pladerne efter stængerne; fladerne bæres af flangepladen i stedet for stangen
+    if (edgeShells) {
+      edgeShells.plates.forEach(function (pl) {
+        var P = pl.pts, lx = unit(vsub(P[1], P[0])), ly = unit(vsub(P[3], P[0]));
+        ly = unit(vsub(ly, vscale(lx, dot(ly, lx))));
+        var nz = cross(lx, ly), partGuid = newGuid();
+        if (pl.flange) { pl.member.partGuid = partGuid; pl.member.shellHost = true; }
+        L.push(I2 + '<slab name="' + pl.name + '" type="' + pl.type + '" guid="' + newGuid() + '" last_change="' + stamp + '" action="added">');
+        L.push(I3 + '<slab_part guid="' + partGuid + '" last_change="' + stamp + '" action="added" name="' + pl.name + '.1" complex_material="' +
+          matGuid + '" alignment="center" align_offset="0" ortho_alfa="0" ortho_ratio="1" ecc_calc="false" ecc_crack="false" mesh_size="0">');
+        L.push(I4 + '<contour>');
+        for (var k = 0; k < P.length; k++) L.push(I5 + '<edge type="line">' + pt('point', P[k]) + pt('point', P[(k + 1) % P.length]) + pt('normal', nz) + '</edge>');
+        L.push(I4 + '</contour>');
+        L.push(I4 + '<thickness x="' + fmt(P[0][0]) + '" y="' + fmt(P[0][1]) + '" z="' + fmt(P[0][2]) + '" val="' + fmt(pl.t) + '"/>');
+        L.push(I4 + pt('local_pos', P[0]));
+        L.push(I4 + pt('local_x', lx));
+        L.push(I4 + pt('local_y', ly));
+        L.push(I4 + '<end/>');
+        L.push(I3 + '</slab_part>');
+        L.push(I3 + '<end/>');
+        L.push(I2 + '</slab>');
+      });
+    }
 
     // laster: punktlaster, linjelaster, fladelaster og lasttilfælde (rækkefølge efter skemaet)
     // buede radialbjælker: fladelasterne på de flader, en buet bjælke bærer, skrives som linjelaster på bjælkerne
@@ -4368,7 +4499,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       geom.bracePoints.forEach(function (sp) {
         var host = null;
         geom.members.forEach(function (m) {
-          if (!m.partGuid || (host && !host.truss)) return;
+          if (!m.partGuid || m.shellHost || (host && !host.truss)) return;
           if (norm(vsub(m.start, sp.pos)) < tolR || norm(vsub(m.end, sp.pos)) < tolR) host = m;
         });
         if (host) rp.push({ name: sp.fd, pos: sp.pos, base: host.partGuid });
@@ -4431,7 +4562,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     COMBO_TYPES: COMBO_TYPES, parseFactor: parseFactor, normCombos: normCombos, proposeCombos: proposeCombos, caseGroup: caseGroup,
     quoteList: quoteList, udvRotationOf: udvRotationOf, ROTATIONS: ROTATIONS, sectionOutline: sectionOutline,
     weldedTSection: weldedTSection, weldedCSection: weldedCSection, addBuiltSections: addBuiltSections,
-    BUCKLING: BUCKLING, BUCKLING_UNIT: BUCKLING_UNIT, bucklingBetas: bucklingBetas, edgeShellKey: edgeShellKey
+    BUCKLING: BUCKLING, BUCKLING_UNIT: BUCKLING_UNIT, bucklingBetas: bucklingBetas, edgeShellKey: edgeShellKey, edgeShellPlates: edgeShellPlates
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRoof = api;
@@ -7629,6 +7760,13 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       var nlp = g.info.lift.nodes.length;
       lift = 'Løftepunkter (' + nlp + '): ' + esc(g.info.lift.nodes.join(', ')) +
         (g.info.lift.extra.length ? '<br>Understøtninger langs kantbjælken: ' + (g.info.lift.extra.length > 8 ? g.info.lift.extra.length + ' knuder' : esc(g.info.lift.extra.join(', '))) : '') +
+        (g.info.lift.edgeShells && LIB ? (function () {
+          try {
+            var sd = TR.edgeShellPlates(LIB, g).dims;
+            return '<br>Kantbjælke som stålskaller: flange ' + nf(sd.b * 1000, 0) + '×' + nf(sd.tf * 1000, 1) + ' mm, krop ' + nf(sd.tw * 1000, 1) + ' mm' +
+              (sd.hs > 0 ? ', svøb ' + nf(sd.hs * 1000, 0) + '×' + nf(sd.ts * 1000, 1) + ' mm' : '');
+          } catch (e) { return '<br>' + esc(e.message); }
+        })() : '') +
         (le ? '<br>Kantbjælke ' + esc(profLabel(le)) + (ls ? ': A = ' + nf(ls.area * 1e4, 1) + ' cm², h = ' + nf(ls.h * 1000, 0) + ' mm' : ' – tværsnittet kunne ikke laves') : '') +
         '<br>Konstruktionen inkl. svøb ' + (lw.steel === null ? '–' : '≈ ' + nf(lw.steel, 1) + ' kN') + ' · tagplade ≈ ' + nf(lw.plate, 1) + ' kN';
       if (lw.steel !== null) {
@@ -8791,11 +8929,15 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     ['rr', 'rot R', 'Rotation om den radiale akse'], ['rt', 'rot T', 'Rotation om den tangentielle akse'], ['rz', 'rot Z', 'Rotation om den lodrette akse']];
   function renderLiftHoldList(g) {
     var box = $('liftHoldList'), holds = Array.isArray(params.liftHolds) ? params.liftHolds : [];
-    var sig = JSON.stringify(holds.map(function (h) { return LIFT_HOLD_UI.map(function (d) { return !!h[d[0]]; }); }));
-    var ae = document.activeElement, typing = ae && ae.tagName === 'INPUT' && ae.type === 'text' && box.contains(ae);
+    var sig = JSON.stringify(holds.map(function (h) { return [!!h.even].concat(LIFT_HOLD_UI.map(function (d) { return !!h[d[0]]; })); }));
+    var ae = document.activeElement, typing = ae && ae.tagName === 'INPUT' && (ae.type === 'text' || ae.type === 'number') && box.contains(ae);
     if (!typing || box.dataset.sig !== sig) {
       box.innerHTML = holds.map(function (h, i) {
-        return '<div class="holdrow"><input type="text" data-ln="' + i + '" value="' + esc(h.nodes || '') + '" placeholder="fx alle eller KS.2, KS.3" spellcheck="false" aria-label="Knuder i række ' + (i + 1) + '">' +
+        var where = h.even
+          ? '<div class="evn"><input type="number" min="1" step="1" data-lc="' + i + '" value="' + esc(h.count || '') + '" aria-label="Antal understøtninger, række ' + (i + 1) + '"><span>stk. fra</span>' +
+            '<input type="text" data-ls="' + i + '" value="' + esc(h.start || 'KS.1') + '" placeholder="KS.1" spellcheck="false" aria-label="Første knude, række ' + (i + 1) + '"></div>'
+          : '<input type="text" data-ln="' + i + '" value="' + esc(h.nodes || '') + '" placeholder="fx alle eller KS.2, KS.3" spellcheck="false" aria-label="Knuder i række ' + (i + 1) + '">';
+        return '<div class="holdrow">' + where +
           '<div class="hd">' + LIFT_HOLD_UI.map(function (d) {
             return '<label title="' + d[2] + '"><input type="checkbox" data-ld="' + i + '" data-dir="' + d[0] + '"' + (h[d[0]] ? ' checked' : '') +
               ' aria-label="' + d[2] + ', række ' + (i + 1) + '"><span>' + d[1] + '</span></label>';
@@ -8807,14 +8949,17 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     }
     var bad = {};
     (g.liftHoldErrors || []).forEach(function (e) { var m = /^Løft, understøtning (\d+):/.exec(e); if (m) bad[Number(m[1]) - 1] = true; });
-    box.querySelectorAll('input[data-ln]').forEach(function (el) { el.setAttribute('aria-invalid', String(!!bad[Number(el.dataset.ln)])); });
+    box.querySelectorAll('input[data-ln], input[data-lc], input[data-ls]').forEach(function (el) {
+      el.setAttribute('aria-invalid', String(!!bad[Number(el.dataset.ln || el.dataset.lc || el.dataset.ls)]));
+    });
   }
   function onLiftHoldEdit(e) {
     var t = e.target, d = t.dataset || {};
     if (!Array.isArray(params.liftHolds)) params.liftHolds = [];
-    if (d.ln !== undefined || d.lk !== undefined) {
+    var fld = d.ln !== undefined ? ['ln', 'nodes'] : d.lk !== undefined ? ['lk', 'k'] : d.lc !== undefined ? ['lc', 'count'] : d.ls !== undefined ? ['ls', 'start'] : null;
+    if (fld) {
       if (e.type !== 'input') { e.stopPropagation(); return; }
-      params.liftHolds[Number(d.ln !== undefined ? d.ln : d.lk)][d.ln !== undefined ? 'nodes' : 'k'] = t.value;
+      params.liftHolds[Number(d[fld[0]])][fld[1]] = t.value;
     } else if (d.ld !== undefined) { if (e.type !== 'change') { e.stopPropagation(); return; } params.liftHolds[Number(d.ld)][d.dir] = t.checked; }
     else return;
     e.stopPropagation();
@@ -8839,6 +8984,11 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     if (els.length) els[els.length - 1].focus();
   });
   $('liftHoldRadial').addEventListener('click', function () { addLiftHold({ nodes: 'alle', r: true }); });
+  $('liftHoldEven').addEventListener('click', function () {
+    addLiftHold({ even: true, count: '8', start: 'KS.1', r: true });
+    var els = $('liftHoldList').querySelectorAll('input[data-lc]');
+    if (els.length) els[els.length - 1].focus();
+  });
   $('radList').addEventListener('input', function (e) {
     if (!e.target.dataset || e.target.dataset.ring === undefined) return;
     var vals = [].map.call($('radList').querySelectorAll('input[data-ring]'), function (el) { return el.value.trim() || '?'; });
