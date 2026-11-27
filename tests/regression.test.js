@@ -873,3 +873,25 @@ test('løft: kantbjælken som stålskaller', () => {
   assert.equal(TR.edgeShellPlates(LIB, geo({ liftShellH: 0 })).plates.length, 3 * nEdge);
   assert.ok(geo({ profEdge: 'L|L100x100x10' }).errors.some((e) => /stålskaller af et T-profil/.test(e)));
 });
+
+test('løft: lodret + manglende vandrette tilføjer kun de fastholdelser, der mangler', () => {
+  const geo = (o) => TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS,
+    { liftOn: true, liftShellH: 0, rotationDeg: 0, secAxes: false, liftSupport: 'vertical' }, o)));
+  const hz = (g) => g.supports.filter((s) => s.lift && (s.motions.x > 0 || s.motions.y > 0));
+  // uden andre understøtninger: de tre sædvanlige, statisk bestemt
+  const g0 = geo({});
+  assert.deepEqual(g0.info.hold.map((h) => h.name + ' ' + h.dir), ['L.1 X', 'L.2 Y', 'L.3 Y']);
+  assert.equal(g0.info.holdDeterminate, true);
+  // radialt i alle øvrige knuder: taget kan kun dreje, så der mangler én fastholdelse
+  const g1 = geo({ liftHolds: [{ nodes: 'alle', r: true }] });
+  assert.deepEqual(g1.errors, []);
+  assert.equal(g1.info.hold.length, 1);
+  assert.equal(hz(g1).length, 1);
+  assert.ok(!g1.warnings.some((w) => /^Løft:/.test(w)));
+  // radialt og tangentielt to steder: allerede stabilt, ingen fastholdelser i løftepunkterne
+  const g2 = geo({ liftHolds: [{ nodes: 'alle', r: true }, { nodes: 'KS.4, KS.16', t: true }] });
+  assert.equal(g2.info.hold.length, 0);
+  assert.equal(hz(g2).length, 0);
+  // kun tangentielt i én knude: X og Y mangler stadig to retninger
+  assert.equal(geo({ liftHolds: [{ nodes: 'KS.4', t: true }] }).info.hold.length, 2);
+});

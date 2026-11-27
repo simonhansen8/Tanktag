@@ -1354,13 +1354,13 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <div class="field">
             <span class="lbl">Fastholdelse i løftepunkterne</span>
             <div class="seg" role="radiogroup" aria-label="Løftepunkternes fastholdelse">
-              <label><input type="radio" name="liftSupport" value="vertical" data-key="liftSupport"><span>Lodret + 3 vandrette</span></label>
+              <label><input type="radio" name="liftSupport" value="vertical" data-key="liftSupport"><span>Lodret + manglende vandrette</span></label>
               <label><input type="radio" name="liftSupport" value="zOnly" data-key="liftSupport"><span>Kun lodret</span></label>
               <label><input type="radio" name="liftSupport" value="pinned" data-key="liftSupport"><span>Fastholdt</span></label>
             </div>
           </div>
           <p class="calc" id="liftCalc"></p>
-          <p class="hint">Knuderne skrives med navnene fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Ved jævn fordeling skal antallet af radialbjælker være deleligt med antallet af løftepunkter. »Lodret + 3 vandrette« holder løftepunkterne lodret og taget vandret med tre fastholdelser (X i ét punkt og Y i to), så det er statisk bestemt vandret og ikke får tvang fra løftet. »Kun lodret« holder løftepunkterne lodret, så det vandrette skal komme fra understøtningerne herunder. »Fastholdt« holder løftepunkterne i alle tre retninger.</p>
+          <p class="hint">Knuderne skrives med navnene fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Ved jævn fordeling skal antallet af radialbjælker være deleligt med antallet af løftepunkter. »Lodret + manglende vandrette« holder løftepunkterne lodret og tilføjer i løftepunkterne netop de vandrette fastholdelser i X og Y, der mangler, for at taget hverken kan forskydes eller dreje vandret. Uden andre vandrette understøtninger er det tre (X i ét punkt og Y i to), så taget er statisk bestemt vandret og ikke får tvang fra løftet. Holder understøtningerne langs kantbjælken allerede taget, tilføjes ingen. »Kun lodret« holder løftepunkterne lodret, så det vandrette skal komme fra understøtningerne herunder. »Fastholdt« holder løftepunkterne i alle tre retninger.</p>
         </fieldset>
       </section>
 
@@ -1373,7 +1373,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <button type="button" class="btn small" id="liftHoldAdd">Valgte knuder</button>
             <button type="button" class="btn small" id="liftHoldRadial">Radialt i alle knuder</button>
           </div>
-          <p class="hint">»Jævnt fordelt« sætter det valgte antal understøtninger med lige stor afstand rundt langs kantbjælken fra den første knude; antallet skal gå op i antallet af knuder langs kantbjælken (radialbjælker, og med sektionsspær også KSM-knuderne), og rammer en af dem et løftepunkt, lægges den oven i løftepunktets fastholdelse (ved »Lodret + 3 vandrette« springes løftepunkterne over). »Valgte knuder« sætter understøtninger i de knuder, der står i feltet, adskilt af komma; »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse (ved »Kun lodret« eller »Fastholdt«).</p>
+          <p class="hint">»Jævnt fordelt« sætter det valgte antal understøtninger med lige stor afstand rundt langs kantbjælken fra den første knude; antallet skal gå op i antallet af knuder langs kantbjælken (radialbjælker, og med sektionsspær også KSM-knuderne), og rammer en af dem et løftepunkt, lægges den oven i løftepunktets fastholdelse (ved »Lodret + manglende vandrette« springes løftepunkterne over). »Valgte knuder« sætter understøtninger i de knuder, der står i feltet, adskilt af komma; »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse (ved »Kun lodret« eller »Fastholdt«).</p>
         </fieldset>
       </section>
 
@@ -2917,7 +2917,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           }
           if (i0 < 0) { liftHoldErrors.push(label + 'første knude skal være ' + edgeHint + '.'); return; }
           for (var c2 = 0; c2 < cnt; c2++) list.push(edgeNode(ring[(i0 + c2 * ring.length / cnt) % ring.length]));
-          // i løftepunkterne lægges rækken oven i deres fastholdelse, undtagen ved »Lodret + 3 vandrette«, hvor de springes over
+          // i løftepunkterne lægges rækken oven i deres fastholdelse, undtagen ved »Lodret + manglende vandrette«, hvor de springes over
           if (p.liftSupport === 'vertical') list = list.filter(function (e) { return !isLift[e.name]; });
         } else if (all) {
           for (var a1 = 0; a1 < n; a1++) {
@@ -2930,7 +2930,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             var e = edgeNode(t);
             if (!e) { liftHoldErrors.push(label + '"' + t + '" er ikke en knude langs kantbjælken. Brug ' + edgeHint + '.'); return; }
             if (isLift[e.name] && p.liftSupport === 'vertical') {
-              liftHoldErrors.push(label + e.name + ' er et løftepunkt. Med »Lodret + 3 vandrette« har løftepunkterne deres faste fastholdelser; vælg »Kun lodret« eller »Fastholdt« for at give dem flere.');
+              liftHoldErrors.push(label + e.name + ' er et løftepunkt. Med »Lodret + manglende vandrette« har løftepunkterne deres faste fastholdelser; vælg »Kun lodret« eller »Fastholdt« for at give dem flere.');
               return;
             }
             list.push(e);
@@ -2989,7 +2989,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (planeRank(vRows) < 3) warnings.push('Løft: de lodrette understøtninger ligger på én linje, så taget kan vælte om den. Tilføj løftepunkter eller lodrette understøtninger uden for linjen.');
         if (p.liftSupport !== 'vertical' && planeRank(hRows) < 3) {
           warnings.push(hRows.length ? 'Løft: de vandrette understøtninger holder ikke taget: det kan stadig forskydes eller dreje vandret. Tilføj understøtninger i flere retninger, fx tangentielt i et par knuder.'
-            : 'Løft: ingen understøtninger holder taget vandret, så det kan forskydes og dreje frit. Vælg »Lodret + 3 vandrette«, eller tilføj vandrette understøtninger langs kantbjælken.');
+            : 'Løft: ingen understøtninger holder taget vandret, så det kan forskydes og dreje frit. Vælg »Lodret + manglende vandrette«, eller tilføj vandrette understøtninger langs kantbjælken.');
         }
       }
       errors.push.apply(errors, liftErrors);
@@ -3059,13 +3059,31 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       var xY = autoSup[iY].pos[0], lever = function (s) { return Math.abs(s.pos[0] - xY); };
       var iL = pick(lever, function (i) { return i === iY || i === iX; });
       if (iL < 0 || (iX !== iY && lever(autoSup[iL]) < lever(autoSup[iX]) - 1e-6 * R)) iL = iX;
-      [[iX, 'x', 'X', false], [iY, 'y', 'Y', false], [iL, 'y', 'Y', true]].forEach(function (h) {
-        var s = autoSup[h[0]];
+      var cand = [[iX, 'x', 'X', false], [iY, 'y', 'Y', false], [iL, 'y', 'Y', true]];
+      // løft: de øvrige understøtninger langs kantbjælken holder måske allerede taget vandret. Løftepunkterne får kun de
+      // fastholdelser i X og Y, der mangler, for at taget hverken kan forskydes eller dreje: først de tre sædvanlige,
+      // derefter de andre løftepunkter, og kun dem, der hæver rangen af stivlegemebevægelserne (u, v, drejning).
+      var hRows0 = [], rowOf = function (pos, v) { return [v[0], v[1], (pos[0] * v[1] - pos[1] * v[0]) / R]; };
+      if (p.liftOn) {
+        supports.forEach(function (s) {
+          if (!s.liftExtra) return;
+          [['x', s.localX], ['y', s.localY]].forEach(function (c) { if (s.motions[c[0]] > 0) hRows0.push(rowOf(s.pos, c[1])); });
+          if (s.rotations.z > 0) hRows0.push([0, 0, 1]);
+        });
+        autoSup.forEach(function (s, i) { cand.push([i, 'x', 'X', false], [i, 'y', 'Y', false]); });
+      }
+      var rowsNow = hRows0.slice(), rk0 = planeRank(rowsNow), used3 = {};
+      cand.forEach(function (h) {
+        if (rk0 >= 3 || used3[h[0] + h[1]]) return;
+        var s = autoSup[h[0]], r = rowOf(s.pos, h[1] === 'x' ? [1, 0] : [0, 1]);
+        if (p.liftOn && planeRank(rowsNow.concat([r])) <= rk0) return;
+        used3[h[0] + h[1]] = true;
+        rowsNow.push(r); rk0 = planeRank(rowsNow);
         s.localX = [1, 0, 0]; s.localY = [0, 1, 0];   // globalt system ved de vandret fastholdte
         s.motions[h[1]] = FIXED;
         hold.push({ name: s.name, dir: h[2], lock: h[3], vec: h[1] === 'x' ? [1, 0] : [0, 1], pos: s.pos });
       });
-      holdDeterminate = true;
+      holdDeterminate = rowsNow.length === 3 && rk0 === 3;
     }
     // løftesimulering: kantbjælken får svøbpladen med i tværsnittet (et T med forlænget krop), så den virker i fuld højde
     var liftEdge = null;
