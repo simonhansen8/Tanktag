@@ -955,4 +955,8 @@ test('løft: trækstængernes E-modul', () => {
   const x0 = TR.buildStruxml(geo({}).params, LIB, { geometry: geo({}) });
   assert.equal((x0.match(/<material guid=/g) || []).length, 1);
   assert.ok(geo({ liftTieE: '-5' }).errors.some((e) => /E-modul/.test(e)));
+  // meget stort E (fx 100 × stål) er tilladt og skrives uden eksponent
+  const big = geo({ liftTieE: '21000000' });
+  assert.ok(!big.errors.some((e) => /E-modul/.test(e)));
+  assert.ok(/Ek="21000000"/.test(TR.buildStruxml(big.params, LIB, { geometry: big })));
 });

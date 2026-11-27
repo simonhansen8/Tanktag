@@ -2916,7 +2916,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
       if (p.liftTies !== 'none' && !profileParts(p.liftTieProf)) liftErrors.push('Løft: vælg et profil til trækstængerne.');
-      if (p.liftTies !== 'none' && p.liftTieE !== '' && !(p.liftTieE > 0 && p.liftTieE <= 1e7)) liftErrors.push('Løft: trækstængernes E-modul skal være større end 0 MPa (tom = stålets).');
+      if (p.liftTies !== 'none' && p.liftTieE !== '' && !(p.liftTieE > 0 && isFinite(p.liftTieE))) liftErrors.push('Løft: trækstængernes E-modul skal være større end 0 MPa (tom = stålets).');
       if (p.liftEdgeModel === 'shell') {
         var lps = profileParts(p.profEdge);
         if (!p.edgeRing) liftErrors.push('Løft: kantbjælken som stålskaller kræver »Kantring langs svøbet«.');
