@@ -84,6 +84,7 @@
         ],
         "support": "zOnly",
         "edgeProfile": null,
+        "edgeShells": false,
         "extra": [
           "KSM.1",
           "KS.2",
@@ -332,7 +333,7 @@
   "proposedCombos": null,
   "windDoc": null,
   "struxml": {
-    "sha256": "7798d5716f5a319cb86f542aecb4459a5c04abde9e9b891c196ff26e37c3ae18",
+    "sha256": "167ec767d6d80b95dab7df7a52f8bb1f9f91adb60dfee3de25d8300ffc7d96fd",
     "lines": 17389,
     "elements": {
       "analytical": 720,

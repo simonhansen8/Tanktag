@@ -125,6 +125,7 @@
         ],
         "support": "vertical",
         "edgeProfile": "KB|T|120#1200*10",
+        "edgeShells": false,
         "extra": []
       }
     },
@@ -330,7 +331,7 @@
   "proposedCombos": null,
   "windDoc": null,
   "struxml": {
-    "sha256": "7eee8ce11dbc30bb2c3b483329010d5e75b7a8452595708c2d6df2312263ea96",
+    "sha256": "f626a25b008fc4be397985bd28aa695cff7be78ba206031e9d39cd7e000acca7",
     "lines": 16905,
     "elements": {
       "analytical": 720,
