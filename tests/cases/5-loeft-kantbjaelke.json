@@ -1,0 +1,12 @@
+{
+  "description": "Løftesimulering af standardtaget med valgte løftepunkter: seks løftepunkter (KS.1, KS.5, KS.9, KS.13, KS.17, KS.21) kun lodret fastholdt, radiale understøtninger i alle øvrige knuder langs kantbjælken, tangentiel fjeder 5000 kN/m i KS.3 og KS.15, tangentielt stiv i løftepunktet KS.9 og ingen svøbplade.",
+  "params": {
+    "liftOn": true, "liftPoints": "nodes", "liftNodes": "KS.1, KS.5, KS.9, KS.13, KS.17, KS.21", "liftSupport": "zOnly",
+    "liftHolds": [
+      { "nodes": "alle", "r": true },
+      { "nodes": "KS.3, KS.15", "t": true, "k": "5000" },
+      { "nodes": "KS.9", "t": true }
+    ],
+    "liftShellH": 0, "liftPlate": true, "liftGamma": 1.0
+  }
+}
