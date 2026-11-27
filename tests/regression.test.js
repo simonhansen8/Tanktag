@@ -774,3 +774,56 @@ test('buede radialbjælker: fladelasterne ved bjælkerne skrives som linjelaster
   const both = L.cases[dead].loads.filter((Ld) => Ld.kind === 'surface' && Ld.panel.cover.supports.includes(rb)).reduce((s, Ld) => s + Ld.val * Ld.panel.area / 2, 0);
   assert.ok(Math.abs(onRb - both) < 1e-6 * both);
 });
+
+test('løft: flere løftepunkter, valgte knuder og understøtninger langs kantbjælken', () => {
+  // 24 radialbjælker med sektionsspær, RB.1 ved 0°
+  const geo = (o) => TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS,
+    { liftOn: true, liftShellH: 0, rotationDeg: 0, secAxes: false }, o)));
+  const lifts = (g) => g.supports.filter((s) => s.lift).map((s) => s.node);
+
+  // jævnt fordelt: standard er fire fra KS.1, og antallet kan ændres, når det går op i antallet af radialbjælker
+  assert.deepEqual(lifts(geo({})), ['KS.1', 'KS.7', 'KS.13', 'KS.19']);
+  assert.deepEqual(lifts(geo({ liftCount: 6, liftNode: 'KSM.2' })), ['KSM.2', 'KSM.6', 'KSM.10', 'KSM.14', 'KSM.18', 'KSM.22']);
+  assert.ok(geo({ liftCount: 5 }).errors.some((e) => /deleligt med antallet af løftepunkter/.test(e)));
+  assert.ok(geo({ liftCount: 1 }).errors.some((e) => /mellem 2 og 24/.test(e)));
+
+  // valgte knuder
+  const gn = geo({ liftPoints: 'nodes', liftNodes: 'ks.2; KSM.9 KS.17' });
+  assert.deepEqual(gn.errors, []);
+  assert.deepEqual(lifts(gn), ['KS.2', 'KSM.9', 'KS.17']);
+  assert.deepEqual(gn.info.lift.nodes, ['KS.2', 'KSM.9', 'KS.17']);
+  assert.ok(geo({ liftPoints: 'nodes', liftNodes: 'KS.1' }).errors.some((e) => /mindst to løftepunkter/.test(e)));
+  assert.ok(geo({ liftPoints: 'nodes', liftNodes: 'KS.1, KS.1, KS.9' }).errors.some((e) => /flere gange/.test(e)));
+  assert.ok(geo({ liftPoints: 'nodes', liftNodes: 'KS.1, RB.3' }).errors.some((e) => /"RB\.3" er ikke en knude/.test(e)));
+
+  // kun lodret i løftepunkterne og radialt i alle de øvrige knuder langs kantbjælken
+  const g = geo({ liftSupport: 'zOnly', liftHolds: [{ nodes: 'alle', r: true }, { nodes: 'KS.4, KS.16', t: true, k: '2500' }, { nodes: 'KS.7', t: true, rz: true }] });
+  assert.deepEqual(g.errors, []);
+  const by = Object.fromEntries(g.supports.map((s) => [s.node, s]));
+  assert.equal(g.supports.length, 48, 'fire løftepunkter og 44 understøtninger langs kantbjælken');
+  assert.ok(by['KS.1'].lift && by['KS.1'].motions.z > 0 && by['KS.1'].motions.x === 0 && by['KS.1'].motions.y === 0);
+  assert.ok(by['KS.7'].lift && by['KS.7'].motions.y === 1e10 && by['KS.7'].rotations.z === 1e10 && by['KS.7'].motions.x === 0, 'rækken lægges i løftepunktet');
+  assert.ok(by['KS.2'].liftExtra && by['KS.2'].motions.x === 1e10 && by['KS.2'].motions.y === 0 && by['KS.2'].motions.z === 0, 'kun radialt, lodret fri');
+  assert.ok(by['KS.4'].motions.x === 1e10 && by['KS.4'].motions.y === 2500, 'radialt stiv og tangentiel fjeder');
+  assert.ok(by['KSM.3'].liftExtra && Math.abs(by['KSM.3'].localX[0] - Math.cos(Math.PI * 2.5 * 2 / 24)) < 1e-9, 'radialt lokalsystem');
+  assert.ok(!g.warnings.some((w) => /^Løft:/.test(w)));
+  const xml = TR.buildStruxml(g.params, LIB, { geometry: g });
+  assert.match(xml, /name="LU\.1">[\s\S]*?<motions x_neg="10000000000" x_pos="10000000000" y_neg="0" y_pos="0" z_neg="0" z_pos="0"\/>/);
+  assert.equal((xml.match(/<point_support /g) || []).length, 48);
+
+  // kun radialt holder ikke taget mod drejning; kun lodret uden mere holder det slet ikke vandret
+  assert.ok(geo({ liftSupport: 'zOnly', liftHolds: [{ nodes: 'alle', r: true }] }).warnings.some((w) => /kan stadig forskydes eller dreje/.test(w)));
+  assert.ok(geo({ liftSupport: 'zOnly' }).warnings.some((w) => /ingen understøtninger holder taget vandret/.test(w)));
+  // to løftepunkter uden andre lodrette understøtninger kan vælte
+  assert.ok(geo({ liftPoints: 'nodes', liftNodes: 'KS.1, KS.13' }).warnings.some((w) => /kan vælte/.test(w)));
+  assert.ok(!geo({ liftPoints: 'nodes', liftNodes: 'KS.1, KS.13', liftHolds: [{ nodes: 'KS.7, KS.19', z: true }] }).warnings.some((w) => /kan vælte/.test(w)));
+
+  // fejl i rækkerne
+  const bad = geo({ liftHolds: [{ nodes: 'KS.99', r: true }, { nodes: 'KS.2' }, { nodes: '', t: true }, { nodes: 'KS.3', r: true, k: '-1' }, { nodes: 'KS.1', t: true }] });
+  assert.equal(bad.liftHoldErrors.length, 5);
+  assert.ok(bad.liftHoldErrors[4].includes('er et løftepunkt'));
+  assert.ok(bad.errors.length >= 5);
+  // listen bruges kun i løftet
+  const off = TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS, { liftHolds: [{ nodes: 'alle', r: true }] })));
+  assert.ok(!off.supports.some((s) => s.liftExtra));
+});

@@ -124,7 +124,8 @@
           "KS.19"
         ],
         "support": "vertical",
-        "edgeProfile": "KB|T|120#1200*10"
+        "edgeProfile": "KB|T|120#1200*10",
+        "extra": []
       }
     },
     "warnings": [
@@ -329,7 +330,7 @@
   "proposedCombos": null,
   "windDoc": null,
   "struxml": {
-    "sha256": "f5e26a8b1f7a4e7a74bddd66c9653d8d7ca43f2bd75c4e334748031f54b9cc6a",
+    "sha256": "7eee8ce11dbc30bb2c3b483329010d5e75b7a8452595708c2d6df2312263ea96",
     "lines": 16905,
     "elements": {
       "analytical": 720,

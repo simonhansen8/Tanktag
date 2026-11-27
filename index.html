@@ -235,6 +235,9 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .holdrow .hd label { position: relative; cursor: pointer; }
 .holdrow .hd label + label { border-left: 1px solid var(--rule); }
 .holdrow .hd input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.liftholds .holdrow { grid-template-columns: minmax(0, 1fr) 64px 32px; }
+.liftholds .holdrow .hd { grid-column: 1 / 3; grid-row: 2; justify-self: start; }
+.liftholds .holdrow + .holdrow { border-top: 1px solid var(--rule); padding-top: 6px; }
 .holdrow .hd span { display: block; min-width: 30px; padding: 6px 5px; text-align: center; font-family: var(--f-data); font-size: 0.78rem; color: var(--ink-2); }
 .holdrow .hd input:checked + span { background: var(--ink); color: var(--sheet); font-weight: 500; }
 .holdrow .hd input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: -2px; }
@@ -557,6 +560,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <button type="button" role="tab" id="ftab-loads" aria-controls="pane-loads" aria-selected="false">Laster</button>
         <button type="button" role="tab" id="ftab-brace" aria-controls="pane-brace" aria-selected="false">Vindgitter</button>
         <button type="button" role="tab" id="ftab-combo" aria-controls="pane-combo" aria-selected="false">Kombinationer</button>
+        <button type="button" role="tab" id="ftab-lift" aria-controls="pane-lift" aria-selected="false">Løft</button>
         <button type="button" role="tab" id="ftab-conn" aria-controls="pane-conn" aria-selected="false">Samlinger</button>
         <button type="button" role="tab" id="ftab-shell" aria-controls="pane-shell" aria-selected="false">Skalmodel</button>
       </div>
@@ -856,45 +860,6 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         <label class="check"><input type="checkbox" id="splitRadial" data-key="splitRadial"> <span>Del radialbjælkerne ved udvekslingerne <span class="hint">(kuppeltag deles altid, medmindre de er buede under Tagform)</span></span></label>
       </section>
 
-      <section class="group" aria-labelledby="g-lift">
-        <div class="toggle">
-          <h2 id="g-lift">Løftesimulering</h2>
-          <label class="check"><input type="checkbox" id="liftOn" data-key="liftOn"> <span>Løft taget</span></label>
-        </div>
-        <fieldset class="sub" id="liftFields">
-          <p class="hint">Taget løftes i fire symmetriske punkter langs kantbjælken med 90° imellem. Understøtningerne ved svøbet erstattes af de fire løftepunkter, og kun stålets egenlast er med: konstruktionens egenvægt inkl. svøbpladen i kantbjælken (FEM-Design regner den selv) og tagpladen, hvis den er med. Øvrige laster og lastkombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares. Svøbpladen lægges ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt.</p>
-          <div class="row">
-            <div class="field">
-              <label class="lbl" for="liftNode">Første løftepunkt</label>
-              <input type="text" id="liftNode" data-key="liftNode" spellcheck="false" autocomplete="off" placeholder="fx KS.1">
-            </div>
-            <div class="field">
-              <label class="lbl" for="liftGamma">Faktor i »Løft« <span class="unit">γ</span></label>
-              <input class="num" type="text" inputmode="decimal" id="liftGamma" data-key="liftGamma">
-            </div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label class="lbl" for="liftShellH">Svøbpladens højde <span class="unit">mm</span></label>
-              <input class="num" type="text" inputmode="decimal" id="liftShellH" data-key="liftShellH">
-            </div>
-            <div class="field">
-              <label class="lbl" for="liftShellT">Svøbpladens tykkelse <span class="unit">mm</span></label>
-              <input class="num" type="text" inputmode="decimal" id="liftShellT" data-key="liftShellT">
-            </div>
-          </div>
-          <div class="field">
-            <span class="lbl">Løftepunkterne</span>
-            <div class="seg" role="radiogroup" aria-label="Løftepunkternes fastholdelse">
-              <label><input type="radio" name="liftSupport" value="vertical" data-key="liftSupport"><span>Lodret + 3 vandrette</span></label>
-              <label><input type="radio" name="liftSupport" value="pinned" data-key="liftSupport"><span>Fastholdt</span></label>
-            </div>
-          </div>
-          <label class="check"><input type="checkbox" id="liftPlate" data-key="liftPlate"> <span>Tagpladens egenvægt med <span class="hint">(tykkelsen under Laster › Egenlast)</span></span></label>
-          <p class="calc" id="liftCalc"></p>
-          <p class="hint">Første løftepunkt skrives med navnet fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Antallet af radialbjælker skal være deleligt med 4. »Lodret + 3 vandrette« holder taget lodret i alle fire punkter og vandret som ved Kun lodret (X i ét punkt og Y i to), så taget er statisk bestemt vandret og ikke får tvang fra løftet. »Fastholdt« holder alle fire punkter i alle retninger. Det kræver kantring af T-profil (T eller svejst T). Svøbpladens højde 0 giver kantbjælken uden svøb. Kombinationerne er »Løft« (brud, med faktoren) og »Løft, karakteristisk« (anvendelse, faktor 1).</p>
-        </fieldset>
-      </section>
 
       <section class="group" aria-labelledby="g-cov">
         <h2 id="g-cov">Lastfordelingsflader</h2>
@@ -1337,6 +1302,92 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         </fieldset>
       </section>
       </div>
+      <div class="pane" id="pane-lift" role="tabpanel" aria-labelledby="ftab-lift" hidden>
+      <section class="group" aria-labelledby="g-lift">
+        <div class="toggle">
+          <h2 id="g-lift">Løftesimulering</h2>
+          <label class="check"><input type="checkbox" id="liftOn" data-key="liftOn"> <span>Løft taget</span></label>
+        </div>
+        <fieldset class="sub" id="liftFields">
+          <p class="hint">Taget løftes i punkter langs kantbjælken. Understøtningerne ved svøbet erstattes af løftepunkterne og de understøtninger, der sættes herunder, og kun stålets egenlast er med: konstruktionens egenvægt inkl. svøbpladen i kantbjælken (FEM-Design regner den selv) og tagpladen, hvis den er med. Øvrige laster og lastkombinationer er slået fra, så længe løftet er valgt, men deres indstillinger bevares.</p>
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="liftGamma">Faktor i »Løft« <span class="unit">γ</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftGamma" data-key="liftGamma">
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" id="liftPlate" data-key="liftPlate"> <span>Tagpladens egenvægt med <span class="hint">(tykkelsen under Laster › Egenlast)</span></span></label>
+          <p class="hint">Kombinationerne er »Løft« (brud, med faktoren) og »Løft, karakteristisk« (anvendelse, faktor 1).</p>
+        </fieldset>
+      </section>
+
+      <section class="group" aria-labelledby="g-liftpts">
+        <h2 id="g-liftpts">Løftepunkter</h2>
+        <fieldset class="sub" id="liftPtFields">
+          <div class="field">
+            <span class="lbl">Placering</span>
+            <div class="seg" role="radiogroup" aria-label="Løftepunkternes placering">
+              <label><input type="radio" name="liftPoints" value="even" data-key="liftPoints"><span>Jævnt fordelt</span></label>
+              <label><input type="radio" name="liftPoints" value="nodes" data-key="liftPoints"><span>Valgte knuder</span></label>
+            </div>
+          </div>
+          <div class="row" id="liftEvenFields">
+            <div class="field">
+              <label class="lbl" for="liftCount">Antal løftepunkter</label>
+              <input class="num" type="number" min="2" step="1" id="liftCount" data-key="liftCount">
+            </div>
+            <div class="field">
+              <label class="lbl" for="liftNode">Første løftepunkt</label>
+              <input type="text" id="liftNode" data-key="liftNode" spellcheck="false" autocomplete="off" placeholder="fx KS.1">
+            </div>
+          </div>
+          <div class="field" id="liftNodesField">
+            <label class="lbl" for="liftNodes">Løftepunkter</label>
+            <input type="text" id="liftNodes" data-key="liftNodes" spellcheck="false" autocomplete="off" placeholder="fx KS.1, KS.7, KS.13, KS.19">
+          </div>
+          <div class="field">
+            <span class="lbl">Fastholdelse i løftepunkterne</span>
+            <div class="seg" role="radiogroup" aria-label="Løftepunkternes fastholdelse">
+              <label><input type="radio" name="liftSupport" value="vertical" data-key="liftSupport"><span>Lodret + 3 vandrette</span></label>
+              <label><input type="radio" name="liftSupport" value="zOnly" data-key="liftSupport"><span>Kun lodret</span></label>
+              <label><input type="radio" name="liftSupport" value="pinned" data-key="liftSupport"><span>Fastholdt</span></label>
+            </div>
+          </div>
+          <p class="calc" id="liftCalc"></p>
+          <p class="hint">Knuderne skrives med navnene fra planen: KS.3 ved radialbjælke 3 eller KSM.3 ved sektionsspæret efter den. Ved jævn fordeling skal antallet af radialbjælker være deleligt med antallet af løftepunkter. »Lodret + 3 vandrette« holder løftepunkterne lodret og taget vandret med tre fastholdelser (X i ét punkt og Y i to), så det er statisk bestemt vandret og ikke får tvang fra løftet. »Kun lodret« holder løftepunkterne lodret, så det vandrette skal komme fra understøtningerne herunder. »Fastholdt« holder løftepunkterne i alle tre retninger.</p>
+        </fieldset>
+      </section>
+
+      <section class="group" aria-labelledby="g-liftsup">
+        <h2 id="g-liftsup">Understøtninger langs kantbjælken</h2>
+        <fieldset class="sub" id="liftSupFields">
+          <div class="holdlist liftholds" id="liftHoldList" role="group" aria-label="Understøtninger langs kantbjælken i løftet"></div>
+          <div class="tools">
+            <button type="button" class="btn small" id="liftHoldAdd">Tilføj række</button>
+            <button type="button" class="btn small" id="liftHoldRadial">Radialt i alle knuder</button>
+          </div>
+          <p class="hint">Hver række sætter understøtninger i de knuder langs kantbjælken, der står i feltet, adskilt af komma. »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse (ved »Kun lodret« eller »Fastholdt«).</p>
+        </fieldset>
+      </section>
+
+      <section class="group" aria-labelledby="g-liftshell">
+        <h2 id="g-liftshell">Svøbplade i kantbjælken</h2>
+        <fieldset class="sub" id="liftShellFields">
+          <div class="row">
+            <div class="field">
+              <label class="lbl" for="liftShellH">Svøbpladens højde <span class="unit">mm</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftShellH" data-key="liftShellH">
+            </div>
+            <div class="field">
+              <label class="lbl" for="liftShellT">Svøbpladens tykkelse <span class="unit">mm</span></label>
+              <input class="num" type="text" inputmode="decimal" id="liftShellT" data-key="liftShellT">
+            </div>
+          </div>
+          <p class="hint">Svøbpladen lægges ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt. Det kræver kantring af T-profil (T eller svejst T). Højden 0 giver kantbjælken uden svøb.</p>
+        </fieldset>
+      </section>
+      </div>
+
       <div class="pane" id="pane-conn" role="tabpanel" aria-labelledby="ftab-conn" hidden>
       <section class="group" aria-labelledby="g-conn-in">
         <h2 id="g-conn-in">Snitkræfter fra FEM-Design</h2>
@@ -1856,10 +1907,15 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     kipQ: 1,                   // lodret linjelast [kN/m] på den skrå længde; positiv nedad
     rotTestCombo: true,        // egen kombination "Rotationsstivhed" med faktor 1 som anvendelse, karakteristisk (til NLE i FEM-Design)
 
-    // --- løftesimulering: taget løftes i fire symmetriske punkter langs kantbjælken, kun stålets egenlast ---
-    liftOn: false,             // løftevariant: understøtningerne erstattes af fire løftepunkter, og kun egenlasten er med
-    liftNode: 'KS.1',          // første løftepunkt (KS.i eller KSM.i); de tre andre ligger 90°, 180° og 270° derfra
-    liftSupport: 'vertical',   // 'vertical' (lodret + tre vandrette fastholdelser, statisk bestemt) | 'pinned' (fastholdt i alle retninger)
+    // --- løftesimulering: taget løftes i punkter langs kantbjælken, kun stålets egenlast ---
+    liftOn: false,             // løftevariant: understøtningerne erstattes af løftepunkterne, og kun egenlasten er med
+    liftPoints: 'even',        // 'even' (liftCount punkter jævnt fordelt fra liftNode) | 'nodes' (knuderne i liftNodes)
+    liftCount: 4,              // antal jævnt fordelte løftepunkter (antallet af radialbjælker skal være deleligt med det)
+    liftNode: 'KS.1',          // første løftepunkt (KS.i eller KSM.i) ved jævn fordeling
+    liftNodes: '',             // løftepunkterne ved 'nodes', fx 'KS.1, KS.7, KSM.12'
+    liftSupport: 'vertical',   // 'vertical' (lodret + tre vandrette fastholdelser, statisk bestemt) | 'zOnly' (kun lodret) | 'pinned' (fastholdt i alle retninger)
+    liftHolds: [],             // ekstra understøtninger langs kantbjælken i løftet: [{ nodes: 'alle' | 'KS.2, KS.3', z, r, t, rr, rt, rz, k }]
+                               // i knudens lokale system (r radialt, t tangentielt, z lodret); k = fjederstivhed [kN/m], tom = stiv
     liftShellH: 1000,          // højden af svøbpladen under kantbjælken [mm] (0 = ingen svøbplade)
     liftShellT: 8,             // svøbpladens tykkelse [mm]
     liftPlate: true,           // tagpladens egenvægt (plateT) med i egenlasten
@@ -1979,6 +2035,21 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!h || typeof h !== 'object' || Array.isArray(h)) return;
       var o = { nodes: jsString(h.nodes) };
       HOLD_DIRS.forEach(function (k) { o[k] = h[k] === true || h[k] === 'true'; });
+      out.push(o);
+    });
+    return out;
+  }
+  // ekstra understøtninger langs kantbjælken i løftesimuleringen: retninger i knudens radiale system
+  var LIFT_HOLD_DIRS = ['z', 'r', 't', 'rr', 'rt', 'rz'];
+  function normLiftHolds(v) {
+    if (typeof v === 'string') { try { v = JSON.parse(v); } catch (e) { v = []; } }
+    if (!Array.isArray(v)) return [];
+    var out = [];
+    v.forEach(function (h) {
+      if (!h || typeof h !== 'object' || Array.isArray(h)) return;
+      var o = { nodes: jsString(h.nodes) };
+      LIFT_HOLD_DIRS.forEach(function (k) { o[k] = h[k] === true || h[k] === 'true'; });
+      o.k = h.k === null || h.k === undefined ? '' : String(h.k);
       out.push(o);
     });
     return out;
@@ -2287,12 +2358,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     ['plateT', 'deadExtra', 'liveQ', 'livePointQ', 'snowSk', 'snowCe', 'snowCt', 'asymDir', 'windQp', 'windVb0',
       'windCdirSeason', 'windH', 'windCpeA', 'windCpeB', 'windCpeC', 'windCpe', 'windCpi', 'pressOver', 'pressVac',
       'tempRef', 'tempRoof', 'tempShell', 'tempAlpha', 'walkRB', 'walkG', 'walkQ', 'walkB', 'rotTestF', 'kipRB', 'kipQ', 'braceCompLimit',
-      'liftShellH', 'liftShellT', 'liftGamma']
+      'liftShellH', 'liftShellT', 'liftGamma', 'liftCount']
       .forEach(function (k) { q[k] = toNum(q[k]); });
     ['loadsOn', 'deadOn', 'deadSelf', 'liveOn', 'liveHalf', 'snowOn', 'snowUniform', 'snowAsym', 'snowHalf', 'windOn',
       'pressOn', 'tempOn', 'walkOn', 'rotTestOn', 'rotTestCombo', 'kipOn', 'braceTensionOnly', 'resultPoints', 'liftOn', 'liftPlate']
       .forEach(function (k) { q[k] = q[k] === true || q[k] === 'true'; });
-    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir', 'liftNode'].forEach(function (k) {
+    ['windQpMode', 'windTerrain', 'windModel', 'windDirs', 'walkRin', 'walkRout', 'snowAsymMu', 'rotTestNodes', 'rotTestDir', 'liftNode', 'liftNodes'].forEach(function (k) {
       q[k] = q[k] === null || q[k] === undefined ? '' : String(q[k]);
     });
     Object.keys(BUCKLING_GROUPS).forEach(function (g) {
@@ -2306,7 +2377,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.combos = normCombos(q.combos);
     q.holdMode = q.holdMode === 'nodes' ? 'nodes' : 'auto';
     q.holds = normHolds(q.holds);
-    q.liftSupport = q.liftSupport === 'pinned' ? 'pinned' : 'vertical';
+    q.liftSupport = q.liftSupport === 'pinned' || q.liftSupport === 'zOnly' ? q.liftSupport : 'vertical';
+    q.liftPoints = q.liftPoints === 'nodes' ? 'nodes' : 'even';
+    q.liftHolds = normLiftHolds(q.liftHolds);
     return q;
   }
 
@@ -2693,14 +2766,36 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         });
       }
     }
-    // løftesimulering: understøtningerne erstattes af fire løftepunkter langs kantbjælken med 90° imellem,
-    // fra det valgte punkt (KS.i ved radialbjælke i eller KSM.i midt i faget efter den, ved sektionsspæret)
-    var liftErrors = [], liftNodes = [];
+    // løftesimulering: understøtningerne erstattes af løftepunkter langs kantbjælken, enten jævnt fordelt fra det valgte
+    // punkt (KS.i ved radialbjælke i eller KSM.i midt i faget efter den, ved sektionsspæret) eller i en liste af knuder.
+    // Derudover kan der sættes ekstra understøtninger langs kantbjælken (fx vandrette) i knudernes radiale system.
+    var liftErrors = [], liftNodes = [], liftExtra = [], liftHoldErrors = [];
     if (p.liftOn) {
-      var lm = /^KS(M?)\.(\d+)$/i.exec(String(p.liftNode).trim()), lmid = !!(lm && lm[1]), li0 = lm ? parseInt(lm[2], 10) : 0;
-      if (n % 4 !== 0) liftErrors.push('Løft: antallet af radialbjælker skal være deleligt med 4, så de fire løftepunkter ligger symmetrisk på knuder langs kantbjælken.');
-      else if (!lm || li0 < 1 || li0 > n) liftErrors.push('Løft: første løftepunkt skal være en knude langs kantbjælken, KS.1–KS.' + n + (p.secOn ? ' eller KSM.1–KSM.' + n : '') + '.');
-      else if (lmid && !p.secOn) liftErrors.push('Løft: KSM-knuderne findes kun med sektionsspær. Brug KS.1–KS.' + n + '.');
+      var edgeNode = function (t) {   // knude langs kantbjælken: { i, mid, name, pos, th } eller null
+        var mm = /^KS(M?)\.(\d+)$/i.exec(String(t).trim()), ii = mm ? parseInt(mm[2], 10) : 0;
+        if (!mm || ii < 1 || ii > n || (mm[1] && !p.secOn)) return null;
+        var mid = !!mm[1];
+        return { i: ii - 1, mid: mid, name: 'KS' + (mid ? 'M' : '') + '.' + ii, pos: mid ? Cpt(ii - 1) : P(R, ii - 1), th: thetas[ii - 1] + (mid ? Math.PI / n : 0) };
+      };
+      var edgeHint = 'KS.1–KS.' + n + (p.secOn ? ' eller KSM.1–KSM.' + n : '');
+      var liftPts = [];
+      if (p.liftPoints === 'nodes') {
+        var ltoks = String(p.liftNodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; }), lseen = {};
+        if (ltoks.length < 2) liftErrors.push('Løft: skriv mindst to løftepunkter, fx "KS.1, KS.7, KS.13, KS.19".');
+        ltoks.forEach(function (t) {
+          var e = edgeNode(t);
+          if (!e) { liftErrors.push('Løft: "' + t + '" er ikke en knude langs kantbjælken. Brug ' + edgeHint + '.'); return; }
+          if (lseen[e.name]) { liftErrors.push('Løft: ' + e.name + ' står flere gange blandt løftepunkterne.'); return; }
+          lseen[e.name] = true;
+          liftPts.push(e);
+        });
+      } else {
+        var nl = p.liftCount, e0 = edgeNode(p.liftNode);
+        if (!(nl >= 2 && nl <= n && Math.round(nl) === nl)) liftErrors.push('Løft: antallet af løftepunkter skal være et helt tal mellem 2 og ' + n + '.');
+        else if (n % nl !== 0) liftErrors.push('Løft: antallet af radialbjælker (' + n + ') skal være deleligt med antallet af løftepunkter (' + nl + '), så de ligger symmetrisk på knuder langs kantbjælken.');
+        else if (!e0) liftErrors.push(/^KSM\./i.test(String(p.liftNode).trim()) && !p.secOn ? 'Løft: KSM-knuderne findes kun med sektionsspær. Brug KS.1–KS.' + n + '.' : 'Løft: første løftepunkt skal være en knude langs kantbjælken, ' + edgeHint + '.');
+        else for (var lk = 0; lk < nl; lk++) liftPts.push(edgeNode('KS' + (e0.mid ? 'M' : '') + '.' + ((e0.i + lk * n / nl) % n + 1)));
+      }
       if (!(p.liftShellH >= 0 && p.liftShellH <= 20000)) liftErrors.push('Løft: svøbpladens højde skal ligge mellem 0 og 20000 mm.');
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
@@ -2709,16 +2804,89 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         if (!p.edgeRing) liftErrors.push('Løft: svøbpladen lægges i kantbjælkens tværsnit. Slå »Kantring langs svøbet« til, eller sæt svøbpladens højde til 0.');
         else if (!lpp || (lpp.family !== 'T' && lpp.family !== 'TS')) liftErrors.push('Løft: svøbpladen kan kun lægges under en kantbjælke af T-profil (T eller svejst T).');
       }
+      // ekstra understøtninger langs kantbjælken: én understøtning pr. knude, retningerne fra alle rækker lægges sammen
+      var isLift = {};
+      liftPts.forEach(function (e) { isLift[e.name] = true; });
+      var extraBy = {}, extraOrder = [];
+      p.liftHolds.forEach(function (h, k) {
+        var label = 'Løft, understøtning ' + (k + 1) + ': ', all = /^\s*(alle|\*)\s*$/i.test(h.nodes);
+        var toks = all ? [] : String(h.nodes).split(/[,;\s]+/).filter(function (t) { return t !== ''; });
+        if (!all && !toks.length) { liftHoldErrors.push(label + 'skriv en eller flere knuder, fx "KS.2, KS.3", eller "alle".'); return; }
+        if (!LIFT_HOLD_DIRS.some(function (d) { return h[d]; })) { liftHoldErrors.push(label + 'vælg mindst én retning.'); return; }
+        var kv = String(h.k).trim() === '' ? FIXED : toNum(h.k);
+        if (!(kv > 0)) { liftHoldErrors.push(label + 'fjederstivheden skal være større end 0 (tom = stiv).'); return; }
+        var list = [];
+        if (all) {
+          for (var a1 = 0; a1 < n; a1++) {
+            list.push(edgeNode('KS.' + (a1 + 1)));
+            if (p.secOn) list.push(edgeNode('KSM.' + (a1 + 1)));
+          }
+          list = list.filter(function (e) { return !isLift[e.name]; });   // »alle« er knuderne mellem løftepunkterne
+        } else {
+          toks.forEach(function (t) {
+            var e = edgeNode(t);
+            if (!e) { liftHoldErrors.push(label + '"' + t + '" er ikke en knude langs kantbjælken. Brug ' + edgeHint + '.'); return; }
+            if (isLift[e.name] && p.liftSupport === 'vertical') {
+              liftHoldErrors.push(label + e.name + ' er et løftepunkt. Med »Lodret + 3 vandrette« har løftepunkterne deres faste fastholdelser; vælg »Kun lodret« eller »Fastholdt« for at give dem flere.');
+              return;
+            }
+            list.push(e);
+          });
+        }
+        list.forEach(function (e) {
+          var o = extraBy[e.name];
+          if (!o) { o = extraBy[e.name] = { e: e, m: { x: 0, y: 0, z: 0 }, r: { x: 0, y: 0, z: 0 } }; extraOrder.push(e.name); }
+          var mx = function (obj, key, on) { if (on) obj[key] = Math.min(FIXED, Math.max(obj[key], kv)); };
+          mx(o.m, 'x', h.r); mx(o.m, 'y', h.t); mx(o.m, 'z', h.z);
+          if (h.rr) o.r.x = FIXED; if (h.rt) o.r.y = FIXED; if (h.rz) o.r.z = FIXED;
+        });
+      });
+      liftErrors = liftErrors.concat(liftHoldErrors);
       if (!liftErrors.length) {
         supports = [];
-        for (var lk = 0; lk < 4; lk++) {
-          var li = (li0 - 1 + lk * n / 4) % n, lth = thetas[li] + (lmid ? Math.PI / n : 0), lnm = 'KS' + (lmid ? 'M' : '') + '.' + (li + 1);
-          liftNodes.push(lnm);
-          supports.push({
-            name: 'L.' + (lk + 1), node: lnm, pos: lmid ? Cpt(li) : P(R, li), rho: R, lift: true,
-            localX: [Math.cos(lth), Math.sin(lth), 0], localY: [-Math.sin(lth), Math.cos(lth), 0],
-            motions: { x: FIXED, y: FIXED, z: FIXED }, rotations: { x: 0, y: 0, z: 0 }
+        var lfix = p.liftSupport === 'pinned' ? FIXED : 0;
+        liftPts.forEach(function (e, lk) {
+          liftNodes.push(e.name);
+          var s0 = {
+            name: 'L.' + (lk + 1), node: e.name, pos: e.pos, rho: R, lift: true, local: p.liftSupport !== 'vertical',
+            localX: [Math.cos(e.th), Math.sin(e.th), 0], localY: [-Math.sin(e.th), Math.cos(e.th), 0],
+            motions: { x: lfix || FIXED, y: lfix || FIXED, z: FIXED }, rotations: { x: 0, y: 0, z: 0 }
+          };
+          var ex = extraBy[e.name];
+          if (ex) {   // flere fastholdelser i selve løftepunktet
+            ['x', 'y'].forEach(function (a) { if (p.liftSupport === 'zOnly') s0.motions[a] = ex.m[a]; });
+            ['x', 'y', 'z'].forEach(function (a) { s0.rotations[a] = Math.max(s0.rotations[a], ex.r[a]); });
+            delete extraBy[e.name];
+          } else if (p.liftSupport === 'zOnly') { s0.motions.x = 0; s0.motions.y = 0; }
+          supports.push(s0);
+        });
+        extraOrder.forEach(function (nm, k) {
+          var ex = extraBy[nm];
+          if (!ex) return;
+          var sx = {
+            name: 'LU.' + (liftExtra.length + 1), node: nm, pos: ex.e.pos, rho: R, liftExtra: true, local: true,
+            localX: [Math.cos(ex.e.th), Math.sin(ex.e.th), 0], localY: [-Math.sin(ex.e.th), Math.cos(ex.e.th), 0],
+            motions: ex.m, rotations: ex.r
+          };
+          liftExtra.push(sx);
+          supports.push(sx);
+        });
+        // stivlegemebevægelserne: vandret (u, v, drejning) og lodret (w, hældning om X og Y)
+        var hRows = [], vRows = [];
+        supports.forEach(function (s) {
+          var x = s.pos[0] / R, y = s.pos[1] / R;
+          if (s.lift && p.liftSupport === 'vertical') return;   // de automatiske fastholdelser regnes for sig herunder
+          [['x', s.localX], ['y', s.localY]].forEach(function (c) {
+            if (s.motions[c[0]] > 0) hRows.push([c[1][0], c[1][1], x * c[1][1] - y * c[1][0]]);
           });
+          if (s.rotations.z > 0) hRows.push([0, 0, 1]);
+          if (s.motions.z > 0) vRows.push([1, x, y]);
+        });
+        supports.forEach(function (s) { if (s.lift && p.liftSupport === 'vertical') vRows.push([1, s.pos[0] / R, s.pos[1] / R]); });
+        if (planeRank(vRows) < 3) warnings.push('Løft: de lodrette understøtninger ligger på én linje, så taget kan vælte om den. Tilføj løftepunkter eller lodrette understøtninger uden for linjen.');
+        if (p.liftSupport !== 'vertical' && planeRank(hRows) < 3) {
+          warnings.push(hRows.length ? 'Løft: de vandrette understøtninger holder ikke taget: det kan stadig forskydes eller dreje vandret. Tilføj understøtninger i flere retninger, fx tangentielt i et par knuder.'
+            : 'Løft: ingen understøtninger holder taget vandret, så det kan forskydes og dreje frit. Vælg »Lodret + 3 vandrette«, eller tilføj vandrette understøtninger langs kantbjælken.');
         }
       }
       errors.push.apply(errors, liftErrors);
@@ -2772,10 +2940,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       }
       holdDeterminate = rk === 3 && rows.length === 3;
     } else if (vertOnly && supports.length) {
-      supports.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
+      var autoSup = supports.filter(function (s) { return !s.liftExtra; });
+      autoSup.forEach(function (s) { s.motions.x = 0; s.motions.y = 0; });
       var pick = function (score, skip) {
         var best = -1, bv = -Infinity;
-        supports.forEach(function (s, i) {
+        autoSup.forEach(function (s, i) {
           if (skip && skip(i)) return;
           var v = score(s);
           if (v > bv + 1e-9 * R) { bv = v; best = i; }
@@ -2784,11 +2953,11 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       };
       var iX = pick(function (s) { return s.pos[0]; });
       var iY = pick(function (s) { return s.pos[1]; });
-      var xY = supports[iY].pos[0], lever = function (s) { return Math.abs(s.pos[0] - xY); };
+      var xY = autoSup[iY].pos[0], lever = function (s) { return Math.abs(s.pos[0] - xY); };
       var iL = pick(lever, function (i) { return i === iY || i === iX; });
-      if (iL < 0 || (iX !== iY && lever(supports[iL]) < lever(supports[iX]) - 1e-6 * R)) iL = iX;
+      if (iL < 0 || (iX !== iY && lever(autoSup[iL]) < lever(autoSup[iX]) - 1e-6 * R)) iL = iX;
       [[iX, 'x', 'X', false], [iY, 'y', 'Y', false], [iL, 'y', 'Y', true]].forEach(function (h) {
-        var s = supports[h[0]];
+        var s = autoSup[h[0]];
         s.localX = [1, 0, 0]; s.localY = [0, 1, 0];   // globalt system ved de vandret fastholdte
         s.motions[h[1]] = FIXED;
         hold.push({ name: s.name, dir: h[2], lock: h[3], vec: h[1] === 'x' ? [1, 0] : [0, 1], pos: s.pos });
@@ -2923,10 +3092,12 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       brace: { lines: braceLines.length, valid: braceValid, members: nBrace, repeat: rep }
     };
 
-    if (p.liftOn && !liftErrors.length) info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge };
+    if (p.liftOn && !liftErrors.length) {
+      info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge, extra: liftExtra.map(function (s) { return s.node; }) };
+    }
     return {
       params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers,
-      info: info, zOf: zOf, braceErrors: braceErrors, holdErrors: holdErrors, bracePoints: bracePoints, braceLines: braceLines,
+      info: info, zOf: zOf, braceErrors: braceErrors, holdErrors: holdErrors, liftHoldErrors: liftHoldErrors, bracePoints: bracePoints, braceLines: braceLines,
       braceLineOk: lineRefs.map(function (x) { return !!x; })
     };
   }
@@ -7353,6 +7524,9 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     $('rotTestFields').disabled = !(on && p.rotTestOn);
     $('kipFields').disabled = !(on && p.kipOn);
     $('liftFields').disabled = !p.liftOn;
+    ['liftPtFields', 'liftSupFields', 'liftShellFields'].forEach(function (k) { $(k).disabled = !p.liftOn; });
+    $('liftEvenFields').hidden = p.liftPoints !== 'even';
+    $('liftNodesField').hidden = p.liftPoints !== 'nodes';
     // løftesimulering: kun egenlasten, så de øvrige laster er slået fra (indstillingerne bevares)
     if (p.liftOn) {
       ['loadsOn', 'deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn', 'kipOn'].forEach(function (k) { $(k).disabled = true; });
@@ -7396,7 +7570,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   }
   function updateSupportHint(g) {
     var p = g.params, el = $('supportHint');
-    if (p.liftOn) { el.textContent = 'Løftesimulering er valgt: understøtningerne ved svøbet er erstattet af de fire løftepunkter under Løftesimulering.'; return; }
+    if (p.liftOn) { el.textContent = 'Løftesimulering er valgt: understøtningerne ved svøbet er erstattet af løftepunkterne og understøtningerne under fanen Løft.'; return; }
     if (p.support !== 'vertical') { el.textContent = 'Lodret og tangentielt altid fastholdt; rotationer fri.'; return; }
     if (p.holdMode === 'nodes') {
       var ok = !g.errors.length && !(g.holdErrors || []).length && g.info.hold.length;
@@ -7439,7 +7613,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         Object.keys(q).forEach(function (k) { m += q[k].mass || 0; });
         dead += '<br>+ konstruktionen ≈ ' + nf(m * 9.81 / 1000, 1) + ' kN (FEM-Design regner den)';
       }
-      if (p.liftOn) dead += '<br>Løftesimulering: kun stålets egenlast, se Løftesimulering under Geometri.';
+      if (p.liftOn) dead += '<br>Løftesimulering: kun stålets egenlast, se fanen Løft.';
     }
     var lift = '';
     if (p.liftOn && !g.errors.length && g.info.lift) {
@@ -7452,12 +7626,14 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         lw.steel = lm * 9.81 / 1000;
       }
       var le = g.info.lift.edgeProfile, ls = le && LIB ? TR.findSection(LIB, le) : null;
-      lift = 'Løftepunkter: ' + esc(g.info.lift.nodes.join(', ')) +
+      var nlp = g.info.lift.nodes.length;
+      lift = 'Løftepunkter (' + nlp + '): ' + esc(g.info.lift.nodes.join(', ')) +
+        (g.info.lift.extra.length ? '<br>Understøtninger langs kantbjælken: ' + (g.info.lift.extra.length > 8 ? g.info.lift.extra.length + ' knuder' : esc(g.info.lift.extra.join(', '))) : '') +
         (le ? '<br>Kantbjælke ' + esc(profLabel(le)) + (ls ? ': A = ' + nf(ls.area * 1e4, 1) + ' cm², h = ' + nf(ls.h * 1000, 0) + ' mm' : ' – tværsnittet kunne ikke laves') : '') +
         '<br>Konstruktionen inkl. svøb ' + (lw.steel === null ? '–' : '≈ ' + nf(lw.steel, 1) + ' kN') + ' · tagplade ≈ ' + nf(lw.plate, 1) + ' kN';
       if (lw.steel !== null) {
         var lt = lw.steel + lw.plate;
-        lift += '<br>I alt ≈ ' + nf(lt, 1) + ' kN, ≈ ' + nf(lt / 4, 1) + ' kN pr. løftepunkt (karakteristisk, ved jævn fordeling)';
+        lift += '<br>I alt ≈ ' + nf(lt, 1) + ' kN, ≈ ' + nf(lt / nlp, 1) + ' kN pr. løftepunkt (karakteristisk, ved jævn fordeling)';
       }
     }
     $('liftCalc').innerHTML = lift;
@@ -7622,26 +7798,29 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   // kun lodrette understøtninger med enkelte vandrette fastholdelser i globalt X og Y (også løftepunkterne)
   function supVertical(p) { return p.liftOn ? p.liftSupport === 'vertical' : p.support === 'vertical'; }
   function supRestraints(sp, p) {
-    var glob = supVertical(p), links = [], rots = [];
+    var glob = !sp.local && supVertical(p), links = [], rots = [], mz = sp.motions.z;
     [['x', sp.localX], ['y', sp.localY]].forEach(function (t) {
       var v = sp.motions[t[0]];
       if (!(v > 0)) return;
       var vec = [t[1][0], t[1][1]];
       links.push({ vec: vec, spring: v < SUP_FIXED, k: v, name: glob ? (Math.abs(vec[0]) > 0.5 ? 'X' : 'Y') : (t[0] === 'x' ? 'radialt' : 'tangentielt') });
     });
-    ['x', 'y', 'z'].forEach(function (a) { if (sp.rotations[a] > 0) rots.push(a.toUpperCase()); });
-    return { links: links, rots: rots, hold: glob };
+    // rotationerne om globalt X, Y, Z ved Kun lodret, ellers om knudens radiale (R), tangentielle (T) og lodrette (Z) akse
+    ['x', 'y', 'z'].forEach(function (a) { if (sp.rotations[a] > 0) rots.push(glob || sp.global ? a.toUpperCase() : { x: 'R', y: 'T', z: 'Z' }[a]); });
+    return { links: links, rots: rots, hold: glob, vert: mz > 0, vSpring: mz > 0 && mz < SUP_FIXED, kz: mz };
   }
   function joinDa(a) { return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' og ' + a[a.length - 1]; }
   function supText(sp, p) {
-    var r = supRestraints(sp, p), fixed = ['lodret'], rest = [];
+    var r = supRestraints(sp, p), fixed = r.vert && !r.vSpring ? ['lodret'] : [], rest = [];
+    if (r.vSpring) rest.push('lodret fjeder ' + nf(r.kz, 0) + ' kN/m');
     r.links.forEach(function (l) {
-      if (l.spring) rest.push('radial fjeder ' + nf(l.k, 0) + ' kN/m');
+      if (l.spring) rest.push((l.name === 'radialt' ? 'radial' : l.name === 'tangentielt' ? 'tangentiel' : l.name) + ' fjeder ' + nf(l.k, 0) + ' kN/m');
       else fixed.push(r.hold ? 'i ' + l.name : l.name);
     });
     r.rots.forEach(function (a) { fixed.push('mod rotation om ' + a); });
+    if (!r.vert) rest.push('lodret fri');
     if (!r.hold && !r.links.some(function (l) { return l.name === 'radialt'; })) rest.push('radialt fri');
-    var txt = r.hold && fixed.length === 1 ? 'kun lodret fastholdt' : joinDa(fixed) + ' fastholdt';
+    var txt = r.hold && fixed.length === 1 ? 'kun lodret fastholdt' : (fixed.length ? joinDa(fixed) + ' fastholdt' : 'fjedrende');
     return sp.name + ' (' + sp.node + '): ' + txt + (rest.length ? ', ' + rest.join(', ') : '') + '. Rotationerne er ellers frie.';
   }
   function ptsAttr(a) { return a.map(function (t) { return t[0].toFixed(1) + ',' + t[1].toFixed(1); }).join(' '); }
@@ -7758,7 +7937,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
           out.push(textEl('d-holdlbl', q[0] - ur[0] * 16 * k, q[1] - ur[1] * 16 * k + 4 * k, 'rot ' + r.rots.join(', '), 10 * k, ur[0] > 0.3 ? 'end' : (ur[0] < -0.3 ? 'start' : 'middle')));
         }
         var L0 = 11 * k, Wd = 4.5 * k, bse = [q[0] + ur[0] * L0, q[1] + ur[1] * L0];
-        out.push('<polygon class="d-sup" points="' + ptsAttr([q, [bse[0] - ur[1] * Wd, bse[1] + ur[0] * Wd], [bse[0] + ur[1] * Wd, bse[1] - ur[0] * Wd]]) + '"/>');
+        if (r.vert) out.push('<polygon class="d-sup" points="' + ptsAttr([q, [bse[0] - ur[1] * Wd, bse[1] + ur[0] * Wd], [bse[0] + ur[1] * Wd, bse[1] - ur[0] * Wd]]) + '"/>');
         out.push('</g>');
       });
       out.push('</g>');
@@ -7951,7 +8130,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     // understøtningsforhold i snittets plan: fast leje når de er radialt fastholdt, ellers rullende leje (ved radial fjeder med fjederen
     // vandret ud mod svøbet). Det tangentielle og de enkelte vandrette fastholdelser ved Kun lodret ses i plan og 3D.
     if (showSup) {
-      var tip = p.liftOn ? 'Løftesimulering: fire løftepunkter langs kantbjælken (' + g.supports.map(function (s) { return s.node; }).join(', ') + '). Se dem i plan og 3D.'
+      var tip = p.liftOn ? 'Løftesimulering: ' + g.supports.filter(function (s) { return s.lift; }).length + ' løftepunkter langs kantbjælken (' + g.supports.filter(function (s) { return s.lift; }).map(function (s) { return s.node; }).join(', ') + ')' +
+        (g.supports.some(function (s) { return s.liftExtra; }) ? ' og understøtninger i ' + g.supports.filter(function (s) { return s.liftExtra; }).map(function (s) { return s.node; }).join(', ') : '') + '. Se dem i plan og 3D.'
         : (p.support === 'vertical' ? 'Understøtning ved svøbet: kun lodret fastholdt. De vandrette fastholdelser ved enkelte knuder ses i plan og 3D.'
         : (g.supports[0] ? supText(g.supports[0], p).replace(/^[^:]*: /, 'Understøtning ved svøbet: ') : ''));
       var rFix = p.liftOn ? p.liftSupport === 'pinned' : p.support === 'pinned', rSpring = !p.liftOn && p.support === 'radialSpring';
@@ -8151,7 +8331,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
           var e = P([sp.pos[0] + v[0] * len, sp.pos[1] + v[1] * len, sp.pos[2] + v[2] * len]), dx = e[0] - q[0], dy = e[1] - q[1], Ls = Math.hypot(dx, dy);
           return Ls > 4 * k ? linkSym(q, [dx / Ls, dy / Ls], Ls, k, spring) : '';
         };
-        out.push('<g><title>' + esc(supText(sp, p)) + '</title>' + link([0, 0, -1], 26 * k / s, false));
+        out.push('<g><title>' + esc(supText(sp, p)) + '</title>' + (r.vert ? link([0, 0, -1], 26 * k / s, r.vSpring) : ''));
         if (r.links.length) {
           out.push('<g' + (r.hold ? ' class="hold"' : '') + '>');
           r.links.forEach(function (l) {
@@ -8401,7 +8581,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
         html.push('<span>' + (vert ? lgLink.replace('class="lgsup"', 'class="lgsup hold"') + 'Vandret fastholdt (X / Y)' : lgLink + 'Fastholdt vandret retning') + '</span>');
       }
       if (sr.some(function (r) { return r.links.some(function (l) { return l.spring; }); })) {
-        html.push('<span><svg class="lgsup" viewBox="0 0 22 14"><polyline points="1,7 5,7 7,4 9,10 11,4 13,10 15,7 17,7"/><line x1="17" y1="2" x2="17" y2="12"/></svg>Radial fjeder</span>');
+        html.push('<span><svg class="lgsup" viewBox="0 0 22 14"><polyline points="1,7 5,7 7,4 9,10 11,4 13,10 15,7 17,7"/><line x1="17" y1="2" x2="17" y2="12"/></svg>' + (p.liftOn ? 'Fjeder' : 'Radial fjeder') + '</span>');
       }
       if (view !== 'section' && sr.some(function (r) { return r.rots.length; })) html.push('<span><svg class="lgsup hold" viewBox="0 0 22 14"><rect x="6" y="2" width="10" height="10"/></svg>Fastholdt rotation</span>');
     }
@@ -8477,6 +8657,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     updateHints(geom);
     renderRadList(geom);
     renderHoldList(geom);
+    renderLiftHoldList(geom);
     renderRingProfs(geom);
     updateRotUI(geom);
     if (!geom.errors.length) updateLoadHints(geom, loads);
@@ -8605,6 +8786,59 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       if (this.checked && this.value === 'nodes' && !(Array.isArray(params.holds) && params.holds.length)) params.holds = holdsFromAuto();
     }, true);
   });
+  // ---------- løft: understøtninger langs kantbjælken, én række pr. gruppe af knuder ----------
+  var LIFT_HOLD_UI = [['z', 'Z', 'Lodret'], ['r', 'R', 'Radialt (vandret mod centrum)'], ['t', 'T', 'Tangentielt (vandret langs kantbjælken)'],
+    ['rr', 'rot R', 'Rotation om den radiale akse'], ['rt', 'rot T', 'Rotation om den tangentielle akse'], ['rz', 'rot Z', 'Rotation om den lodrette akse']];
+  function renderLiftHoldList(g) {
+    var box = $('liftHoldList'), holds = Array.isArray(params.liftHolds) ? params.liftHolds : [];
+    var sig = JSON.stringify(holds.map(function (h) { return LIFT_HOLD_UI.map(function (d) { return !!h[d[0]]; }); }));
+    var ae = document.activeElement, typing = ae && ae.tagName === 'INPUT' && ae.type === 'text' && box.contains(ae);
+    if (!typing || box.dataset.sig !== sig) {
+      box.innerHTML = holds.map(function (h, i) {
+        return '<div class="holdrow"><input type="text" data-ln="' + i + '" value="' + esc(h.nodes || '') + '" placeholder="fx alle eller KS.2, KS.3" spellcheck="false" aria-label="Knuder i række ' + (i + 1) + '">' +
+          '<div class="hd">' + LIFT_HOLD_UI.map(function (d) {
+            return '<label title="' + d[2] + '"><input type="checkbox" data-ld="' + i + '" data-dir="' + d[0] + '"' + (h[d[0]] ? ' checked' : '') +
+              ' aria-label="' + d[2] + ', række ' + (i + 1) + '"><span>' + d[1] + '</span></label>';
+          }).join('') + '</div>' +
+          '<input type="text" class="lk" inputmode="decimal" data-lk="' + i + '" value="' + esc(h.k || '') + '" placeholder="stiv" title="Fjederstivhed for flytningerne [kN/m], tom = stiv" aria-label="Fjederstivhed i kN/m, række ' + (i + 1) + '">' +
+          '<button type="button" class="rx" data-ldel="' + i + '" aria-label="Fjern række ' + (i + 1) + '">×</button></div>';
+      }).join('');
+      box.dataset.sig = sig;
+    }
+    var bad = {};
+    (g.liftHoldErrors || []).forEach(function (e) { var m = /^Løft, understøtning (\d+):/.exec(e); if (m) bad[Number(m[1]) - 1] = true; });
+    box.querySelectorAll('input[data-ln]').forEach(function (el) { el.setAttribute('aria-invalid', String(!!bad[Number(el.dataset.ln)])); });
+  }
+  function onLiftHoldEdit(e) {
+    var t = e.target, d = t.dataset || {};
+    if (!Array.isArray(params.liftHolds)) params.liftHolds = [];
+    if (d.ln !== undefined || d.lk !== undefined) {
+      if (e.type !== 'input') { e.stopPropagation(); return; }
+      params.liftHolds[Number(d.ln !== undefined ? d.ln : d.lk)][d.ln !== undefined ? 'nodes' : 'k'] = t.value;
+    } else if (d.ld !== undefined) { if (e.type !== 'change') { e.stopPropagation(); return; } params.liftHolds[Number(d.ld)][d.dir] = t.checked; }
+    else return;
+    e.stopPropagation();
+    commitHolds();
+  }
+  function addLiftHold(row) {
+    if (!Array.isArray(params.liftHolds)) params.liftHolds = [];
+    params.liftHolds = params.liftHolds.concat([Object.assign({ nodes: '', z: false, r: false, t: false, rr: false, rt: false, rz: false, k: '' }, row)]);
+    commitHolds();
+  }
+  $('liftHoldList').addEventListener('input', onLiftHoldEdit);
+  $('liftHoldList').addEventListener('change', onLiftHoldEdit);
+  $('liftHoldList').addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-ldel]');
+    if (!b) return;
+    params.liftHolds = params.liftHolds.filter(function (x, k) { return k !== Number(b.dataset.ldel); });
+    commitHolds();
+  });
+  $('liftHoldAdd').addEventListener('click', function () {
+    addLiftHold({ r: true });
+    var els = $('liftHoldList').querySelectorAll('input[data-ln]');
+    if (els.length) els[els.length - 1].focus();
+  });
+  $('liftHoldRadial').addEventListener('click', function () { addLiftHold({ nodes: 'alle', r: true }); });
   $('radList').addEventListener('input', function (e) {
     if (!e.target.dataset || e.target.dataset.ring === undefined) return;
     var vals = [].map.call($('radList').querySelectorAll('input[data-ring]'), function (el) { return el.value.trim() || '?'; });
@@ -8955,7 +9189,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   function setFormTab(tab) {
     var was = formTab;
     formTab = tab;
-    ['geo', 'loads', 'brace', 'combo', 'conn', 'shell'].forEach(function (t) {
+    ['geo', 'loads', 'brace', 'combo', 'lift', 'conn', 'shell'].forEach(function (t) {
       $('ftab-' + t).setAttribute('aria-selected', String(t === tab));
       $('pane-' + t).hidden = t !== tab;
     });
@@ -8978,6 +9212,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
   $('ftab-geo').addEventListener('click', function () { setFormTab('geo'); });
   $('ftab-loads').addEventListener('click', function () { setFormTab('loads'); });
   $('ftab-combo').addEventListener('click', function () { setFormTab('combo'); });
+  $('ftab-lift').addEventListener('click', function () { setFormTab('lift'); });
   $('ftab-shell').addEventListener('click', function () { setFormTab('shell'); updateShellInfo(); });   // skalmodel
   $('ftab-conn').addEventListener('click', function () {
     setFormTab('conn');
