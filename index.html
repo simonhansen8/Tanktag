@@ -1397,7 +1397,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
               <input class="num" type="text" inputmode="decimal" id="liftShellT" data-key="liftShellT">
             </div>
           </div>
-          <p class="hint">Som <b>stålskaller</b> skrives kantbjælken som plader i stedet for stænger: flangen som vandrette plader i sin midterflade, kroppen og svøbpladen som lodrette plader under den, langs hvert stykke af kantbjælken mellem knuderne. Kroppen og svøbet deles i knudernes kote (tværsnittets tyngdepunkt, som i profilmodellen), så radialbjælkerne og understøtningerne ender på en pladekant. Flangens tykkelse sættes, så pladerne har profilets areal. Lastfordelingsfladerne bæres af flangepladerne. Tegningerne her viser stadig kantbjælken som profil.</p>
+          <p class="hint">Som <b>stålskaller</b> skrives kantbjælken som plader i stedet for stænger: flangen som vandrette plader i sin midterflade og kroppen og svøbpladen som lodrette plader under den, langs hvert stykke af kantbjælken mellem knuderne. Skæringen mellem flangen og kroppen ligger i knudernes kote, hvor radialbjælkerne møder kantbjælken, så de og understøtningerne ender på en pladekant; kantbjælken ligger altså lavere end i profilmodellen, hvor tyngdepunktet er i knuden. Flangens tykkelse sættes, så pladerne har profilets areal. Lastfordelingsfladerne bæres af flangepladerne. Tegningerne her viser stadig kantbjælken som profil.</p>
           <p class="hint">Som <b>profil</b> lægges svøbpladen ind i kantbjælkens tværsnit: T-profilets krop forlænges nedad med en plade med svøbpladens højde og tykkelse, så kantbjælken virker i fuld højde. Tværsnittet skrives som et svejst brugertværsnit med systemlinjen i det nye tyngdepunkt. Det kræver kantring af T-profil (T eller svejst T). Højden 0 giver kantbjælken uden svøb.</p>
         </fieldset>
       </section>
@@ -2250,8 +2250,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 
   // løftesimulering med kantbjælken som stålskaller: T-profilets flange og krop og svøbpladen under kroppen som plader
   // langs hvert stykke af kantbjælken (kanterne følger korderne, så taget bliver et facetteret cylinderafsnit).
-  // Højderne regnes fra tværsnittets tyngdepunkt (med svøbpladen), som er knudernes kote ligesom i bjælkemodellen.
-  // Kroppen og svøbet deles i knudens kote, så radialbjælkerne og understøtningerne ender på en pladekant.
+  // Flangens midterflade ligger i knudernes kote, så radialbjælkerne og understøtningerne ender i skæringen mellem flangen
+  // og kroppen (en pladekant). Kroppen og svøbpladen hænger under den.
   // Flangen ligger i sin midterflade med bredden b, geringet i knuderne, så nabopladerne mødes.
   function edgeShellDims(lib, p) {
     var base = findSection(lib, p.profEdge);
@@ -2276,8 +2276,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     var tf = (base.area - tw * h) / (b - tw);
     if (!(tw > 0 && tw < b && tf > 0 && tf < h)) throw new Error('Kunne ikke læse flange- og kroptykkelse for ' + String(p.profEdge).replace('|', ' ') + '.');
     var hs = p.liftShellH > 0 ? p.liftShellH / 1000 : 0, ts = hs > 0 ? p.liftShellT / 1000 : 0;
-    var As = hs * ts, yc = As > 0 ? As * (yMin - hs / 2) / (base.area + As) : 0;   // tyngdepunktet med svøbpladen (T'ets i 0)
-    return { b: b, tf: tf, tw: tw, hs: hs, ts: ts, zFl: yTop - tf / 2 - yc, zTip: yMin - yc, zBot: yMin - hs - yc };
+    // flangens midterflade ligger i knudernes kote, hvor radialbjælkerne møder kantbjælken; kroppen og svøbet hænger under den
+    var zTip = -(yTop - tf / 2 - yMin);
+    return { b: b, tf: tf, tw: tw, hs: hs, ts: ts, zFl: 0, zTip: zTip, zBot: zTip - hs };
   }
   function edgeShellPlates(lib, geom) {
     var p = geom.params, D = edgeShellDims(lib, p), out = [], k = 0;

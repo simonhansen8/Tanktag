@@ -847,30 +847,29 @@ test('løft: kantbjælken som stålskaller', () => {
   assert.equal(g.info.lift.edgeShells, true);
   assert.equal(g.info.lift.edgeProfile, null, 'intet KB-tværsnit');
   const S = TR.edgeShellPlates(LIB, g), D = S.dims, nEdge = g.members.filter((m) => m.group === 'edge').length;
-  // flange, krop over og under knuden og svøbet pr. stykke
-  assert.equal(S.plates.length, 4 * nEdge);
-  // T 120 med 1 m svøb: tyngdepunktet (knudens kote) ligger i svøbet, så svøbet deles i to
-  assert.ok(D.zFl > D.zTip && D.zTip > 0 && D.zBot < 0, 'tyngdepunktet ligger i svøbet');
-  assert.ok(Math.abs(D.zTip - D.zBot - 1) < 1e-9 && D.ts === 0.008);
-  assert.equal(S.plates.filter((p) => /^KBS/.test(p.name)).length, 2 * nEdge);
-  const sec = TR.findSection(LIB, g.params.profEdge), hw = D.zFl - D.tf / 2 - D.zTip;
+  // flange, krop og svøb pr. stykke; flangen i knudens kote, kroppen og svøbet under den
+  assert.equal(S.plates.length, 3 * nEdge);
+  assert.ok(D.zFl === 0 && D.zTip < 0 && Math.abs(D.zTip - D.zBot - 1) < 1e-9 && D.ts === 0.008);
+  const sec = TR.findSection(LIB, g.params.profEdge), hw = -D.zTip - D.tf / 2;
   assert.ok(Math.abs(D.b * D.tf + D.tw * hw - sec.area) < 1e-9, 'samme areal som profilet');
-  // tyngdepunktet er ved knuden: Σ A·z ≈ 0
-  const At = sec.area + D.ts * D.hs, Sz = D.b * D.tf * D.zFl + D.tw * hw * (D.zTip + hw / 2) + D.ts * D.hs * (D.zTip + D.zBot) / 2;
-  assert.ok(Math.abs(Sz / At) < 0.01, 'tyngdepunktet ved knuden: ' + Sz / At);
+  assert.ok(Math.abs(-D.zTip + D.tf / 2 - sec.h) < 1e-6, 'profilets højde');
+  // radialbjælkernes ender ligger på flangens og kroppens fælles kant
+  const fl0 = S.plates.find((p) => p.flange), web0 = S.plates.find((p) => /^KBK/.test(p.name)), m0 = fl0.member;
+  assert.ok(Math.abs(fl0.pts[0][2] - m0.start[2]) < 1e-12 && Math.abs(web0.pts[2][2] - m0.start[2]) < 1e-12);
+  assert.ok(Math.hypot(web0.pts[3][0] - m0.start[0], web0.pts[3][1] - m0.start[1], web0.pts[3][2] - m0.start[2]) < 1e-12);
   // nabostykkernes flangeplader mødes i knuderne
   const fl = S.plates.filter((p) => p.flange);
   const d3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
   assert.ok(d3(fl[0].pts[1], fl[1].pts[0]) < 1e-9 && d3(fl[0].pts[2], fl[1].pts[3]) < 1e-9);
   // StruXML: plader i stedet for kantbjælkens stænger, og fladerne bæres af flangepladerne
   const xml = TR.buildStruxml(g.params, LIB, { geometry: g });
-  assert.equal((xml.match(/<slab name=/g) || []).length, 4 * nEdge);
+  assert.equal((xml.match(/<slab name=/g) || []).length, 3 * nEdge);
   assert.ok(!/<bar name="KANT/.test(xml));
   const flangeParts = [...xml.matchAll(/<slab name="KBF\.\d+"[^>]*>\s*<slab_part guid="([^"]+)"/g)].map((m) => m[1]);
   assert.equal(flangeParts.length, nEdge);
   assert.ok(flangeParts.some((gd) => xml.includes('<ref guid="' + gd + '"/>')), 'flader bæres af flangen');
   // uden svøb: kun flange og krop; kræver T-profil
-  assert.equal(TR.edgeShellPlates(LIB, geo({ liftShellH: 0 })).plates.length, 3 * nEdge);
+  assert.equal(TR.edgeShellPlates(LIB, geo({ liftShellH: 0 })).plates.length, 2 * nEdge);
   assert.ok(geo({ profEdge: 'L|L100x100x10' }).errors.some((e) => /stålskaller af et T-profil/.test(e)));
 });
 
