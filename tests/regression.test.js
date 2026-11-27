@@ -819,10 +819,9 @@ test('løft: flere løftepunkter, valgte knuder og understøtninger langs kantbj
   assert.ok(!geo({ liftPoints: 'nodes', liftNodes: 'KS.1, KS.13', liftHolds: [{ nodes: 'KS.7, KS.19', z: true }] }).warnings.some((w) => /kan vælte/.test(w)));
 
   // fejl i rækkerne
-  const bad = geo({ liftHolds: [{ nodes: 'KS.99', r: true }, { nodes: 'KS.2' }, { nodes: '', t: true }, { nodes: 'KS.3', r: true, k: '-1' }, { nodes: 'KS.1', t: true }] });
-  assert.equal(bad.liftHoldErrors.length, 5);
-  assert.ok(bad.liftHoldErrors[4].includes('er et løftepunkt'));
-  assert.ok(bad.errors.length >= 5);
+  const bad = geo({ liftHolds: [{ nodes: 'KS.99', r: true }, { nodes: 'KS.2' }, { nodes: '', t: true }, { nodes: 'KS.3', r: true, k: '-1' }] });
+  assert.equal(bad.liftHoldErrors.length, 4);
+  assert.ok(bad.errors.length >= 4);
   // jævnt fordelt: 48 knuder langs kantbjælken med sektionsspær, 8 understøtninger hver 6. knude fra KSM.1, løftepunkterne springes over
   const ge = geo({ liftSupport: 'zOnly', liftHolds: [{ even: true, count: 8, start: 'KSM.1', r: true }, { even: true, count: '12', start: 'KS.1', t: true }] });
   assert.deepEqual(ge.errors, []);
@@ -891,6 +890,19 @@ test('løft: lodret + manglende vandrette tilføjer kun de fastholdelser, der ma
   const g2 = geo({ liftHolds: [{ nodes: 'alle', r: true }, { nodes: 'KS.4, KS.16', t: true }] });
   assert.equal(g2.info.hold.length, 0);
   assert.equal(hz(g2).length, 0);
+  // jævnt fordelt radialt, 8 stk. fra KS.1 (rammer de fire løftepunkter): alle otte radiale bliver, og der mangler kun én tangentiel
+  const g3 = geo({ liftHolds: [{ even: true, count: 8, start: 'KS.1', r: true }] });
+  assert.deepEqual(g3.errors, []);
+  const radial = g3.supports.filter((s) => s.motions.x > 0 && s.local && Math.abs(s.localX[0] * s.pos[0] + s.localX[1] * s.pos[1] - g3.info.R) < 1e-6);
+  assert.equal(radial.length, 8, 'alle otte radiale understøtninger er med');
+  assert.deepEqual(g3.info.hold.map((h) => h.dir), ['tangentielt']);
+  assert.ok(g3.supports.filter((s) => s.lift).every((s) => s.motions.z > 0 && s.motions.x > 0));
+  // er taget allerede stabilt, ændres intet
+  const g4 = geo({ liftHolds: [{ even: true, count: 8, start: 'KS.1', r: true }, { nodes: 'KS.4, KS.16', t: true }] });
+  assert.equal(g4.info.hold.length, 0);
+  assert.equal(g4.supports.filter((s) => s.motions.y > 0).length, 2);
+  // en eksplicit række i et løftepunkt er ikke længere en fejl
+  assert.deepEqual(geo({ liftHolds: [{ nodes: 'KS.1', t: true }] }).liftHoldErrors, []);
   // kun tangentielt i én knude: X og Y mangler stadig to retninger
   assert.equal(geo({ liftHolds: [{ nodes: 'KS.4', t: true }] }).info.hold.length, 2);
 });
