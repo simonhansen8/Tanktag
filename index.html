@@ -1727,9 +1727,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           <button type="button" class="btn small" id="btnImport" title="Åbn en projektfil (.tanktag.json), eller hent parametrene fra en StruXML-fil eller en JSON-fil med parametre">Indlæs fil</button>
           <input type="file" id="fileImport" class="visually-hidden" accept=".json,.struxml,.xml,.txt" tabindex="-1">
           <span class="loadpick"><label class="lbl visually-hidden" for="exportFormat">Eksportformat</label>
-          <select id="exportFormat" title="Program, filen hentes til: FEM-Design (StruXML) eller Autodesk Robot Structural Analysis (tekstfil .str)">
+          <select id="exportFormat" title="Program, filen hentes til: FEM-Design (StruXML) eller Autodesk Robot Structural Analysis (et script, der bygger modellen i Robot og gemmer den som .rtd)">
             <option value="fd">FEM-Design (.struxml)</option>
-            <option value="robot">Robot (.str)</option>
+            <option value="robot">Robot (.rtd via script)</option>
           </select></span>
           <button type="button" class="btn primary" id="btnExport">Hent til FEM-Design</button>
         </div>
@@ -5450,14 +5450,16 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
 })(typeof window !== 'undefined' ? window : this);
 </script>
 <script>
-/* Eksport til Autodesk Robot Structural Analysis som tekstfil (.str, »ROBOT97«-formatet), som Robot åbner med
-   Fil › Åbn. Formatet kender kun stænger, så modellen skrives som knuder og rette stænger med profiler fra Robots
-   profilbibliotek, gamma-vinkler, charnierer, understøtninger og laster:
-   - fladelasterne fordeles envejs til radialbjælkerne og sektionsspærene (samme vægtstangsregel som for de buede
-     radialbjælker), og centerpladen fordeles jævnt på ringbjælken
-   - konstruktionens egenvægt skrives som linjelaster (A·ρ·g) i lasttilfælde af typen dead load
-   - fastholdelser på skrå af de globale akser og fjedre skrives som hjælpestænger til en fast knude
-   - temperatur, understøtningsflytninger, kun-træk og lastkombinationer kan ikke skrives og nævnes i filens hoved
+/* Eksport til Autodesk Robot Structural Analysis. Robots egen fil (.rtd) er binær og kan kun skrives af Robot selv,
+   så Tanktag henter et script (.cmd med PowerShell), som styrer Robot gennem Robots API (RobotOM): det bygger
+   modellen og gemmer den som .rtd ved siden af scriptet. Modellen er knuder og rette stænger:
+   - profiler fra Robots katalog (eller som brugertværsnit med Tanktags tværsnitsværdier), gamma-vinkler, charnierer,
+     gitterstænger og kun-træk
+   - understøtninger med fjedre og drejede lokale akser (radialt/tangentielt)
+   - lasttilfælde med art, egenvægt, punkt- og linjelaster, temperatur og understøtningsflytninger; fladelasterne
+     fordeles envejs til radialbjælkerne og sektionsspærene (samme vægtstangsregel som for de buede radialbjælker),
+     og centerpladen jævnt på ringbjælken
+   - lastkombinationerne
    Modulet bruger beregningskernen (TankRoof) og ikke den almindelige eksport. */
 (function (root) {
   'use strict';
@@ -5468,42 +5470,98 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
   function norm(a) { return Math.sqrt(dot(a, a)); }
   function unit(a) { var l = norm(a); return [a[0] / l, a[1] / l, a[2] / l]; }
-  function fmt(v, d) {
+  function num(v) {
     if (!isFinite(v)) throw new Error('Ugyldigt tal: ' + v);
-    var s = v.toFixed(d === undefined ? 6 : d);
-    if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
-    return s === '-0' ? '0' : s;
+    if (Math.abs(v) < 1e-12) return '0';
+    var s = Number(v.toPrecision(10)).toString();
+    return s.indexOf('e') >= 0 ? v.toExponential(9) : s;
   }
 
-  var FIXED = 1e10;           // kN/m – stiv, som i beregningskernen
-  var AUX_PROF = 'HE-B|300';  // hjælpestænger for skrå fastholdelser og fjedre
-  var AUX_RIGID_L = 1;        // m – længden af en stiv hjælpestang
-  var G = 9.81;
+  var FIXED = 1e10;   // kN/m – stiv, som i beregningskernen
 
-  // Tanktags profilfamilier → navne i Robots profilkatalog (de franske/europæiske navne, som Robot bruger i Danmark:
-  // TCAR kvadratiske rør, TREC rektangulære, TRON runde, CAE/CAI vinkler, PLAT fladstål)
+  // Tanktags profilfamilier → navne i Robots profilkatalog (de navne, Robot bruger i Danmark: TCAR kvadratiske rør,
+  // TREC rektangulære, TRON runde, CAE/CAI vinkler, PLAT fladstål). Findes et navn ikke, prøver scriptet de næste,
+  // og ellers oprettes et brugertværsnit med Tanktags tværsnitsværdier.
   var FAMILY_NAMES = {
-    'IPE': 'IPE', 'HE-A': 'HEA', 'HE-B': 'HEB', 'HE-M': 'HEM', 'I': 'IPN', 'U': 'UPN', 'UPE': 'UPE', 'UAP': 'UAP',
-    'T': 'T', 'LE': 'CAE', 'LU': 'CAI', 'FL': 'PLAT', 'FLS': 'PLAT', 'CHS': 'TRON', 'KCKR': 'TRON', 'VCKR': 'TRON',
-    'VKR': 'TCAR', 'KKR': 'TCAR', 'UKB': 'UB', 'UKC': 'UC'
+    'IPE': ['IPE'], 'HE-A': ['HEA'], 'HE-B': ['HEB'], 'HE-M': ['HEM'], 'I': ['IPN'], 'U': ['UPN'], 'UPE': ['UPE'], 'UAP': ['UAP'],
+    'T': ['T', 'TEAE'], 'LE': ['CAE', 'L'], 'LU': ['CAI', 'L'], 'FL': ['PLAT', 'FL'], 'FLS': ['PLAT', 'FL'],
+    'CHS': ['TRON', 'CHS'], 'KCKR': ['TRON', 'CHS'], 'VCKR': ['TRON', 'CHS'],
+    'VKR': ['TCAR', 'SHS'], 'KKR': ['TCAR', 'SHS'], 'UKB': ['UB'], 'UKC': ['UC']
   };
   function profileParts(key) {
     var i = String(key).indexOf('|');
     return i < 0 ? null : { family: key.slice(0, i), size: key.slice(i + 1) };
   }
-  // fx IPE|330 → IPE 330, LE|80*6 → CAE 80x6, VKR|80x80x5 → TCAR 80x5, CHS|88.9-4.0 → TRON 88.9x4.0.
-  // null: findes ikke i Robots katalog
-  function robotSectionName(key) {
+  // navnene, scriptet prøver i Robots katalog, fx IPE|330 → [IPE 330], LE|80*6 → [CAE 80x6, L 80x6],
+  // VKR|80x80x5 → [TCAR 80x5, SHS 80x80x5], VKR|200x100x8 → [TREC 200x100x8]
+  function robotSectionNames(key) {
     var p = profileParts(key);
-    if (!p || !FAMILY_NAMES[p.family]) return null;
+    if (!p || !FAMILY_NAMES[p.family]) return [];
     var size = p.size.replace(/[*\-]/g, 'x');
-    var sq = /^([\d.]+)x\1x([\d.]+)$/.exec(size);   // kvadratisk rør: TCAR side x tykkelse
-    if (sq && FAMILY_NAMES[p.family] === 'TCAR') size = sq[1] + 'x' + sq[2];
-    if (FAMILY_NAMES[p.family] === 'TCAR' && !sq) return 'TREC ' + size;
-    return FAMILY_NAMES[p.family] + ' ' + size;
+    var sq = /^([\d.]+)x\1x([\d.]+)$/.exec(size);
+    if (p.family === 'VKR' || p.family === 'KKR') return sq ? ['TCAR ' + sq[1] + 'x' + sq[2], 'SHS ' + size] : ['TREC ' + size, 'RHS ' + size];
+    return FAMILY_NAMES[p.family].map(function (f) { return f + ' ' + size; });
   }
-  // Robots materialenavne er som Tanktags: »S 355«
-  function robotMaterialName(name) { return String(name).replace(/\s+/g, ' ').trim(); }
+  // etiketnavn i Robot for et tværsnit, der ikke findes i kataloget (fx KB|T|120#1200*10 → KB_T120_1200x10)
+  function customSectionName(key) {
+    return String(key).replace(/[*]/g, 'x').replace(/[|#+]+/g, '_').replace(/_(\d)/, '$1').replace(/[^A-Za-z0-9_.x]/g, '');
+  }
+
+  // tværsnitsværdier af omridset (Tanktags biblioteks-xml: x = lokal y, y = lokal z) i m: A, Iy (om lokal y), Iz, It,
+  // afstande til yderfibrene og plastiske modstandsmomenter
+  function sectionProps(TR, sec) {
+    var polys = TR.sectionOutline(sec.xml);
+    if (!polys.length) return null;
+    function sarea(P) { var a = 0; for (var i = 0; i < P.length; i++) { var p = P[i], q = P[(i + 1) % P.length]; a += p[0] * q[1] - q[0] * p[1]; } return a / 2; }
+    function inside(pt, P) {
+      var c = false;
+      for (var i = 0, j = P.length - 1; i < P.length; j = i++) {
+        if (((P[i][1] > pt[1]) !== (P[j][1] > pt[1])) && (pt[0] < (P[j][0] - P[i][0]) * (pt[1] - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0])) c = !c;
+      }
+      return c;
+    }
+    // et omrids inde i et andet er et hul
+    var sign = polys.map(function (P, i) {
+      var depth = 0;
+      polys.forEach(function (Q, j) { if (j !== i && inside(P[0], Q)) depth++; });
+      return depth % 2 ? -1 : 1;
+    });
+    var A = 0, Sx = 0, Sy = 0, Ixx = 0, Iyy = 0, per = 0;
+    polys.forEach(function (P, k) {
+      var o = sarea(P) < 0 ? -1 : 1, s = sign[k] * o;
+      for (var i = 0; i < P.length; i++) {
+        var p = P[i], q = P[(i + 1) % P.length], c = p[0] * q[1] - q[0] * p[1];
+        A += s * c / 2;
+        Sx += s * (p[0] + q[0]) * c / 6; Sy += s * (p[1] + q[1]) * c / 6;
+        Ixx += s * (p[1] * p[1] + p[1] * q[1] + q[1] * q[1]) * c / 12;   // ∫ y² dA
+        Iyy += s * (p[0] * p[0] + p[0] * q[0] + q[0] * q[0]) * c / 12;   // ∫ x² dA
+        per += Math.hypot(q[0] - p[0], q[1] - p[1]);
+      }
+    });
+    if (!(A > 0)) return null;
+    var cx = Sx / A, cy = Sy / A;
+    var Iy = Ixx - A * cy * cy, Iz = Iyy - A * cx * cx;
+    var xs = [], ys = [];
+    polys.forEach(function (P) { P.forEach(function (p) { xs.push(p[0]); ys.push(p[1]); }); });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs), y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    // plastiske modstandsmomenter numerisk på et net: om den akse, der deler arealet i to lige store dele
+    var N = 200, cells = [], dx = (x1 - x0) / N, dy = (y1 - y0) / N;
+    for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+      var pt = [x0 + (i + 0.5) * dx, y0 + (j + 0.5) * dy], d = 0;
+      polys.forEach(function (P, k) { if (inside(pt, P)) d += sign[k]; });
+      if (d > 0) cells.push(pt);
+    }
+    function wpl(ax) {
+      var v = cells.map(function (c) { return c[ax]; }).sort(function (a, b) { return a - b; });
+      if (!v.length) return 0;
+      var mid = v[Math.floor(v.length / 2)], sum = 0;
+      v.forEach(function (t) { sum += Math.abs(t - mid); });
+      return sum * dx * dy * A / (cells.length * dx * dy);
+    }
+    // vridning: tyndvægget åbent tværsnit, t ≈ 2A/omkreds og It ≈ (omkreds/2)·t³/3
+    var t = 2 * A / per, It = per / 2 * t * t * t / 3;
+    return { A: A, Iy: Iy, Iz: Iz, It: It, vy: x1 - cx, vpy: cx - x0, vz: y1 - cy, vpz: cy - y0, Wply: wpl(1), Wplz: wpl(0) };
+  }
 
   // Robots lokale y-akse uden gamma: vandret (global Z × x); lodrette stænger: global Y
   function robotDefaultY(x) {
@@ -5518,7 +5576,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return g;
   }
 
-  // nummerlister som Robot skriver dem: 1to24 30 32to40
+  // nummerlister som Robot læser dem: 1to24 30 32to40
   function numList(nums) {
     var a = nums.slice().sort(function (x, y) { return x - y; }), out = [], i = 0;
     while (i < a.length) {
@@ -5530,18 +5588,23 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     return out.join(' ');
   }
 
-  // Robot læser tekstfilen som Windows-1252: æ, ø, å og ° kan stå, andre tegn erstattes
-  function robotText(s) {
-    return String(s).replace(/[–—]/g, '-').replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/β/g, 'beta')
-      .replace(/γ/g, 'gamma').replace(/≈/g, '~').replace(/·/g, '*').replace(/×/g, 'x').replace(/[^\x00-\xff]/g, '?');
+  // lasttilfældets art i Robot ud fra Tanktags nøgle
+  function caseNature(c) {
+    var k = String(c.key || '');
+    if (c.duration === 'permanent' || k === 'dead' || k === 'walkDead') return 'I_CN_PERMANENT';
+    if (/^snow/.test(k)) return 'I_CN_SNOW';
+    if (/^wind/.test(k)) return 'I_CN_WIND';
+    if (k === 'temp') return 'I_CN_TEMPERATURE';
+    return 'I_CN_EXPLOATATION';
   }
-  function latin1Bytes(text) {
-    var s = robotText(text), out = new Uint8Array(s.length);
-    for (var i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
-    return out;
+  function comboType(t) {
+    if (/accidental|seismic/.test(t)) return 'I_CBT_ACC';
+    if (/^serviceability/.test(t)) return 'I_CBT_SLS';
+    return 'I_CBT_ULS';
   }
 
-  function buildRobotStr(TR, params, lib, opts) {
+  // ---------- modellen ----------
+  function buildRobotModel(TR, params, lib, opts) {
     opts = opts || {};
     var geom = opts.geometry || TR.computeGeometry(params);
     if (geom.errors && geom.errors.length) throw new Error(geom.errors.join('\n'));
@@ -5549,24 +5612,22 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     if (geom.holdErrors && geom.holdErrors.length) throw new Error(geom.holdErrors.join('\n'));
     var p = geom.params;
     if (geom.info.lift && geom.info.lift.edgeShells)
-      throw new Error('Kantbjælken som stålskaller kan ikke skrives til Robot, fordi Robots tekstformat ikke kender flader. Vælg kantbjælken som stænger på fanen Løft.');
+      throw new Error('Kantbjælken som stålskaller kan ikke eksporteres til Robot. Vælg kantbjælken som stænger på fanen Løft.');
     var loads = opts.loads || TR.computeLoads(geom);
     if (loads.errors.length) throw new Error(loads.errors.join('\n'));
     if (loads.comboErrors && loads.comboErrors.length) throw new Error(loads.comboErrors.join('\n'));
     var mat = lib.materials[p.material];
     if (!mat) throw new Error('Materialet "' + p.material + '" findes ikke i biblioteket.');
     var matAttr = function (n) { var m = new RegExp('\\s' + n + '="([^"]*)"').exec(mat); return m ? Number(m[1]) : NaN; };
-    var E = (matAttr('Ek') || 210000) * 1000;              // kN/m²
-    var gammaSteel = (matAttr('mass') || 7.85) * G;         // kN/m³
-    var matName = robotMaterialName(p.material);
-    var warnings = [];
-    function warn(t) { if (warnings.indexOf(t) < 0) warnings.push(t); }
+    var Ek = matAttr('Ek') || 210000, nu = matAttr('nu') || 0.3;
+    var notes = [];
+    function note(t) { if (notes.indexOf(t) < 0) notes.push(t); }
 
     var tol = 1e-6 * Math.max(1, geom.info.R);
     var groupProf = { radial: p.profRadial, sec: p.profSec, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace, tie: p.liftTieProf };
     var members = geom.members;
 
-    // ---- knuder ----
+    // knuder
     var nodes = [];
     function nodeAt(q, create) {
       for (var i = 0; i < nodes.length; i++) if (norm(vsub(nodes[i].pos, q)) < tol) return nodes[i];
@@ -5578,55 +5639,55 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     members.forEach(function (m) { nodeAt(m.start, true); nodeAt(m.end, true); });
     (geom.bracePoints || []).forEach(function (sp) { var n = nodeAt(sp.pos, false); if (n && sp.fd && n.names.indexOf(sp.fd) < 0) n.names.push(sp.fd); });
 
-    // punkt på en stang (brøkdel t af stangen), eller null
     function paramOn(m, q) {
       var d = vsub(m.end, m.start), L = norm(d), t = dot(vsub(q, m.start), d) / (L * L);
       if (t < -1e-9 || t > 1 + 1e-9) return null;
       var off = norm(vsub(q, vadd(m.start, vscale(d, t))));
       return off < Math.max(tol, 1e-4) ? Math.max(0, Math.min(1, t)) : null;
     }
-    // punktlaster uden for knuderne: stangen deles i punktet, så lasten kan stå i en knude
-    var splits = members.map(function () { return []; });
+    // punktlaster uden for knuderne: stangen deles i punktet (buet stang: punktet flyttes vinkelret ind på korden)
+    var splits = members.map(function () { return []; }), pointAt = new Map();
     loads.cases.forEach(function (c) {
       c.loads.forEach(function (Ld) {
         if (Ld.kind !== 'point' || nodeAt(Ld.pos, false)) return;
         for (var i = 0; i < members.length; i++) {
           var t = paramOn(members[i], Ld.pos);
-          if (t !== null && t > 1e-6 && t < 1 - 1e-6) { splits[i].push(t); return; }
+          if (t !== null && t > 1e-6 && t < 1 - 1e-6) { splits[i].push(t); pointAt.set(Ld, Ld.pos); return; }
         }
-        // buet stang: punktet ligger på buen og flyttes vinkelret ind på korden
         var best = null;
         members.forEach(function (m, i) {
           if (!m.arc) return;
           var d = vsub(m.end, m.start), t = dot(vsub(Ld.pos, m.start), d) / dot(d, d);
-          if (!(t > 1e-6 && t < 1 - 1e-6)) return;
-          var off = Math.abs(norm(vsub(Ld.pos, m.arc.c)) - m.arc.r);
-          if (off < 1e-4 && (!best || norm(vsub(Ld.pos, vadd(m.start, vscale(d, t)))) < best.dist))
-            best = { i: i, t: t, dist: norm(vsub(Ld.pos, vadd(m.start, vscale(d, t)))) };
+          if (!(t > 1e-6 && t < 1 - 1e-6) || Math.abs(norm(vsub(Ld.pos, m.arc.c)) - m.arc.r) > 1e-4) return;
+          var q = vadd(m.start, vscale(d, t)), dist = norm(vsub(Ld.pos, q));
+          if (!best || dist < best.dist) best = { i: i, t: t, q: q, dist: dist };
         });
-        if (best) {
-          splits[best.i].push(best.t);
-          Ld.robotPos = vadd(members[best.i].start, vscale(vsub(members[best.i].end, members[best.i].start), best.t));
-          return;
-        }
-        throw new Error('Punktlasten i (' + Ld.pos.map(function (v) { return fmt(v, 3); }).join('; ') + ') i ' + c.name + ' ligger ikke på en stang.');
+        if (!best) throw new Error('Punktlasten i ' + c.name + ' ligger ikke på en stang.');
+        splits[best.i].push(best.t); pointAt.set(Ld, best.q);
       });
     });
 
-    // ---- stænger: hver Tanktag-stang bliver én eller flere rette Robot-stænger ----
-    var elems = [], elemsOf = members.map(function () { return []; });
-    members.forEach(function (m, mi) {
-      var key = m.prof || groupProf[m.group];
+    // tværsnit og materialer
+    var sections = {}, sectionOrder = [];
+    function sectionFor(key) {
+      if (sections[key]) return sections[key];
       var sec = TR.findSection(lib, key);
       if (!sec) throw new Error('Profilet "' + String(key).replace('|', ' ') + '" findes ikke i biblioteket.');
-      var name = robotSectionName(key);
-      if (!name) {
-        // svejste og sammensatte tværsnit (fx KB|T|120#1200*10 → KB_T120_1200x10)
-        name = String(key).replace(/[*]/g, 'x').replace(/[|#+]+/g, '_').replace(/_(\d)/, '$1').replace(/[^A-Za-z0-9_.x]/g, '');
-        warn('Profilet ' + name + ' (' + m.group + ') findes ikke i Robots profilkatalog og skal oprettes i Robot med samme navn, før beregningen.');
-      }
-      if (m.group === 'tie' && p.liftTieE !== '' && p.liftTieE > 0 && Math.abs(p.liftTieE - E / 1000) > 1e-9)
-        warn('Trækstængerne har E = ' + fmt(p.liftTieE, 0) + ' MPa i Tanktag, men får stålets E i Robot. Ret materialet på dem i Robot.');
+      var names = robotSectionNames(key), props = sectionProps(TR, sec);
+      var o = { key: key, names: names, label: names.length ? names[0] : customSectionName(key), props: props, area: sec.area };
+      if (!names.length) note('Tværsnittet ' + o.label + ' findes ikke i Robots katalog og oprettes som brugertværsnit med Tanktags værdier (A, I, Wpl; It er et overslag).');
+      sections[key] = o; sectionOrder.push(o);
+      return o;
+    }
+    var matName = String(p.material).replace(/\s+/g, ' ').trim();
+    var tieMat = null;
+    if (p.liftOn && p.liftTieE !== '' && p.liftTieE > 0 && members.some(function (m) { return m.group === 'tie'; }) && Math.abs(p.liftTieE - Ek) > 1e-9)
+      tieMat = { name: matName + ' TS E' + Math.round(p.liftTieE), E: p.liftTieE * 1e6, G: p.liftTieE * 1e6 / (2 * (1 + nu)) };
+
+    // stænger
+    var elems = [], elemsOf = members.map(function () { return []; });
+    members.forEach(function (m, mi) {
+      var s = sectionFor(m.prof || groupProf[m.group]);
       var x = unit(vsub(m.end, m.start)), gam = gammaOf(x, m.localY);
       var ts = [0].concat(splits[mi].sort(function (a, b) { return a - b; }), [1]);
       for (var k = 0; k + 1 < ts.length; k++) {
@@ -5634,118 +5695,74 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
         var a = vadd(m.start, vscale(vsub(m.end, m.start), ts[k])), b = vadd(m.start, vscale(vsub(m.end, m.start), ts[k + 1]));
         var e = {
           no: elems.length + 1, member: m, t0: ts[k], t1: ts[k + 1], n1: nodeAt(a, true), n2: nodeAt(b, true),
-          section: name, area: sec.area, gamma: gam,
-          relO: m.truss ? 'RY RZ' : (k === 0 && m.connStart === 'hinged' ? 'RY RZ' : ''),
-          relE: m.truss ? 'RY RZ' : (ts[k + 1] === 1 && m.connEnd === 'hinged' ? 'RY RZ' : '')
+          section: s, material: m.group === 'tie' && tieMat ? tieMat.name : matName, gamma: gam,
+          truss: !!m.truss, tensionOnly: !!m.tensionOnly,
+          hingeStart: !m.truss && k === 0 && m.connStart === 'hinged',
+          hingeEnd: !m.truss && ts[k + 1] === 1 && m.connEnd === 'hinged'
         };
         elems.push(e); elemsOf[mi].push(e);
       }
-      if (m.tensionOnly) warn('Vindgitteret/trækstængerne er kun-træk i Tanktag, men skrives som almindelige gitterstænger (træk og tryk). Sæt dem som kun-træk i Robot.');
     });
     if (members.some(function (m) { return m.arc; }))
-      warn('De buede radialbjælker skrives som rette stykker mellem udvekslingerne (korder).');
-    var auxSec = TR.findSection(lib, AUX_PROF), auxName = robotSectionName(AUX_PROF), auxEA = E * auxSec.area;
+      note('De buede radialbjælker er rette stykker mellem udvekslingerne (korder), og lasterne på buen er lagt på korden med samme samlede kraft.');
 
-    // ---- understøtninger ----
-    var supLines = [], auxElems = [];
-    function axisOf(d) {
-      for (var i = 0; i < 3; i++) if (Math.abs(Math.abs(d[i]) - 1) < 1e-9) return i;
-      return -1;
-    }
+    // understøtninger: Robots understøtning har lokale akser drejet om Z (alpha); retningerne er Tanktags lokale x, y, z
+    var supports = [];
     geom.supports.forEach(function (s) {
-      var n = nodeAt(s.pos, true);
-      var lx = unit(s.localX), ly = unit(s.localY), lz = unit(cross(lx, ly));
-      var dirs = [lx, ly, lz], keys = ['x', 'y', 'z'];
-      var fixT = [false, false, false], fixR = [false, false, false];
-      var mo = s.motions, ro = s.rotations;
-      var rigid = keys.map(function (k) { return mo[k] >= FIXED; });
-      // to stive vandrette retninger fastholder hele det vandrette plan, uanset drejningen
-      var planeXY = rigid[0] && rigid[1] && axisOf(lz) === 2;
-      keys.forEach(function (k, i) {
-        var v = mo[k];
-        if (!(v > 0)) return;
-        var ax = axisOf(dirs[i]);
-        if (v >= FIXED && (ax >= 0 || (planeXY && i < 2))) {
-          if (ax >= 0) fixT[ax] = true; else { fixT[0] = true; fixT[1] = true; }
-          return;
-        }
-        // skrå fastholdelse eller fjeder: hjælpestang i retningen til en fast knude, kun normalkraft
-        var L = v >= FIXED ? AUX_RIGID_L : auxEA / v;
-        var d = i === 2 ? (dirs[2][2] > 0 ? vscale(dirs[2], -1) : dirs[2]) : dirs[i];
-        var q = nodeAt(vadd(s.pos, vscale(d, L)), true);
-        auxElems.push({ n1: n, n2: q, sup: s.name, dir: k, k: v });
-      });
-      keys.forEach(function (k, i) {
-        var v = ro[k];
-        if (!(v > 0)) return;
-        var ax = axisOf(dirs[i]);
-        if (v < FIXED) { warn('Rotationsfjedre (fx i ' + s.name + ') kan ikke skrives til Robot og er udeladt.'); return; }
-        if (ax >= 0) { fixR[ax] = true; return; }
-        // to fastholdte rotationer om vandrette akser fastholder begge rotationer om de globale vandrette akser
-        var other = i === 0 ? ro.y : (i === 1 ? ro.x : 0);
-        if (i < 2 && other >= FIXED && axisOf(lz) === 2) { fixR[0] = true; fixR[1] = true; return; }
-        warn('En fastholdt rotation på skrå af de globale akser (fx i ' + s.name + ') kan ikke skrives til Robot og er udeladt.');
-      });
-      if (fixT.some(Boolean) || fixR.some(Boolean)) n.sup = { t: fixT, r: fixR, name: s.name };
+      var n = nodeAt(s.pos, true), lx = unit(s.localX), ly = unit(s.localY), lz = cross(lx, ly);
+      if (Math.abs(lz[2] - 1) > 1e-6) throw new Error('Understøtningen ' + s.name + ' har lokale akser, der ikke er drejet om lodret.');
+      var alpha = Math.atan2(lx[1], lx[0]);
+      if (Math.abs(alpha) < 1e-9) alpha = 0;
+      var dof = function (v) { return v >= FIXED ? { fix: true, k: 0 } : (v > 0 ? { fix: false, k: v } : { fix: false, k: 0 }); };
+      var sup = {
+        node: n, name: s.name, alpha: alpha,
+        u: ['x', 'y', 'z'].map(function (k) { return dof(s.motions[k]); }),
+        r: ['x', 'y', 'z'].map(function (k) { return dof(s.rotations[k]); })
+      };
+      // to vandrette retninger med samme fastholdelse er uafhængige af drejningen
+      if (sup.u[0].fix === sup.u[1].fix && sup.u[0].k === sup.u[1].k && sup.r[0].fix === sup.r[1].fix && sup.r[0].k === sup.r[1].k) sup.alpha = 0;
+      n.sup = sup;
       if (n.names.indexOf(s.name) < 0) n.names.push(s.name);
-    });
-    auxElems.forEach(function (a) {
-      a.no = elems.length + 1;
-      elems.push({ no: a.no, aux: a, n1: a.n1, n2: a.n2, section: auxName, gamma: 0, relO: 'RX RY RZ', relE: 'RY RZ' });
-      a.n2.sup = { t: [true, true, true], r: [true, true, true], name: a.sup + ' (hjælpeknude)' };
+      supports.push(sup);
     });
 
-    // ---- laster ----
-    // fladelasterne som linjelaster på radialbjælkerne og sektionsspærene
+    // laster
     var coverLines = TR.arcCoverLineLoads(geom, loads, true);
-    var caseOut = loads.cases.map(function () { return { elem: {}, node: {} }; });
-    function addElemLoad(ci, e, comp, x0, x1, v0, v1) {
-      if (Math.abs(v0) < 1e-12 && Math.abs(v1) < 1e-12) return;
-      var o = caseOut[ci].elem;
-      (o[e.no] || (o[e.no] = [])).push({ comp: comp, x0: x0, x1: x1, v0: v0, v1: v1 });
+    var cases = loads.cases.map(function (c) {
+      return { name: c.name, key: c.key, nature: caseNature(c), dead: c.type === 'dead_load', bars: {}, nodes: {}, temps: {}, motions: {} };
+    });
+    function addBar(ci, e, x0, x1, v0, v1) {
+      if (norm(v0) < 1e-12 && norm(v1) < 1e-12) return;
+      var o = cases[ci].bars, k = e.no + '|' + x0.toFixed(9) + '|' + x1.toFixed(9);
+      if (o[k]) { o[k].v0 = vadd(o[k].v0, v0); o[k].v1 = vadd(o[k].v1, v1); } else o[k] = { e: e, x0: x0, x1: x1, v0: v0, v1: v1 };
     }
-    // linjelast på Tanktag-stangen m fra brøkdel s0 til s1 med værdien q0 → q1 pr. m langs stangen (globale retninger)
     function memberLineLoad(ci, mi, s0, s1, q0, q1, dir) {
       if (s1 < s0) { var t = s0; s0 = s1; s1 = t; t = q0; q0 = q1; q1 = t; }
       elemsOf[mi].forEach(function (e) {
         var a = Math.max(s0, e.t0), b = Math.min(s1, e.t1);
         if (b - a < 1e-9) return;
         var qa = q0 + (q1 - q0) * (a - s0) / ((s1 - s0) || 1), qb = q0 + (q1 - q0) * (b - s0) / ((s1 - s0) || 1);
-        var x0 = (a - e.t0) / (e.t1 - e.t0), x1 = (b - e.t0) / (e.t1 - e.t0);
-        ['PX', 'PY', 'PZ'].forEach(function (comp, ax) {
-          if (Math.abs(dir[ax]) > 1e-12) addElemLoad(ci, e, comp, x0, x1, qa * dir[ax], qb * dir[ax]);
-        });
+        addBar(ci, e, (a - e.t0) / (e.t1 - e.t0), (b - e.t0) / (e.t1 - e.t0), vscale(dir, qa), vscale(dir, qb));
       });
     }
     function memberIndex(m) { var i = members.indexOf(m); if (i < 0) throw new Error('Linjelast på ukendt stang.'); return i; }
     function lineLoad(ci, Ld) {
       var mi = memberIndex(Ld.member), m = members[mi];
-      var s0 = paramOn(m, Ld.a), s1 = paramOn(m, Ld.b);
-      if (s0 === null || s1 === null) {
-        // buet stang: punkterne ligger på buen, ikke på korden – projicér på korden
-        var d = vsub(m.end, m.start), LL = dot(d, d);
-        s0 = Math.max(0, Math.min(1, dot(vsub(Ld.a, m.start), d) / LL));
-        s1 = Math.max(0, Math.min(1, dot(vsub(Ld.b, m.start), d) / LL));
-      }
+      var d = vsub(m.end, m.start), LL = dot(d, d);
+      var s0 = Math.max(0, Math.min(1, dot(vsub(Ld.a, m.start), d) / LL)), s1 = Math.max(0, Math.min(1, dot(vsub(Ld.b, m.start), d) / LL));
       var v0 = Ld.vals ? Ld.vals[0] : Ld.val, v1 = Ld.vals ? Ld.vals[1] : Ld.val;
       // projiceret last: pr. længde vinkelret på lastretningen → pr. længde langs stangen
       if (Ld.projected) { var f = norm(cross(unit(vsub(Ld.b, Ld.a)), Ld.dir)); v0 *= f; v1 *= f; }
       // buet stang: lasten pr. m bue lægges på den kortere korde med samme samlede kraft
-      if (m.arc) { var fa = TR.memberLength(m) / norm(vsub(m.end, m.start)); v0 *= fa; v1 *= fa; }
+      if (m.arc) { var fa = TR.memberLength(m) / norm(d); v0 *= fa; v1 *= fa; }
       memberLineLoad(ci, mi, s0, s1, v0, v1, Ld.dir);
     }
-    var skipped = {};
     loads.cases.forEach(function (c, ci) {
-      if (c.type === 'dead_load') {
-        elems.forEach(function (e) {
-          if (e.aux) return;
-          addElemLoad(ci, e, 'PZ', 0, 1, -e.area * gammaSteel, -e.area * gammaSteel);
-        });
-      }
+      var C = cases[ci];
       c.loads.forEach(function (Ld) {
         if (Ld.kind === 'point') {
-          var n = nodeAt(Ld.robotPos || Ld.pos, false), F = vscale(Ld.dir, Ld.val), o = caseOut[ci].node;
-          o[n.no] = vadd(o[n.no] || [0, 0, 0], F);
+          var n = nodeAt(pointAt.get(Ld) || Ld.pos, false);
+          C.nodes[n.no] = vadd(C.nodes[n.no] || [0, 0, 0], vscale(Ld.dir, Ld.val));
         } else if (Ld.kind === 'line') lineLoad(ci, Ld);
         else if (Ld.kind === 'surface') {
           var cv = Ld.panel.cover;
@@ -5755,155 +5772,256 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           var F = Ld.val * area, Ltot = 0, seen = [];
           cv.supports.forEach(function (m) { if (seen.indexOf(m) < 0) { seen.push(m); Ltot += norm(vsub(m.end, m.start)); } });
           seen.forEach(function (m) { memberLineLoad(ci, memberIndex(m), 0, 1, F / Ltot, F / Ltot, Ld.dir); });
-        } else if (Ld.kind === 'temp') (skipped[ci] || (skipped[ci] = {})).temp = true;
-        else if (Ld.kind === 'motion') (skipped[ci] || (skipped[ci] = {})).motion = true;
+        } else if (Ld.kind === 'temp') {
+          elemsOf[memberIndex(Ld.member)].forEach(function (e) { C.temps[e.no] = Ld.dT; });
+        } else if (Ld.kind === 'motion') {
+          var nn = nodeAt(Ld.pos, false);
+          C.motions[nn.no] = vadd(C.motions[nn.no] || [0, 0, 0], vscale(Ld.dir, Ld.val));
+        }
       });
       coverLines[ci].forEach(function (Ld) { lineLoad(ci, Ld); });
     });
-    Object.keys(skipped).forEach(function (ci) {
-      var c = loads.cases[ci], what = [];
-      if (skipped[ci].temp) what.push('temperaturlasterne på stængerne');
-      if (skipped[ci].motion) what.push('understøtningernes flytninger');
-      warn('Lasttilfældet ' + c.name + ': ' + what.join(' og ') + ' kan ikke skrives til Robot og er udeladt. Læg dem ind i Robot.');
+    if (cases.some(function (c) { return Object.keys(c.motions).length; }))
+      note('Understøtningsflytningerne (temperatur) er givet i globale retninger. Kontrollér i Robot, at de virker radialt i de drejede understøtninger.');
+    var combos = (loads.combos || []).filter(function (cb) { return cb.export; }).map(function (cb) {
+      return { name: cb.name, type: comboType(cb.type), items: cb.items.map(function (it) { return { no: it.ci + 1, f: it.gamma }; }) };
     });
-
-    // ---- filen ----
-    var L = [];
-    var hdr = function (t) { L.push(robotText('; ' + t)); };
-    hdr('Tanktag ' + TR.VERSION + ' - eksport til Autodesk Robot Structural Analysis (tekstfil .str). Åbn med Fil > Åbn.');
-    hdr('Enheder: m og kN. Profiler fra Robots europæiske katalog, materialet ' + matName + '.');
-    hdr('Fladelasterne er fordelt som linjelaster på radialbjælkerne og sektionsspærene (envejs, vægtstangsreglen);');
-    hdr('flader uden radialbjælker (fx centerpladen) er fordelt jævnt på de bærende stænger. Egenvægten er linjelaster A*rho*g.');
-    if (auxElems.length) hdr('Stang ' + numList(auxElems.map(function (a) { return a.no; })) + ' er hjælpestænger (' + auxName + ', kun normalkraft) for skrå fastholdelser og fjedre: stiv = ' + AUX_RIGID_L + ' m, fjeder k: L = EA/k.');
-    if (warnings.length) { hdr(''); hdr('Bemærk:'); warnings.forEach(function (w) { hdr('- ' + w); }); }
-    var combos = (loads.combos || []).filter(function (cb) { return cb.export; });
-    if (combos.length) {
-      hdr(''); hdr('Lastkombinationer (oprettes i Robot under Laster > Kombinationer; tallene er lasttilfældenes numre):');
-      combos.forEach(function (cb) {
-        hdr('  ' + cb.name + ' (' + cb.type + '): ' + cb.items.map(function (it) { return fmt(it.gamma, 3) + '*' + (it.ci + 1); }).join(' + '));
-      });
-    }
-    hdr('Søjle- og kipningslængderne (beta) kommer ikke med; de sættes i Robot under stængernes dimensioneringsparametre.');
-    hdr('');
-    hdr('Knuder med navn i Tanktag (Robot-nummer: navn):');
-    nodes.forEach(function (n) { if (n.names.length) hdr('  ' + n.no + ': ' + n.names.join(', ')); });
-    hdr('');
-    hdr('Stænger (Robot-numre: navn i Tanktag):');
-    var byName = {}, nameOrder = [];
-    elems.forEach(function (e) {
-      var nm = e.aux ? 'hjælpestang ' + e.aux.sup + ' ' + e.aux.dir.toUpperCase() : e.member.name;
-      if (!byName[nm]) { byName[nm] = []; nameOrder.push(nm); }
-      byName[nm].push(e.no);
-    });
-    nameOrder.forEach(function (nm) { hdr('  ' + numList(byName[nm]) + ': ' + nm); });
-    L.push('');
-    L.push('ROBOT97');
-    L.push('');
-    L.push('FRAme SPAce');
-    L.push('');
-    L.push('NUMbering DIScontinuous');
-    L.push('');
-    L.push('NODes ' + nodes.length + '  ELEments ' + elems.length);
-    L.push('');
-    L.push('UNIts');
-    L.push('LENgth=m\tForce=kN');
-    L.push('');
-    L.push(';+------+-------------------+--------------------+--------------------+');
-    L.push(';! No.  !        X          !         Y          !         Z          !');
-    L.push(';+------+-------------------+--------------------+--------------------+');
-    L.push('NODes');
-    nodes.forEach(function (n) {
-      L.push('  ' + n.no + '\t' + fmt(n.pos[0]) + '\t' + fmt(n.pos[1]) + '\t' + fmt(n.pos[2]));
-    });
-    L.push('');
-    L.push(';+------+-------+-------+');
-    L.push(';! No.  ! STRT  ! END   !');
-    L.push(';+------+-------+-------+');
-    L.push('ELEments');
-    elems.forEach(function (e) {
-      L.push('  ' + e.no + '\t' + e.n1.no + '\t' + e.n2.no + (e.gamma ? '\tGAMma=' + fmt(e.gamma, 3) : ''));
-    });
-    L.push('');
-    L.push('PROperties');
-    L.push(' "' + matName + '"');
-    var bySec = {}, secOrder = [];
-    elems.forEach(function (e) { if (!bySec[e.section]) { bySec[e.section] = []; secOrder.push(e.section); } bySec[e.section].push(e.no); });
-    secOrder.forEach(function (sn) { L.push(' ' + numList(bySec[sn]) + '  ' + sn); });
-    L.push('');
-    L.push('SUPports');
-    L.push('');
-    // på linjen står de frie retninger; ingen koder = fast indspændt
-    var supBy = {}, supOrder = [];
-    nodes.forEach(function (n) {
-      if (!n.sup) return;
-      var free = [];
-      ['UX', 'UY', 'UZ'].forEach(function (c, i) { if (!n.sup.t[i]) free.push(c); });
-      ['RX', 'RY', 'RZ'].forEach(function (c, i) { if (!n.sup.r[i]) free.push(c); });
-      var k = free.join(' ');
-      if (!supBy[k]) { supBy[k] = []; supOrder.push(k); }
-      supBy[k].push(n.no);
-    });
-    supOrder.forEach(function (k) { L.push(numList(supBy[k]) + (k ? '  ' + k : '')); });
-    L.push('');
-    var relBy = {}, relOrder = [];
-    elems.forEach(function (e) {
-      if (!e.relO && !e.relE) return;
-      var k = (e.relO ? 'ORIgin ' + e.relO : '') + (e.relO && e.relE ? '  ' : '') + (e.relE ? 'END ' + e.relE : '');
-      if (!relBy[k]) { relBy[k] = []; relOrder.push(k); }
-      relBy[k].push(e.no);
-    });
-    if (relOrder.length) {
-      L.push('RELeases');
-      relOrder.forEach(function (k) { L.push('ELEments ' + numList(relBy[k]) + '  ' + k); });
-      L.push('');
-    }
-    L.push('LOAds');
-    loads.cases.forEach(function (c, ci) {
-      L.push('');
-      L.push(robotText('CASe # ' + (ci + 1) + ' ' + c.name));
-      var o = caseOut[ci], nodeNos = Object.keys(o.node), elNos = Object.keys(o.elem);
-      if (nodeNos.length) {
-        L.push('NODes');
-        nodeNos.forEach(function (no) {
-          var F = o.node[no];
-          ['FX', 'FY', 'FZ'].forEach(function (comp, ax) { if (Math.abs(F[ax]) > 1e-12) L.push('  ' + no + ' ' + comp + '=' + fmt(F[ax])); });
-        });
-      }
-      if (elNos.length) {
-        // ens jævne laster over hele stangen samles på én linje
-        var uni = {}, uniOrder = [], rest = [];
-        elNos.forEach(function (no) {
-          // laster med samme komponent og samme afsnit lægges sammen
-          var parts = {};
-          o.elem[no].forEach(function (q) {
-            var k = q.comp + '|' + fmt(q.x0, 6) + '|' + fmt(q.x1, 6);
-            if (parts[k]) { parts[k].v0 += q.v0; parts[k].v1 += q.v1; } else parts[k] = { comp: q.comp, x0: q.x0, x1: q.x1, v0: q.v0, v1: q.v1 };
-          });
-          Object.keys(parts).forEach(function (k) {
-            var q = parts[k];
-            if (Math.abs(q.v0) < 1e-9 && Math.abs(q.v1) < 1e-9) return;
-            if (q.x0 < 1e-9 && q.x1 > 1 - 1e-9 && Math.abs(q.v0 - q.v1) < 1e-9) {
-              var uk = q.comp + '=' + fmt(q.v0);
-              if (!uni[uk]) { uni[uk] = []; uniOrder.push(uk); }
-              uni[uk].push(Number(no));
-            } else rest.push('  ' + no + ' X=' + fmt(q.x0) + ' ' + q.comp + '=' + fmt(q.v0) + ' TILl X=' + fmt(q.x1) + ' ' + q.comp + '=' + fmt(q.v1) + ' RElative');
-          });
-        });
-        if (uniOrder.length || rest.length) {
-          L.push('ELEments');
-          uniOrder.forEach(function (uk) { L.push('  ' + numList(uni[uk]) + ' ' + uk); });
-          rest.forEach(function (r) { L.push(r); });
-        }
-      }
-    });
-    L.push('');
-    L.push('END');
-    var text = L.join('\r\n') + '\r\n';
-    return { text: text, warnings: warnings, nodes: nodes, elems: elems, cases: caseOut, auxCount: auxElems.length };
+    return { nodes: nodes, elems: elems, sections: sectionOrder, material: matName, tieMat: tieMat, supports: supports, cases: cases, combos: combos, notes: notes };
   }
 
-  var api = { buildRobotStr: buildRobotStr, robotSectionName: robotSectionName, robotMaterialName: robotMaterialName, gammaOf: gammaOf,
-    numList: numList, latin1Bytes: latin1Bytes, robotText: robotText, FAMILY_NAMES: FAMILY_NAMES };
+  // ---------- scriptet ----------
+  function psStr(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
+
+  function buildRobotScript(TR, params, lib, opts) {
+    opts = opts || {};
+    var M = buildRobotModel(TR, params, lib, opts);
+    var base = opts.name || 'tanktag';
+    var L = [];
+    // .cmd-delen: dobbeltklik starter PowerShell med resten af filen
+    L.push('@echo off');
+    L.push('rem Tanktag ' + TR.VERSION + ' - bygger modellen i Autodesk Robot Structural Analysis og gemmer den som .rtd. Dobbeltklik for at køre.');
+    L.push('powershell -NoProfile -ExecutionPolicy Bypass -Command "$ScriptFile = \'%~f0\'; $t = [IO.File]::ReadAllText($ScriptFile, [Text.Encoding]::UTF8); $i = $t.IndexOf(\'#\' + \'POWERSHELL#\'); Invoke-Expression $t.Substring($i)"');
+    L.push('echo.');
+    L.push('pause');
+    L.push('exit /b');
+    L.push('#POWERSHELL#');
+    L.push('$ErrorActionPreference = \'Stop\'');
+    L.push('$Name = ' + psStr(base));
+    L.push('$Folder = Split-Path -Parent $ScriptFile');
+    L.push('$Rtd = Join-Path $Folder ($Name + \'.rtd\')');
+    L.push('Write-Host "Tanktag til Robot: $Name" -ForegroundColor Cyan');
+    L.push('try {');
+    // Robots API: typerne og navnene på konstanterne fra Interop.RobotOM.dll i Robots programmappe
+    L.push('$dll = $null');
+    L.push('foreach ($r in @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }) {');
+    L.push('  $ad = Join-Path $r \'Autodesk\'');
+    L.push('  if (-not (Test-Path $ad)) { continue }');
+    L.push('  $dll = Get-ChildItem $ad -Directory -Filter \'Robot Structural Analysis*\' -ErrorAction SilentlyContinue | Sort-Object Name -Descending |');
+    L.push('    ForEach-Object { Get-ChildItem $_.FullName -Recurse -Filter \'Interop.RobotOM.dll\' -ErrorAction SilentlyContinue } | Select-Object -First 1');
+    L.push('  if ($dll) { break }');
+    L.push('}');
+    L.push('if ($dll) { Write-Host ("Robots API: " + $dll.FullName); Add-Type -Path $dll.FullName } elseif (-not [Reflection.Assembly]::LoadWithPartialName(\'Interop.RobotOM\')) { throw \'Fandt ikke Robot Structural Analysis (Interop.RobotOM.dll) under Programmer\\Autodesk.\' }');
+    L.push('function E($t, $n) { [int]([Enum]::Parse([Type]("RobotOM." + $t), $n)) }');
+    L.push('$app = New-Object -ComObject Robot.Application');
+    L.push('$open = $false; try { $open = [bool]$app.Project.IsActive -and [bool]$app.Project.FileName } catch {}');
+    L.push('if ($open) {');
+    L.push('  $a = Read-Host ("Robot har projektet " + $app.Project.FileName + " åbent. Det lukkes (gem det først, hvis det er ændret). Fortsæt? (j/n)")');
+    L.push('  if ($a -notmatch \'^[jJyY]\') { throw \'Afbrudt.\' }');
+    L.push('}');
+    L.push('$app.Visible = 1');
+    L.push('$app.Interactive = 0');
+    L.push('$app.Project.New((E IRobotProjectType I_PT_FRAME_3D))');
+    L.push('$str = $app.Project.Structure');
+    L.push('$labels = $str.Labels');
+    L.push('$warn = New-Object System.Collections.ArrayList');
+    L.push('function Sel($type, $text) { $s = $str.Selections.Create((E IRobotObjectType $type)); [void]$s.FromText($text); $s }');
+
+    // materialer
+    L.push('Write-Host \'Materialer og tværsnit ...\'');
+    L.push('function New-Material($name, $db, $E, $G) {');
+    L.push('  $lab = $labels.Create((E IRobotLabelType I_LT_MATERIAL), \'\')');
+    L.push('  $d = $lab.Data');
+    L.push('  $ok = $false');
+    L.push('  foreach ($n in @($db, ($db -replace \' \', \'\'))) { try { if ($d.LoadFromDBase($n)) { $ok = $true; break } } catch {} }');
+    L.push('  if (-not $ok) { throw ("Materialet " + $db + " findes ikke i Robots materialedatabase.") }');
+    L.push('  if ($E) { $d.E = $E; $d.Kirchoff = $G; $d.Name = $name }');
+    L.push('  [void]$labels.StoreWithName($lab, $name)');
+    L.push('}');
+    L.push('New-Material ' + psStr(M.material) + ' ' + psStr(M.material) + ' $null $null');
+    if (M.tieMat) L.push('New-Material ' + psStr(M.tieMat.name) + ' ' + psStr(M.material) + ' ' + num(M.tieMat.E) + ' ' + num(M.tieMat.G));
+    // tværsnit: første navn i Robots katalog, der findes, ellers brugertværsnit med Tanktags værdier
+    L.push('function New-Section($label, $names, $p) {');
+    L.push('  foreach ($n in $names) {');
+    L.push('    $lab = $labels.Create((E IRobotLabelType I_LT_BAR_SECTION), $n)');
+    L.push('    $d = $lab.Data');
+    L.push('    $ok = $false; try { $ok = [bool]$d.LoadFromDBase($n) } catch {}');
+    L.push('    if ($ok) { $d.MaterialName = ' + psStr(M.material) + '; [void]$labels.Store($lab); return $n }');
+    L.push('  }');
+    L.push('  $lab = $labels.Create((E IRobotLabelType I_LT_BAR_SECTION), $label)');
+    L.push('  $d = $lab.Data');
+    L.push('  $d.MaterialName = ' + psStr(M.material));
+    L.push('  $v = \'IRobotBarSectionDataValue\'');
+    L.push('  $keys = @(\'I_BSDV_AX\', \'I_BSDV_IX\', \'I_BSDV_IY\', \'I_BSDV_IZ\', \'I_BSDV_VY\', \'I_BSDV_VPY\', \'I_BSDV_VZ\', \'I_BSDV_VPZ\', \'I_BSDV_ZY\', \'I_BSDV_ZZ\')');
+    L.push('  for ($j = 0; $j -lt $keys.Count; $j++) { [void]$d.SetValue((E $v $keys[$j]), $p[$j]) }');
+    L.push('  [void]$d.CalcNonstdGeometry()');
+    L.push('  [void]$labels.Store($lab)');
+    L.push('  if ($names.Count) { [void]$warn.Add("Fandt ikke " + ($names -join \' / \') + " i Robots katalog: brugertværsnittet " + $label + " med Tanktags værdier er brugt.") }');
+    L.push('  return $label');
+    L.push('}');
+    L.push('$sec = @{}');
+    M.sections.forEach(function (s, i) {
+      var pr = s.props;
+      var vals = pr ? [pr.A, pr.It, pr.Iy, pr.Iz, pr.vy, pr.vpy, pr.vz, pr.vpz, pr.Wply, pr.Wplz] : [s.area, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      L.push('$sec[' + i + '] = New-Section ' + psStr(s.label) + ' @(' + s.names.map(psStr).join(', ') + ') @(' + vals.map(num).join(', ') + ')');
+      s.index = i;
+    });
+
+    // knuder og stænger
+    L.push('Write-Host \'Knuder og stænger ...\'');
+    L.push('$cache = $str.CreateCache()');
+    M.nodes.forEach(function (n) { L.push('[void]$cache.AddNode(' + n.no + ', ' + num(n.pos[0]) + ', ' + num(n.pos[1]) + ', ' + num(n.pos[2]) + ')'); });
+    M.elems.forEach(function (e) {
+      L.push('[void]$cache.AddBar(' + e.no + ', ' + e.n1.no + ', ' + e.n2.no + ', $sec[' + e.section.index + '], ' + psStr(e.material) + ', ' + num(e.gamma) + ')');
+    });
+    // stængernes navne i Robot = Tanktags navne
+    M.elems.forEach(function (e) { L.push('[void]$cache.SetBarName(' + e.no + ', ' + psStr(e.member.name) + ')'); });
+    L.push('[void]$str.ApplyCache($cache)');
+
+    // charnierer
+    var rel = { start: [], end: [], both: [] };
+    M.elems.forEach(function (e) {
+      if (e.hingeStart && e.hingeEnd) rel.both.push(e.no); else if (e.hingeStart) rel.start.push(e.no); else if (e.hingeEnd) rel.end.push(e.no);
+    });
+    if (rel.start.length || rel.end.length || rel.both.length) {
+      L.push('function New-Release($name, $s, $e) {');
+      L.push('  $lab = $labels.Create((E IRobotLabelType I_LT_BAR_RELEASE), $name)');
+      L.push('  $d = $lab.Data');
+      L.push('  foreach ($pair in @(@($d.StartNode, $s), @($d.EndNode, $e))) {');
+      L.push('    $n = $pair[0]; $free = if ($pair[1]) { E IRobotBarEndReleaseValue I_BERV_STD } else { E IRobotBarEndReleaseValue I_BERV_NONE }');
+      L.push('    $fix = E IRobotBarEndReleaseValue I_BERV_NONE');
+      L.push('    $n.UX = $fix; $n.UY = $fix; $n.UZ = $fix; $n.RX = $fix; $n.RY = $free; $n.RZ = $free');
+      L.push('  }');
+      L.push('  [void]$labels.Store($lab)');
+      L.push('}');
+      [['start', 'Charnier start', true, false], ['end', 'Charnier slut', false, true], ['both', 'Charnier begge', true, true]].forEach(function (r) {
+        if (!rel[r[0]].length) return;
+        L.push('New-Release ' + psStr(r[1]) + ' $' + r[2] + ' $' + r[3]);
+        L.push('$str.Bars.SetLabel((Sel I_OT_BAR ' + psStr(numList(rel[r[0]])) + '), (E IRobotLabelType I_LT_BAR_RELEASE), ' + psStr(r[1]) + ')');
+      });
+    }
+    // gitterstænger og kun-træk
+    var truss = M.elems.filter(function (e) { return e.truss; }).map(function (e) { return e.no; });
+    if (truss.length) L.push('$str.Bars.SetTrussBar(' + psStr(numList(truss)) + ', $true)');
+    var tens = M.elems.filter(function (e) { return e.tensionOnly; }).map(function (e) { return e.no; });
+    if (tens.length) L.push('$str.Bars.SetTensionCompression((Sel I_OT_BAR ' + psStr(numList(tens)) + '), (E IRobotBarTensionCompression I_BTC_TENSION_ONLY))');
+
+    // understøtninger: én etiket pr. ens understøtning (fastholdelser, fjedre i N/m og drejning)
+    L.push('Write-Host \'Understøtninger ...\'');
+    L.push('function New-Support($name, $f, $k, $alpha) {');
+    L.push('  $lab = $labels.Create((E IRobotLabelType I_LT_SUPPORT), $name)');
+    L.push('  $d = $lab.Data');
+    L.push('  $d.KX = $k[0]; $d.KY = $k[1]; $d.KZ = $k[2]; $d.HX = $k[3]; $d.HY = $k[4]; $d.HZ = $k[5]');
+    L.push('  $d.UX = $f[0]; $d.UY = $f[1]; $d.UZ = $f[2]; $d.RX = $f[3]; $d.RY = $f[4]; $d.RZ = $f[5]');
+    L.push('  if ($alpha -ne 0) { $d.Alpha = $alpha }');
+    L.push('  [void]$labels.Store($lab)');
+    L.push('}');
+    var supKinds = {}, supOrder = [];
+    M.supports.forEach(function (s) {
+      var dofs = s.u.concat(s.r);
+      var f = dofs.map(function (d) { return d.fix ? 1 : 0; }), k = dofs.map(function (d) { return d.k * 1000; });
+      var key = f.join('') + '|' + k.map(num).join(',') + '|' + s.alpha.toFixed(9);
+      if (!supKinds[key]) {
+        supKinds[key] = { f: f, k: k, alpha: s.alpha, nodes: [], deg: s.alpha * 180 / Math.PI };
+        supOrder.push(supKinds[key]);
+      }
+      supKinds[key].nodes.push(s.node.no);
+    });
+    supOrder.forEach(function (sk, i) {
+      var nm = 'Tanktag ' + (i + 1);
+      sk.name = nm;
+      L.push('New-Support ' + psStr(nm) + ' @(' + sk.f.join(', ') + ') @(' + sk.k.map(num).join(', ') + ') ' + num(sk.alpha));
+      L.push('$str.Nodes.SetLabel((Sel I_OT_NODE ' + psStr(numList(sk.nodes)) + '), (E IRobotLabelType I_LT_SUPPORT), ' + psStr(nm) + ')');
+    });
+
+    // lasttilfælde
+    L.push('Write-Host \'Laster ...\'');
+    L.push('$cases = $str.Cases');
+    L.push('$cases.BeginMultiOperation()');
+    L.push('$tr = \'IRobotBarTrapezoidaleRecordValues\'');
+    L.push('function Trap($c, $bars, $x1, $x2, $p1, $p2) {');
+    L.push('  $r = $c.Records.Create((E IRobotLoadRecordType I_LRT_BAR_TRAPEZOIDALE))');
+    L.push('  [void]$r.Objects.FromText($bars)');
+    L.push('  $r.SetValue((E $tr I_BTRV_PX1), $p1[0]); $r.SetValue((E $tr I_BTRV_PY1), $p1[1]); $r.SetValue((E $tr I_BTRV_PZ1), $p1[2]); $r.SetValue((E $tr I_BTRV_X1), $x1)');
+    L.push('  $r.SetValue((E $tr I_BTRV_PX2), $p2[0]); $r.SetValue((E $tr I_BTRV_PY2), $p2[1]); $r.SetValue((E $tr I_BTRV_PZ2), $p2[2]); $r.SetValue((E $tr I_BTRV_X2), $x2)');
+    L.push('  $r.SetValue((E $tr I_BTRV_RELATIVE), 1)');
+    L.push('}');
+    var realBars = numList(M.elems.map(function (e) { return e.no; }));
+    M.cases.forEach(function (C, ci) {
+      var no = ci + 1;
+      L.push('# ' + no + ': ' + C.name);
+      L.push('[void]$cases.CreateSimple(' + no + ', ' + psStr(C.name) + ', (E IRobotCaseNature ' + C.nature + '), (E IRobotCaseAnalizeType I_CAT_STATIC_LINEAR))');
+      L.push('$c = $cases.Get(' + no + ')');
+      if (C.dead) {
+        // konstruktionens egenvægt, som FEM-Design regner den i lasttilfælde af typen dead load
+        L.push('$r = $c.Records.Create((E IRobotLoadRecordType I_LRT_DEAD)); [void]$r.Objects.FromText(' + psStr(realBars) + ')');
+        L.push('$r.SetValue((E IRobotDeadRecordValues I_DRV_Z), -1); $r.SetValue((E IRobotDeadRecordValues I_DRV_COEFF), 1)');
+      }
+      Object.keys(C.nodes).forEach(function (n) {
+        var F = vscale(C.nodes[n], 1000), v = 'IRobotNodeForceRecordValues';
+        L.push('$r = $c.Records.Create((E IRobotLoadRecordType I_LRT_NODE_FORCE)); [void]$r.Objects.FromText(\'' + n + '\')');
+        L.push('$r.SetValue((E ' + v + ' I_NFRV_FX), ' + num(F[0]) + '); $r.SetValue((E ' + v + ' I_NFRV_FY), ' + num(F[1]) + '); $r.SetValue((E ' + v + ' I_NFRV_FZ), ' + num(F[2]) + ')');
+      });
+      // ens linjelaster samles i én post med en liste af stænger
+      var groups = {}, gOrder = [];
+      Object.keys(C.bars).forEach(function (k) {
+        var q = C.bars[k];
+        if (norm(q.v0) < 1e-9 && norm(q.v1) < 1e-9) return;
+        var args = [num(q.x0), num(q.x1), '@(' + q.v0.map(function (v) { return num(v * 1000); }).join(', ') + ')',
+          '@(' + q.v1.map(function (v) { return num(v * 1000); }).join(', ') + ')'].join(' ');
+        if (!groups[args]) { groups[args] = []; gOrder.push(args); }
+        groups[args].push(q.e.no);
+      });
+      gOrder.forEach(function (args) { L.push('Trap $c ' + psStr(numList(groups[args])) + ' ' + args); });
+      var tg = {}, tOrder = [];
+      Object.keys(C.temps).forEach(function (e) { var t = num(C.temps[e]); if (!tg[t]) { tg[t] = []; tOrder.push(t); } tg[t].push(Number(e)); });
+      tOrder.forEach(function (t) {
+        L.push('$r = $c.Records.Create((E IRobotLoadRecordType I_LRT_BAR_THERMAL)); [void]$r.Objects.FromText(' + psStr(numList(tg[t])) + '); $r.SetValue((E IRobotBarThermalRecordValues I_BTRV_TX), ' + t + ')');
+      });
+      Object.keys(C.motions).forEach(function (n) {
+        var U = C.motions[n], v = 'IRobotNodeDisplacementRecordValues';
+        L.push('$r = $c.Records.Create((E IRobotLoadRecordType I_LRT_NODE_DISPLACEMENT)); [void]$r.Objects.FromText(\'' + n + '\')');
+        L.push('$r.SetValue((E ' + v + ' I_NDRV_UX), ' + num(U[0]) + '); $r.SetValue((E ' + v + ' I_NDRV_UY), ' + num(U[1]) + '); $r.SetValue((E ' + v + ' I_NDRV_UZ), ' + num(U[2]) + ')');
+      });
+    });
+    // kombinationer
+    M.combos.forEach(function (cb, i) {
+      var no = M.cases.length + i + 1;
+      L.push('$cb = $cases.CreateCombination(' + no + ', ' + psStr(cb.name) + ', (E IRobotCombinationType ' + cb.type + '), (E IRobotCaseNature I_CN_PERMANENT), (E IRobotCaseAnalizeType I_CAT_COMB))');
+      cb.items.forEach(function (it) { L.push('[void]$cb.CaseFactors.New(' + it.no + ', ' + num(it.f) + ')'); });
+    });
+    L.push('$cases.EndMultiOperation()');
+    L.push('$app.Interactive = 1');
+    L.push('try { $app.Project.ViewMngr.Refresh() } catch {}');
+    L.push('$app.Project.SaveAs($Rtd)');
+    L.push('Write-Host ("Gemt: " + $Rtd) -ForegroundColor Green');
+    var info = M.notes.slice();
+    // kontrol af drejningen: Robot skal vise vinklen i grader i understøtningens etiket
+    var turned = supOrder.filter(function (sk) { return sk.alpha; });
+    if (turned.length) info.push('Understøtningerne med drejede akser skal i Robot vise vinklen alpha om Z i grader, fx ' +
+      turned.slice(0, 3).map(function (sk) { return sk.name + ' (knude ' + numList(sk.nodes) + '): ' + (Math.round(sk.deg * 100) / 100) + '°'; }).join(', ') + '.');
+    info.forEach(function (t) { L.push('Write-Host ' + psStr('- ' + t)); });
+    L.push('foreach ($w in $warn) { Write-Host ("- " + $w) -ForegroundColor Yellow }');
+    L.push('} catch {');
+    L.push('  try { $app.Interactive = 1 } catch {}');
+    L.push('  Write-Host ("Fejl: " + $_.Exception.Message) -ForegroundColor Red');
+    L.push('  Write-Host ("Linje " + $_.InvocationInfo.ScriptLineNumber + ": " + $_.InvocationInfo.Line.Trim())');
+    L.push('}');
+    var text = L.join('\r\n') + '\r\n';
+    return { text: text, model: M };
+  }
+
+  var api = { buildRobotModel: buildRobotModel, buildRobotScript: buildRobotScript, robotSectionNames: robotSectionNames,
+    customSectionName: customSectionName, sectionProps: sectionProps, gammaOf: gammaOf, numList: numList, FAMILY_NAMES: FAMILY_NAMES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.TankRobot = api;
 })(typeof window !== 'undefined' ? window : this);
@@ -10732,14 +10850,15 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     try {
       var g = TR.computeGeometry(params);
       if (g.errors.length) throw new Error(g.errors.join(' '));
-      r = window.TankRobot.buildRobotStr(TR, params, LIB, { geometry: g, loads: TR.computeLoads(g) });
+      r = window.TankRobot.buildRobotScript(TR, params, LIB, { geometry: g, loads: TR.computeLoads(g), name: base });
     } catch (e) {
-      addStatus('bad', 'Robot-filen kunne ikke dannes: ' + (e && e.message ? e.message : e));
+      addStatus('bad', 'Robot-scriptet kunne ikke dannes: ' + (e && e.message ? e.message : e));
       return;
     }
-    var notes = r.warnings.length ? '<br>Bemærk:<br>' + r.warnings.map(function (w) { return '– ' + esc(w); }).join('<br>') : '';
-    if (directDownload(window.TankRobot.latin1Bytes(r.text), base + '.str', 'text/plain')) {
-      addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '.str</span>. Åbn den i Robot med Fil › Åbn. Fladelasterne er regnet om til linjelaster på bjælkerne, og lastkombinationerne står i filens hoved og oprettes i Robot.' + notes);
+    var notes = r.model.notes.length ? '<br>Bemærk:<br>' + r.model.notes.map(function (w) { return '– ' + esc(w); }).join('<br>') : '';
+    if (directDownload(r.text, base + '_robot.cmd', 'application/octet-stream')) {
+      addStatus('ok', '', 'Henter <span class="mono">' + esc(base) + '_robot.cmd</span>. Kør den på en pc med Robot Structural Analysis (dobbeltklik; svarer Windows »Windows har beskyttet din pc«, så vælg Flere oplysninger › Kør alligevel). ' +
+        'Scriptet starter Robot, bygger modellen med laster og kombinationer og gemmer den som <span class="mono">' + esc(base) + '.rtd</span> i samme mappe.' + notes);
     } else addStatus('bad', '', 'Browseren tillod ikke at gemme filen.');
   }
 
