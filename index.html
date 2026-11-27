@@ -21,6 +21,7 @@
   --c-udv: #2b7564;
   --c-edge: #8f6714;
   --c-brace: #6a48a8;
+  --c-tie: #c2187a;
   --c-sec: #4a86b8;
   --c-cover: #2b75641a;
   --c-shell: #9aa8b2;
@@ -45,7 +46,7 @@
     --paper: #0e1215; --sheet: #151a1e; --ink: #dce3e7; --ink-2: #94a2ac; --rule: #2d363c; --rule-2: #212a30;
     --field: #10151a; --primer: #e27d60; --primer-ink: #1b0d08; --primer-wash: #3a221a;
     --c-radial: #86b8dc; --c-ring: #e8876b; --c-udv: #6fc3ad; --c-edge: #d8ad52; --c-cover: #6fc3ad1f; --c-shell: #5d6b74;
-    --c-brace: #b79ef0; --c-sec: #4f8fc4;
+    --c-brace: #b79ef0; --c-sec: #4f8fc4; --c-tie: #f06fb8;
     --load-lo: #2b241d; --load-hi: #e8876b; --suction: #86b8dc;
     --bad: #f2867e; --bad-wash: #3b1a18; --warn: #d8ad52; --warn-wash: #332a10;
     color-scheme: dark;
@@ -55,7 +56,7 @@
   --paper: #0e1215; --sheet: #151a1e; --ink: #dce3e7; --ink-2: #94a2ac; --rule: #2d363c; --rule-2: #212a30;
   --field: #10151a; --primer: #e27d60; --primer-ink: #1b0d08; --primer-wash: #3a221a;
   --c-radial: #86b8dc; --c-ring: #e8876b; --c-udv: #6fc3ad; --c-edge: #d8ad52; --c-cover: #6fc3ad1f; --c-shell: #5d6b74;
-  --c-brace: #b79ef0; --c-sec: #4f8fc4;
+  --c-brace: #b79ef0; --c-sec: #4f8fc4; --c-tie: #f06fb8;
   --load-lo: #2b241d; --load-hi: #e8876b; --suction: #86b8dc;
   --bad: #f2867e; --bad-wash: #3b1a18; --warn: #d8ad52; --warn-wash: #332a10;
   color-scheme: dark;
@@ -200,7 +201,7 @@ input[aria-invalid="true"] { border-color: var(--bad); background: var(--bad-was
 .prof-head { display: flex; align-items: center; gap: 8px; }
 .swatch { width: 18px; height: 0; border-top: 3px solid currentColor; flex: none; }
 .sw-radial { color: var(--c-radial); } .sw-ring { color: var(--c-ring); } .sw-udv { color: var(--c-udv); } .sw-edge { color: var(--c-edge); }
-.sw-brace { color: var(--c-brace); }
+.sw-brace { color: var(--c-brace); } .sw-tie { color: var(--c-tie); }
 .sw-sec { color: var(--c-sec); }
 .tools { display: flex; flex-wrap: wrap; gap: 6px; }
 .radhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -315,7 +316,7 @@ svg.lgsup.hold { stroke: var(--primer); }
 /* profiler i 3D: fladerne skygges ved at blande gruppens farve (andel --s) med hvid eller sort (--k) */
 .pf { fill: color-mix(in srgb, var(--c) var(--s), var(--k)); stroke: color-mix(in srgb, var(--c) var(--s), var(--k)); stroke-linejoin: round; }
 .pf-radial { --c: var(--c-radial); } .pf-ring { --c: var(--c-ring); } .pf-udv { --c: var(--c-udv); }
-.pf-edge { --c: var(--c-edge); } .pf-brace { --c: var(--c-brace); } .pf-sec { --c: var(--c-sec); }
+.pf-edge { --c: var(--c-edge); } .pf-brace { --c: var(--c-brace); } .pf-tie { --c: var(--c-tie); } .pf-sec { --c: var(--c-sec); }
 .cov { width: 14px; height: 10px; background: var(--c-cover); outline: 1px solid var(--rule); flex: none; }
 
 /* drawing (SVG) */
@@ -327,6 +328,7 @@ svg.lgsup.hold { stroke: var(--primer); }
 .d-udv { stroke: var(--c-udv); }
 .d-edge { stroke: var(--c-edge); }
 .d-brace { stroke: var(--c-brace); }
+.d-tie { stroke: var(--c-tie); stroke-dasharray: 6 3; }
 .d-sec { stroke: var(--c-sec); }
 .d-brace .copy { opacity: 0.5; }
 .d-brace .sel { stroke: var(--primer); opacity: 1; }
@@ -1373,6 +1375,25 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
             <button type="button" class="btn small" id="liftHoldAdd">Valgte knuder</button>
             <button type="button" class="btn small" id="liftHoldRadial">Radialt i alle knuder</button>
           </div>
+          <div class="field">
+            <span class="lbl">Trækstænger i stedet for de vandrette understøtninger</span>
+            <div class="seg" role="radiogroup" aria-label="Trækstænger">
+              <label><input type="radio" name="liftTies" value="none" data-key="liftTies"><span>Ingen</span></label>
+              <label><input type="radio" name="liftTies" value="across" data-key="liftTies"><span>På tværs</span></label>
+              <label><input type="radio" name="liftTies" value="ring" data-key="liftTies"><span>Rundt</span></label>
+            </div>
+          </div>
+          <div id="liftTieFields">
+            <div class="field" data-prof="liftTieProf">
+              <span class="lbl prof-head"><i class="swatch sw-tie"></i>Trækstænger</span>
+              <div class="prof">
+                <select id="liftTieProf-fam" aria-label="Profiltype, trækstænger"></select>
+                <select id="liftTieProf-size" aria-label="Profilstørrelse, trækstænger"></select>
+              </div>
+            </div>
+            <label class="check"><input type="checkbox" id="liftTieTension" data-key="liftTieTension"> <span>Kun træk <span class="hint">(intet tryk – kræver ikke-lineær beregning i FEM-Design)</span></span></label>
+            <p class="hint">Med trækstænger fjernes de vandrette fastholdelser (R og T) fra rækkerne herover, og knuderne forbindes i stedet med trækstænger af det valgte profil i knudernes kote: »På tværs« mellem modstående knuder gennem centrum, »Rundt« mellem naboknuderne hele vejen rundt. Lodrette fastholdelser og rotationer bliver. Stængerne skrives som gitterstænger (TS.1, TS.2, …). Trækstængerne holder ikke taget som et stift legeme, så ved »Lodret + manglende vandrette« tilføjes de fastholdelser, der så mangler, i løftepunkterne.</p>
+          </div>
           <p class="hint">»Jævnt fordelt« sætter det valgte antal understøtninger med lige stor afstand rundt langs kantbjælken fra den første knude; antallet skal gå op i antallet af knuder langs kantbjælken (radialbjælker, og med sektionsspær også KSM-knuderne), og rammer en af dem et løftepunkt, lægges den oven i løftepunktets fastholdelse. »Valgte knuder« sætter understøtninger i de knuder, der står i feltet, adskilt af komma; »alle« er alle knuder langs kantbjælken undtagen løftepunkterne. Retningerne er i knudens eget system: Z lodret, R radialt (vandret ind mod centrum) og T tangentielt (vandret langs kantbjælken), og rot R, rot T og rot Z er rotationer om de samme akser. Står en knude i flere rækker, lægges retningerne sammen. Fjeder er stivheden i kN/m for de valgte flytninger; tom er stiv. I et løftepunkt lægges rækken oven i løftepunktets egen fastholdelse. Ved »Lodret + manglende vandrette« bliver alle disse understøtninger, som de er, og der tilføjes kun det, der mangler for at holde taget vandret.</p>
         </fieldset>
       </section>
@@ -1931,6 +1952,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     liftSupport: 'vertical',   // 'vertical' (lodret + tre vandrette fastholdelser, statisk bestemt) | 'zOnly' (kun lodret) | 'pinned' (fastholdt i alle retninger)
     liftHolds: [],             // ekstra understøtninger langs kantbjælken i løftet: [{ nodes: 'alle' | 'KS.2, KS.3', z, r, t, rr, rt, rz, k }]
                                // i knudens lokale system (r radialt, t tangentielt, z lodret); k = fjederstivhed [kN/m], tom = stiv
+    liftTies: 'none',          // trækstænger i stedet for de vandrette understøtninger fra rækkerne: 'none' | 'across' (modstående knuder) | 'ring' (nabo-knuder rundt)
+    liftTieProf: 'FL|100*10',  // trækstængernes profil (gitterstænger)
+    liftTieTension: true,      // kun træk (sprød, intet tryk) – kræver ikke-lineær beregning i FEM-Design
     liftEdgeModel: 'bar',      // kantbjælken i løftet: 'bar' (profil, evt. med svøbpladen i tværsnittet) | 'shell' (stålskaller: flange, krop og svøb)
     liftShellH: 1000,          // højden af svøbpladen under kantbjælken [mm] (0 = ingen svøbplade)
     liftShellT: 8,             // svøbpladens tykkelse [mm]
@@ -2460,6 +2484,9 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     q.liftSupport = q.liftSupport === 'pinned' || q.liftSupport === 'zOnly' ? q.liftSupport : 'vertical';
     q.liftPoints = q.liftPoints === 'nodes' ? 'nodes' : 'even';
     q.liftEdgeModel = q.liftEdgeModel === 'shell' ? 'shell' : 'bar';
+    q.liftTies = q.liftTies === 'across' || q.liftTies === 'ring' ? q.liftTies : 'none';
+    q.liftTieTension = q.liftTieTension !== false && q.liftTieTension !== 'false';
+    q.liftTieProf = jsString(q.liftTieProf) || 'FL|100*10';
     q.liftHolds = normLiftHolds(q.liftHolds);
     return q;
   }
@@ -2850,7 +2877,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     // løftesimulering: understøtningerne erstattes af løftepunkter langs kantbjælken, enten jævnt fordelt fra det valgte
     // punkt (KS.i ved radialbjælke i eller KSM.i midt i faget efter den, ved sektionsspæret) eller i en liste af knuder.
     // Derudover kan der sættes ekstra understøtninger langs kantbjælken (fx vandrette) i knudernes radiale system.
-    var liftErrors = [], liftNodes = [], liftExtra = [], liftHoldErrors = [];
+    var liftErrors = [], liftNodes = [], liftExtra = [], liftHoldErrors = [], info0Ties = 0;
     if (p.liftOn) {
       var edgeNode = function (t) {   // knude langs kantbjælken: { i, mid, name, pos, th } eller null
         var mm = /^KS(M?)\.(\d+)$/i.exec(String(t).trim()), ii = mm ? parseInt(mm[2], 10) : 0;
@@ -2880,6 +2907,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
       if (!(p.liftShellH >= 0 && p.liftShellH <= 20000)) liftErrors.push('Løft: svøbpladens højde skal ligge mellem 0 og 20000 mm.');
       if (p.liftShellH > 0 && !(p.liftShellT > 0 && p.liftShellT <= 100)) liftErrors.push('Løft: svøbpladens tykkelse skal ligge mellem 0 og 100 mm.');
       if (!(p.liftGamma > 0 && p.liftGamma <= 10)) liftErrors.push('Løft: faktoren på egenlasten skal ligge mellem 0 og 10.');
+      if (p.liftTies !== 'none' && !profileParts(p.liftTieProf)) liftErrors.push('Løft: vælg et profil til trækstængerne.');
       if (p.liftEdgeModel === 'shell') {
         var lps = profileParts(p.profEdge);
         if (!p.edgeRing) liftErrors.push('Løft: kantbjælken som stålskaller kræver »Kantring langs svøbet«.');
@@ -2953,6 +2981,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           };
           var ex = extraBy[e.name];
           if (ex) {   // flere fastholdelser i selve løftepunktet (ved »Lodret + manglende vandrette« i knudens radiale system)
+            s0.rowH = ex.m.x > 0 || ex.m.y > 0;
             if (p.liftSupport !== 'pinned') { s0.motions.x = ex.m.x; s0.motions.y = ex.m.y; }
             if (p.liftSupport === 'vertical' && (ex.m.x > 0 || ex.m.y > 0 || ex.r.x > 0 || ex.r.y > 0 || ex.r.z > 0)) { s0.local = true; s0.fromRows = true; }
             ['x', 'y', 'z'].forEach(function (a) { s0.rotations[a] = Math.max(s0.rotations[a], ex.r[a]); });
@@ -2971,6 +3000,47 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
           liftExtra.push(sx);
           supports.push(sx);
         });
+        // trækstænger af fladstål mellem knuderne med vandrette understøtninger fra rækkerne, i stedet for understøtningerne:
+        // de vandrette fastholdelser fjernes (lodret og rotationer bliver), og knuderne forbindes på tværs eller rundt
+        if (p.liftTies !== 'none') {
+          var tieNodes = supports.filter(function (s) { return (s.liftExtra || s.rowH) && (s.motions.x > 0 || s.motions.y > 0); });
+          tieNodes.forEach(function (s) {
+            if (s.lift && p.liftSupport === 'pinned') return;   // fastholdte løftepunkter beholder deres fastholdelse
+            s.motions.x = 0; s.motions.y = 0;
+            if (s.lift) { s.rowH = false; if (!(s.rotations.x > 0 || s.rotations.y > 0 || s.rotations.z > 0)) { s.fromRows = false; s.local = p.liftSupport !== 'vertical'; } }
+          });
+          var gone = function (s) { return s.liftExtra && !(s.motions.z > 0) && !(s.rotations.x > 0 || s.rotations.y > 0 || s.rotations.z > 0); };
+          supports = supports.filter(function (s) { return !gone(s); });
+          liftExtra = liftExtra.filter(function (s) { return !gone(s); });
+          var ang = function (s) { var v = (Math.atan2(s.pos[1], s.pos[0]) + 2 * Math.PI) % (2 * Math.PI); return v > 2 * Math.PI - 1e-9 ? 0 : v; };
+          tieNodes.sort(function (a, b) { return ang(a) - ang(b); });
+          var pairs = [];
+          if (p.liftTies === 'across') {
+            var done = {};
+            tieNodes.forEach(function (a, ia) {
+              if (done[ia]) return;
+              var ib = -1;
+              tieNodes.forEach(function (b, jb) { if (jb !== ia && !done[jb] && norm(vadd(a.pos.slice(0, 2).concat([0]), b.pos.slice(0, 2).concat([0]))) < 1e-6 * R) ib = jb; });
+              if (ib < 0) return;
+              done[ia] = done[ib] = true;
+              pairs.push([a, tieNodes[ib]]);
+            });
+            var lone = tieNodes.filter(function (a, ia) { return !done[ia]; });
+            if (lone.length) warnings.push('Løft: ' + lone.map(function (a) { return a.node; }).join(', ') + ' har ingen modstående knude med vandret understøtning, så der er ingen trækstang derfra.');
+          } else if (tieNodes.length >= 2) {
+            for (var t1 = 0; t1 < tieNodes.length; t1++) {
+              if (tieNodes.length === 2 && t1 === 1) break;
+              pairs.push([tieNodes[t1], tieNodes[(t1 + 1) % tieNodes.length]]);
+            }
+          }
+          if (!pairs.length) warnings.push('Løft: der er ingen par af knuder med vandrette understøtninger at sætte trækstænger imellem.');
+          pairs.forEach(function (pr, k) {
+            var a = pr[0].pos, b = pr[1].pos;
+            addMember('tie', 'TS.' + (k + 1), a, b, localYFor(vsub(b, a)), 'hinged', 'hinged',
+              { truss: true, tensionOnly: p.liftTieTension, compLimit: 0, prof: p.liftTieProf, tie: [pr[0].node, pr[1].node] });
+          });
+          info0Ties = pairs.length;
+        }
         // stivlegemebevægelserne: vandret (u, v, drejning) og lodret (w, hældning om X og Y)
         var hRows = [], vRows = [];
         supports.forEach(function (s) {
@@ -3217,7 +3287,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     };
 
     if (p.liftOn && !liftErrors.length) {
-      info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge, edgeShells: p.liftEdgeModel === 'shell' && edgeM.length > 0, extra: liftExtra.map(function (s) { return s.node; }) };
+      info.lift = { nodes: liftNodes, support: p.liftSupport, edgeProfile: liftEdge, edgeShells: p.liftEdgeModel === 'shell' && edgeM.length > 0, ties: info0Ties, extra: liftExtra.map(function (s) { return s.node; }) };
     }
     return {
       params: p, errors: errors, warnings: warnings, members: members, supports: supports, covers: covers,
@@ -3231,7 +3301,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   function quantities(geom, lib) {
     var groups = {};
     var p = geom.params;
-    var profOf = { radial: p.profRadial, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace, sec: p.profSec };
+    var profOf = { radial: p.profRadial, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace, sec: p.profSec, tie: p.liftTieProf };
     geom.members.forEach(function (m) {
       var key = m.prof || profOf[m.group];
       var g = groups[m.group] || (groups[m.group] = { count: 0, length: 0, profile: key, mass: 0, kgpm: null, parts: [] });
@@ -4220,7 +4290,7 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
     mat = setAttr(mat, 'gammaM1_1', fmt(p.gammaMacc));
     mat = setAttr(mat, 'gammaM2_1', fmt(p.gammaMacc));
 
-    var groupProf = { radial: p.profRadial, sec: p.profSec, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace };
+    var groupProf = { radial: p.profRadial, sec: p.profSec, ring: p.profRing, udv: p.profUdv, edge: p.profEdge, brace: p.profBrace, tie: p.liftTieProf };
     // løft med kantbjælken som stålskaller: kantbjælkens stænger skrives ikke, men som plader (se edgeShellPlates)
     var edgeShells = !!(geom.info.lift && geom.info.lift.edgeShells) ? edgeShellPlates(lib, geom) : null;
     if (edgeShells) delete groupProf.edge;
@@ -6705,8 +6775,8 @@ table.q tr.sub th { border-top: 1px solid var(--rule); padding-top: 9px; }
   'use strict';
   var COMP_LABEL = ['N', "Ty'", "Tz'", 'Mt', "My'", "Mz'"];
   var COMP_UNIT = ['kN', 'kN', 'kN', 'kNm', 'kNm', 'kNm'];
-  var GROUP_ORDER = ['radial', 'sec', 'ring', 'udv', 'edge', 'brace'];
-  var GROUP_SHORT = { radial: 'RB', sec: 'SEK', ring: 'RING', udv: 'UDV', edge: 'KANT', brace: 'VG' };
+  var GROUP_ORDER = ['radial', 'sec', 'ring', 'udv', 'edge', 'brace', 'tie'];
+  var GROUP_SHORT = { radial: 'RB', sec: 'SEK', ring: 'RING', udv: 'UDV', edge: 'KANT', brace: 'VG', tie: 'TS' };
 
   // ---------- tal og tekst ----------
   function cellText(v) { return v === null || v === undefined ? '' : String(v).trim(); }
@@ -7474,7 +7544,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     { key: 'ring', prof: 'profRing', name: 'Ringbjælke' },
     { key: 'udv', prof: 'profUdv', name: 'Udvekslinger' },
     { key: 'edge', prof: 'profEdge', name: 'Kantring' },
-    { key: 'brace', prof: 'profBrace', name: 'Vindgitter' }
+    { key: 'brace', prof: 'profBrace', name: 'Vindgitter' },
+    { key: 'tie', prof: 'liftTieProf', name: 'Trækstænger' }
   ];
   var $ = function (id) { return document.getElementById(id); };
   var form = $('form'), drawing = $('drawing');
@@ -7679,6 +7750,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     ['liftPtFields', 'liftSupFields', 'liftShellFields'].forEach(function (k) { $(k).disabled = !p.liftOn; });
     $('liftEvenFields').hidden = p.liftPoints !== 'even';
     $('liftNodesField').hidden = p.liftPoints !== 'nodes';
+    $('liftTieFields').hidden = p.liftTies === 'none';
     // løftesimulering: kun egenlasten, så de øvrige laster er slået fra (indstillingerne bevares)
     if (p.liftOn) {
       ['loadsOn', 'deadOn', 'liveOn', 'walkOn', 'snowOn', 'windOn', 'pressOn', 'tempOn', 'rotTestOn', 'kipOn'].forEach(function (k) { $(k).disabled = true; });
@@ -7947,8 +8019,8 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     return '<text class="' + cls + '" x="' + x.toFixed(2) + '" y="' + y.toFixed(2) + '" font-size="' + size.toFixed(2) +
       '" text-anchor="' + (anchor || 'middle') + '"' + (extra || '') + '>' + esc(s) + '</text>';
   }
-  var GROUP_CLASS = { radial: 'd-radial', sec: 'd-sec', ring: 'd-ring', udv: 'd-udv', edge: 'd-edge', brace: 'd-brace' };
-  var GROUP_WIDTH = { radial: 2, sec: 1.7, ring: 2.6, udv: 1.5, edge: 2, brace: 1.8 };
+  var GROUP_CLASS = { radial: 'd-radial', sec: 'd-sec', ring: 'd-ring', udv: 'd-udv', edge: 'd-edge', brace: 'd-brace', tie: 'd-tie' };
+  var GROUP_WIDTH = { radial: 2, sec: 1.7, ring: 2.6, udv: 1.5, edge: 2, brace: 1.8, tie: 1.6 };
 
   // ---------- understøtningsforhold ----------
   var SUP_FIXED = 1e10;   // samme som FIXED i beregningskernen
@@ -8062,7 +8134,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
       out.push('</g>');
     }
     out.push('<circle class="d-shell" cx="' + c + '" cy="' + c + '" r="' + rPix.toFixed(2) + '" stroke-width="5"/>');
-    ['edge', 'udv', 'sec', 'brace', 'ring', 'radial'].forEach(function (grp) {
+    ['edge', 'udv', 'sec', 'brace', 'ring', 'radial', 'tie'].forEach(function (grp) {
       out.push('<g class="' + GROUP_CLASS[grp] + '" stroke-width="' + GROUP_WIDTH[grp] + '" stroke-linecap="round">');
       g.members.forEach(function (m) {
         if (m.group !== grp) return;
@@ -8726,7 +8798,7 @@ const LIB_B64 = "eNrUvVuP7MxxrvlXhO/SULTzEHkSPAbGgIHxhYEBZnwlCwKPHgG2ZEgyYO/954e
     GROUPS.forEach(function (grp) {
       if (grp.key === 'edge' && !p.edgeRing) return;
       if (grp.key === 'udv' && !(g.info && g.info.radii.length)) return;
-      if ((grp.key === 'brace' || grp.key === 'sec') && !(g.members && g.members.some(function (m) { return m.group === grp.key; }))) return;
+      if ((grp.key === 'brace' || grp.key === 'sec' || grp.key === 'tie') && !(g.members && g.members.some(function (m) { return m.group === grp.key; }))) return;
       var keys = [];
       (g.members || []).forEach(function (m) { if (m.group === grp.key) { var k = m.prof || p[grp.prof]; if (keys.indexOf(k) < 0) keys.push(k); } });
       if (!keys.length) keys.push(p[grp.prof]);

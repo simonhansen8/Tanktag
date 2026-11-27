@@ -906,3 +906,34 @@ test('løft: lodret + manglende vandrette tilføjer kun de fastholdelser, der ma
   // kun tangentielt i én knude: X og Y mangler stadig to retninger
   assert.equal(geo({ liftHolds: [{ nodes: 'KS.4', t: true }] }).info.hold.length, 2);
 });
+
+test('løft: trækstænger af fladstål i stedet for de vandrette understøtninger', () => {
+  const geo = (o) => TR.computeGeometry(TR.normalizeParams(Object.assign({}, TR.DEFAULTS,
+    { liftOn: true, liftShellH: 0, rotationDeg: 0, secAxes: false, liftHolds: [{ even: true, count: 8, start: 'KS.1', r: true }] }, o)));
+  const ties = (g) => g.members.filter((m) => m.group === 'tie');
+  // på tværs: 8 knuder giver 4 stænger gennem centrum mellem modstående knuder
+  const g = geo({ liftTies: 'across' });
+  assert.deepEqual(g.errors, []);
+  assert.deepEqual(ties(g).map((m) => m.tie.join('-')), ['KS.1-KS.13', 'KS.4-KS.16', 'KS.7-KS.19', 'KS.10-KS.22']);
+  ties(g).forEach((m) => {
+    assert.ok(m.truss && m.tensionOnly && m.prof === 'FL|100*10');
+    assert.ok(Math.abs(Math.hypot(m.start[0] + m.end[0], m.start[1] + m.end[1])) < 1e-9, 'gennem centrum');
+  });
+  assert.equal(g.info.lift.ties, 4);
+  // de radiale fastholdelser er væk: kun løftepunkterne er tilbage, og de får de tre manglende vandrette
+  assert.equal(g.supports.length, 4);
+  assert.equal(g.info.hold.length, 3);
+  // rundt: lukket polygon mellem naboknuderne
+  const gr = geo({ liftTies: 'ring', liftSupport: 'pinned' });
+  assert.equal(ties(gr).length, 8);
+  assert.deepEqual(ties(gr)[0].tie, ['KS.1', 'KS.4']);
+  assert.deepEqual(ties(gr)[7].tie, ['KS.22', 'KS.1']);
+  // på tværs uden modstående knude giver en advarsel
+  assert.ok(geo({ liftTies: 'across', liftHolds: [{ nodes: 'KS.2, KS.14, KS.5', r: true }] }).warnings.some((w) => /KS\.5 har ingen modstående/.test(w)));
+  // StruXML: gitterstænger med fladstålet, kun træk
+  const xml = TR.buildStruxml(g.params, LIB, { geometry: g });
+  assert.equal((xml.match(/<bar name="TS\.\d+" type="truss"/g) || []).length, 4);
+  assert.ok(TR.quantities(g, LIB).tie.mass > 0);
+  // uden trækstænger er alt som før
+  assert.equal(ties(geo({})).length, 0);
+});
